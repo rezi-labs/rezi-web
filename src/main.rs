@@ -5,6 +5,7 @@ use crate::assets::scope;
 
 mod assets;
 mod config;
+mod llm;
 mod routes;
 mod view;
 

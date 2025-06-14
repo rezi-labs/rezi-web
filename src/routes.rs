@@ -159,9 +159,17 @@ async fn send_message(form: web::Form<SendMessageRequest>) -> Result<Markup> {
     log::info!("Added user message with ID: {}", *next_chat_id);
     *next_chat_id += 1;
 
+    // Drop the locks before async call
+    drop(chat_storage);
+    drop(next_chat_id);
+
     // Generate AI response
-    let ai_response = generate_ai_response(&form.message);
+    let ai_response = generate_ai_response(&form.message).await;
     log::info!("Generated AI response: {}", ai_response);
+
+    // Re-acquire locks for AI message
+    let mut chat_storage = CHAT_STORAGE.lock().unwrap();
+    let mut next_chat_id = NEXT_CHAT_ID.lock().unwrap();
 
     let ai_message = ChatMessage {
         id: *next_chat_id,
@@ -181,10 +189,26 @@ async fn send_message(form: web::Form<SendMessageRequest>) -> Result<Markup> {
     })
 }
 
-fn generate_ai_response(user_message: &str) -> String {
-    let _message_lower = user_message.to_lowercase();
-
-    "Test".to_string()
+async fn generate_ai_response(user_message: &str) -> String {
+    match crate::llm::simple_chat(user_message).await {
+        Ok(response) => response,
+        Err(e) => {
+            log::error!("LLM API error: {:?}", e);
+            // Fallback to simple responses
+            let message_lower = user_message.to_lowercase();
+            if message_lower.contains("hello") || message_lower.contains("hi") {
+                "Hello! How can I help you today?".to_string()
+            } else if message_lower.contains("todo") || message_lower.contains("task") {
+                "I see you're talking about todos! You can manage your tasks using the todo list feature.".to_string()
+            } else if message_lower.contains("how are you") {
+                "I'm doing great! Thanks for asking. How are you doing?".to_string()
+            } else if message_lower.contains("help") {
+                "I'm here to help! You can ask me about todos, chat with me, or just have a conversation.".to_string()
+            } else {
+                "That's interesting! Tell me more about it.".to_string()
+            }
+        }
+    }
 }
 
 fn render_chat_message(message: &ChatMessage) -> Markup {
