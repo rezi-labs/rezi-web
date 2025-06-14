@@ -1,18 +1,22 @@
-use actix_web::{get, web, Scope};
-use maud::{html, Markup};
-use actix_web::{Result as AwResult};
+use crate::routes::{CHAT_STORAGE, ChatMessage};
+use actix_web::Result as AwResult;
+use actix_web::{Scope, get, web};
+use maud::{Markup, html};
 
-pub fn scope()-> Scope{
+pub fn scope() -> Scope {
     web::scope("/chat").service(index_route)
 }
 
 #[get("")]
 async fn index_route() -> AwResult<Markup> {
-    Ok(super::index(Some(render())))
+    // Get messages from storage
+    let chat_storage = CHAT_STORAGE.lock().unwrap();
+    let messages: Vec<ChatMessage> = chat_storage.clone();
+    Ok(super::index(Some(render(&messages))))
 }
 
-pub fn render() -> Markup{
-    html!{
+pub fn render(messages: &[ChatMessage]) -> Markup {
+    html! {
         div class="card bg-base-200 shadow-xl" {
             div class="card-body" {
                 h2 class="card-title text-2xl mb-4" {
@@ -22,45 +26,12 @@ pub fn render() -> Markup{
                     }
                     "Chat"
                 }
-                div id="chat-messages" class="chat-container bg-base-100 p-4 rounded-lg mb-4 space-y-3" {
-                    div class="chat chat-start" {
-                        div class="chat-image avatar" {
-                            div class="w-10 rounded-full" {
-                                div class="w-10 h-10 bg-primary rounded-full flex items-center justify-center text-primary-content font-bold" {
-                                    "J"
-                                }
-                            }
-                        }
-                        div class="chat-header" {
-                            "John"
-                            time class="text-xs opacity-50" {
-                                "12:45"
-                            }
-                        }
-                        div class="chat-bubble" {
-                            "Hello! How\'s your day going?"
-                        }
-                    }
-                    div class="chat chat-end" {
-                        div class="chat-image avatar" {
-                            div class="w-10 rounded-full" {
-                                div class="w-10 h-10 bg-secondary rounded-full flex items-center justify-center text-secondary-content font-bold" {
-                                    "Y"
-                                }
-                            }
-                        }
-                        div class="chat-header" {
-                            "You"
-                            time class="text-xs opacity-50" {
-                                "12:46"
-                            }
-                        }
-                        div class="chat-bubble chat-bubble-primary" {
-                            "Pretty good! Just working on some todos."
-                        }
+                div id="chat-messages" class="chat-container h-96 bg-base-100 p-4 rounded-lg mb-4 space-y-3 overflow-y-auto" {
+                    @for message in messages {
+                        (render_chat_message(message))
                     }
                 }
-                form class="flex gap-2" hx-post="/api/chat" hx-target="#chat-messages" hx-swap="beforeend" {
+                form class="flex gap-2" hx-post="/api/chat" hx-target="#chat-messages" hx-swap="beforeend" hx-on--after-request="this.reset()" {
                     input class="input input-bordered flex-1" type="text" name="message" placeholder="Type your message..." required;
                     button class="btn btn-primary" type="submit" {
                         svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24" {
@@ -70,6 +41,51 @@ pub fn render() -> Markup{
                         "Send"
                     }
                 }
+            }
+        }
+    }
+}
+
+fn render_chat_message(message: &ChatMessage) -> Markup {
+    html! {
+        div class={
+            @if message.is_user {
+                "chat chat-end"
+            } @else {
+                "chat chat-start"
+            }
+        } {
+            div class="chat-image avatar" {
+                div class="w-10 rounded-full" {
+                    div class={
+                        @if message.is_user {
+                            "w-10 h-10 bg-secondary rounded-full flex items-center justify-center text-secondary-content font-bold"
+                        } @else {
+                            "w-10 h-10 bg-primary rounded-full flex items-center justify-center text-primary-content font-bold"
+                        }
+                    } {
+                        @if message.is_user {
+                            "Y"
+                        } @else {
+                            "A"
+                        }
+                    }
+                }
+            }
+            div class="chat-header" {
+                (message.sender)
+                time class="text-xs opacity-50" {
+                    (message.timestamp.format("%H:%M"))
+                }
+            }
+            div class={
+                @if message.is_user {
+                    "chat-bubble chat-bubble-primary"
+                } @else {
+                    "chat-bubble"
+                }
+            } {
+                (message.content)
             }
         }
     }

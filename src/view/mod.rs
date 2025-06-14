@@ -1,15 +1,15 @@
-use actix_web::dev::{Service, WebService};
-use actix_web::{get, web,Scope};
-use actix_web::{Result as AwResult};
-use maud::{html, Markup};
+use crate::routes::CHAT_STORAGE;
+use actix_web::Result as AwResult;
+use actix_web::{Scope, get, web};
+use maud::{Markup, html};
 
-
-mod todolist;
-mod navbar;
 mod chat;
+mod navbar;
+mod todolist;
 
+pub use todolist::render_todo_item;
 
-pub fn scope()-> Scope{
+pub fn scope() -> Scope {
     web::scope("/ui")
         .service(chat::scope())
         .service(todolist::scope())
@@ -21,19 +21,22 @@ async fn index_route() -> AwResult<Markup> {
     Ok(index(None))
 }
 
-
-pub fn css(path: impl Into<String>)-> Markup{
+pub fn css(path: impl Into<String>) -> Markup {
     let path: String = path.into();
-    html!{link href=(path) rel="stylesheet" type="text/css";}
+    html! {link href=(path) rel="stylesheet" type="text/css";}
 }
 
-pub fn js(path: impl Into<String>)-> Markup{
+pub fn js(path: impl Into<String>) -> Markup {
     let path: String = path.into();
-    html!{script src=(path) {}}
+    html! {script src=(path) {}}
 }
 
-pub fn index(content: Option<Markup>)-> Markup{
-    let content = content.unwrap_or(chat::render());
+pub fn index(content: Option<Markup>) -> Markup {
+    let content = content.unwrap_or_else(|| {
+        let chat_storage = CHAT_STORAGE.lock().unwrap();
+        let messages = chat_storage.clone();
+        chat::render(&messages)
+    });
     html! {
         (maud::DOCTYPE)
         head {
@@ -48,16 +51,15 @@ pub fn index(content: Option<Markup>)-> Markup{
             (css("/assets/daisy.css"))
             (css("/assets/themes.css"))
             (css("/assets/app.css"))
-            
-        
+
         }
         body {
-            
+            (js("/assets/htmxListener.js"))
             (navbar::render())
-            
+
             div class="container mx-auto p-4" {
                 div class="grid grid-cols-1 gap-6" {
-                  (content)  
+                  (content)
                 }
             }
         }
