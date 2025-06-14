@@ -43,6 +43,7 @@ pub fn index(content: Option<Markup>)-> Markup{
                 "Todo & Chat App"
             }
             (js("/assets/tw.js"))
+            (js("/assets/theme-switcher.js"))
             (js("/assets/htmx.js"))
             (css("/assets/daisy.css"))
             (css("/assets/themes.css"))
