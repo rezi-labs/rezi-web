@@ -1,8 +1,6 @@
 use actix_web::{App, HttpServer, middleware::Logger, web};
 use env_logger::Env;
 
-use crate::assets::scope;
-
 mod assets;
 mod config;
 mod llm;
@@ -13,7 +11,7 @@ mod view;
 async fn main() -> std::io::Result<()> {
     env_logger::init_from_env(Env::default().default_filter_or("info"));
 
-    // Initialize sample todo data
+    // Initialize sample data
     routes::initialize_sample_data();
 
     let c = config::from_env();
@@ -29,7 +27,7 @@ async fn main() -> std::io::Result<()> {
                 .service(
                     web::scope("/api")
                         .service(routes::health)
-                        .service(routes::todo_scope())
+                        .service(routes::item_scope())
                         .service(routes::chat_scope()),
                 )
                 .service(assets::scope())
@@ -38,11 +36,9 @@ async fn main() -> std::io::Result<()> {
         panic!("could not start")
     };
 
-    let res = server
+    server
         .bind((c.host(), c.port()))
         .expect("Could not bind server address")
         .run()
-        .await;
-
-    res
+        .await
 }

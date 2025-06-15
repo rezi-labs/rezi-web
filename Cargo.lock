@@ -798,6 +798,7 @@ dependencies = [
  "lazy_static",
  "log",
  "maud",
+ "rand",
  "reqwest",
  "serde",
  "serde_json",

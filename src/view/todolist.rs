@@ -1,4 +1,4 @@
-use crate::routes::{TODO_STORAGE, TodoItem};
+use crate::routes::{ITEM_STORAGE, Item};
 use actix_web::Result as AwResult;
 use actix_web::{Scope, get, web};
 use maud::{Markup, html};
@@ -10,12 +10,12 @@ pub fn scope() -> Scope {
 #[get("")]
 async fn index_route() -> AwResult<Markup> {
     // Get items from storage
-    let storage = TODO_STORAGE.lock().unwrap();
-    let items: Vec<TodoItem> = storage.values().cloned().collect();
+    let storage = ITEM_STORAGE.lock().unwrap();
+    let items: Vec<Item> = storage.values().cloned().collect();
     Ok(super::index(Some(render(&items))))
 }
 
-pub fn render(items: &[TodoItem]) -> Markup {
+pub fn render(items: &[Item]) -> Markup {
     html! {
         div class="card bg-base-200 shadow-xl" {
             div class="card-body" {
@@ -38,7 +38,7 @@ pub fn render(items: &[TodoItem]) -> Markup {
                 }
                 div id="todo-list" class="todo-container space-y-2" {
                     @for item in items {
-                        (render_todo_item(item))
+                        (render_item(item))
                     }
                 }
             }
@@ -46,7 +46,7 @@ pub fn render(items: &[TodoItem]) -> Markup {
     }
 }
 
-pub fn render_todo_item(item: &TodoItem) -> Markup {
+pub fn render_item(item: &Item) -> Markup {
     html! {
         div class="flex items-center gap-3 p-3 bg-base-100 rounded-lg" id=(format!("c-todo-{}", item.id)) {
 

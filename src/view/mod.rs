@@ -7,7 +7,7 @@ mod chat;
 mod navbar;
 mod todolist;
 
-pub use todolist::render_todo_item;
+pub use todolist::render_item;
 
 pub fn scope() -> Scope {
     web::scope("/ui")
