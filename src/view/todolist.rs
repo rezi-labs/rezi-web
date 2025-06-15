@@ -1,4 +1,5 @@
-use crate::routes::{ITEM_STORAGE, Item};
+use crate::database::{self, DBClient};
+use crate::routes::Item;
 use actix_web::Result as AwResult;
 use actix_web::{Scope, get, web};
 use maud::{Markup, html};
@@ -8,11 +9,14 @@ pub fn scope() -> Scope {
 }
 
 #[get("")]
-async fn index_route() -> AwResult<Markup> {
-    // Get items from storage
-    let storage = ITEM_STORAGE.lock().unwrap();
-    let items: Vec<Item> = storage.values().cloned().collect();
-    Ok(super::index(Some(render(&items))))
+async fn index_route(client: web::Data<DBClient>) -> AwResult<Markup> {
+    let client = client.get_ref();
+    let items: Vec<Item> = database::get_items(client).await;
+
+    let sender = "You";
+    let messages = database::get_messages(client, sender).await;
+
+    Ok(super::index(Some(render(&items)), messages.as_slice()))
 }
 
 pub fn render(items: &[Item]) -> Markup {

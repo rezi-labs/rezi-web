@@ -1,4 +1,5 @@
-use crate::routes::{CHAT_STORAGE, ChatMessage};
+use crate::database::{self, DBClient};
+use crate::routes::ChatMessage;
 use actix_web::Result as AwResult;
 use actix_web::{Scope, get, web};
 use maud::{Markup, html};
@@ -8,11 +9,12 @@ pub fn scope() -> Scope {
 }
 
 #[get("")]
-async fn index_route() -> AwResult<Markup> {
-    // Get messages from storage
-    let chat_storage = CHAT_STORAGE.lock().unwrap();
-    let messages: Vec<ChatMessage> = chat_storage.clone();
-    Ok(super::index(Some(render(&messages))))
+async fn index_route(client: web::Data<DBClient>) -> AwResult<Markup> {
+    let sender = "You";
+    let client = client.get_ref();
+    let messages = database::get_messages(client, sender).await;
+
+    Ok(super::index(Some(render(&messages)), messages.as_slice()))
 }
 
 pub fn render(messages: &[ChatMessage]) -> Markup {

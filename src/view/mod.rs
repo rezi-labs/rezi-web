@@ -1,4 +1,3 @@
-use crate::routes::CHAT_STORAGE;
 use actix_web::Result as AwResult;
 use actix_web::{Scope, get, web};
 use maud::{Markup, html};
@@ -9,6 +8,9 @@ mod todolist;
 
 pub use todolist::render_item;
 
+use crate::database::{self, DBClient};
+use crate::routes::ChatMessage;
+
 pub fn scope() -> Scope {
     web::scope("/ui")
         .service(chat::scope())
@@ -17,8 +19,11 @@ pub fn scope() -> Scope {
 }
 
 #[get("")]
-async fn index_route() -> AwResult<Markup> {
-    Ok(index(None))
+async fn index_route(client: web::Data<DBClient>) -> AwResult<Markup> {
+    let sender = "You";
+    let client = client.get_ref();
+    let messages = database::get_messages(client, sender).await;
+    Ok(index(None, messages.as_slice()))
 }
 
 pub fn css(path: impl Into<String>) -> Markup {
@@ -31,12 +36,8 @@ pub fn js(path: impl Into<String>) -> Markup {
     html! {script src=(path) {}}
 }
 
-pub fn index(content: Option<Markup>) -> Markup {
-    let content = content.unwrap_or_else(|| {
-        let chat_storage = CHAT_STORAGE.lock().unwrap();
-        let messages = chat_storage.clone();
-        chat::render(&messages)
-    });
+pub fn index(content: Option<Markup>, messages: &[ChatMessage]) -> Markup {
+    let content = content.unwrap_or_else(|| chat::render(&messages));
     html! {
         (maud::DOCTYPE)
         head {

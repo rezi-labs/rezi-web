@@ -1,12 +1,15 @@
 use actix_web::{HttpResponse, Responder, Result, delete, get, patch, post, web};
 use chrono::{DateTime, Utc};
+use libsql_client::Row;
 use log::error;
 use maud::{Markup, html};
 use rand::Rng;
 use serde::{Deserialize, Serialize};
 use std::collections::HashMap;
+use std::str::FromStr;
 use std::sync::{Arc, Mutex};
 
+use crate::database::{self, DBClient};
 use crate::llm;
 use crate::view::render_item;
 
@@ -15,6 +18,20 @@ pub struct Item {
     pub id: u32,
     pub task: String,
     pub completed: bool,
+}
+impl Item {
+    pub fn from_row(row: &Row) -> Result<Item, String> {
+        let id: u32 = row.try_get(0).unwrap();
+        let task: &str = row.try_get(1).unwrap();
+        let completed: u32 = row.try_get(4).unwrap();
+        let completed = completed == 1;
+
+        Ok(Item {
+            id,
+            task: task.to_string(),
+            completed: completed,
+        })
+    }
 }
 
 #[derive(Deserialize)]
@@ -31,86 +48,47 @@ pub struct ChatMessage {
     pub is_user: bool,
 }
 
+impl ChatMessage {
+    pub fn from_row(row: &Row) -> Result<ChatMessage, String> {
+        let id: u32 = row.try_get(0).unwrap();
+        let content: &str = row.try_get(1).unwrap();
+        let sendr: &str = row.try_get(2).unwrap();
+        let timestamp: &str = row.try_get(3).unwrap();
+        let timestamp: DateTime<Utc> = DateTime::from_str(timestamp).unwrap();
+        let is_user: &str = row.try_get(4).unwrap();
+        let is_user = is_user == "true";
+
+        Ok(ChatMessage {
+            id,
+            content: content.to_string(),
+            sender: sendr.to_string(),
+            timestamp: timestamp,
+            is_user: is_user,
+        })
+    }
+}
+
 #[derive(Deserialize)]
 pub struct SendMessageRequest {
     pub message: String,
 }
 
-// Simple in-memory storage for demo purposes
-lazy_static::lazy_static! {
-    pub static ref ITEM_STORAGE: Arc<Mutex<HashMap<u32, Item>>> = Arc::new(Mutex::new(HashMap::new()));
-    pub static ref CHAT_STORAGE: Arc<Mutex<Vec<ChatMessage>>> = Arc::new(Mutex::new(Vec::new()));
-    pub static ref NEXT_ID: Arc<Mutex<u32>> = Arc::new(Mutex::new(1));
-    static ref NEXT_CHAT_ID: Arc<Mutex<u32>> = Arc::new(Mutex::new(1));
-}
-
-pub fn initialize_sample_data() {
-    let mut storage = ITEM_STORAGE.lock().unwrap();
-    let mut next_id = NEXT_ID.lock().unwrap();
-
-    // Only initialize if storage is empty
-    if storage.is_empty() {
-        storage.insert(
-            1,
-            Item {
-                id: 1,
-                task: "Sample todo item".to_string(),
-                completed: false,
-            },
-        );
-
-        storage.insert(
-            2,
-            Item {
-                id: 2,
-                task: "Completed todo item".to_string(),
-                completed: true,
-            },
-        );
-
-        *next_id = 3;
-    }
-
-    // Initialize sample chat messages
-    let mut chat_storage = CHAT_STORAGE.lock().unwrap();
-    let mut next_chat_id = NEXT_CHAT_ID.lock().unwrap();
-
-    if chat_storage.is_empty() {
-        chat_storage.push(ChatMessage {
-            id: 1,
-            content: "Hello! How's your day going?".to_string(),
-            sender: "John".to_string(),
-            timestamp: Utc::now(),
-            is_user: false,
-        });
-
-        chat_storage.push(ChatMessage {
-            id: 2,
-            content: "Pretty good! Just working on some todos.".to_string(),
-            sender: "You".to_string(),
-            timestamp: Utc::now(),
-            is_user: true,
-        });
-
-        *next_chat_id = 3;
-    }
-}
 
 #[post("")]
-async fn create_item(form: web::Form<CreateTodoRequest>) -> Result<Markup> {
-    let mut storage = ITEM_STORAGE.lock().unwrap();
-    let mut next_id = NEXT_ID.lock().unwrap();
+async fn create_item(form: web::Form<CreateTodoRequest>, client: web::Data<DBClient>) -> Result<Markup> {
 
-    let todo_item = Item {
-        id: *next_id,
+    let client: &DBClient = client.get_ref();
+    let id= random_id();
+    
+    let item = Item {
+        id: id,
         task: form.task.clone(),
         completed: false,
     };
+    database::create_item(client, item.clone());
+    
 
-    storage.insert(*next_id, todo_item.clone());
-    *next_id += 1;
-
-    Ok(render_item(&todo_item))
+    Ok(render_item(&item))
 }
 
 #[patch("/{id}/toggle")]
@@ -143,18 +121,20 @@ pub fn item_scope() -> actix_web::Scope {
         .service(delete_item)
 }
 
-fn random_chat_id() -> u32 {
+pub fn random_id() -> u32 {
     let mut rng = rand::rng();
     rng.random::<u32>()
 }
 
 #[post("")]
-async fn send_message(form: web::Form<SendMessageRequest>) -> Result<Markup> {
+async fn send_message(
+    form: web::Form<SendMessageRequest>,
+    client: web::Data<DBClient>,
+) -> Result<Markup> {
     log::info!("Received chat message: {}", form.message);
+    let x: &DBClient = client.get_ref();
 
-    let mut chat_storage = CHAT_STORAGE.lock().unwrap();
-
-    let chat_id = random_chat_id();
+    let chat_id = random_id();
     // Add user message
     let user_message = ChatMessage {
         id: chat_id,
@@ -163,30 +143,22 @@ async fn send_message(form: web::Form<SendMessageRequest>) -> Result<Markup> {
         timestamp: Utc::now(),
         is_user: true,
     };
-    chat_storage.push(user_message.clone());
-    log::info!("Added user message with ID: {}", chat_id);
+    database::save_message(x, user_message.clone()).await;
 
-    // Drop the locks before async call
-    drop(chat_storage);
+    log::info!("Added user message with ID: {}", chat_id);
 
     // Generate AI response
     let ai_response = generate_ai_response(&form.message).await;
     log::info!("Generated AI response: {}", ai_response);
 
-    // Re-acquire locks for AI message
-    let mut chat_storage = CHAT_STORAGE.lock().unwrap();
-    let mut next_chat_id = NEXT_CHAT_ID.lock().unwrap();
-
     let ai_message = ChatMessage {
-        id: *next_chat_id,
+        id: random_id(),
         content: ai_response,
         sender: "Assistant".to_string(),
         timestamp: Utc::now(),
         is_user: false,
     };
-    chat_storage.push(ai_message.clone());
-    log::info!("Added AI message with ID: {}", *next_chat_id);
-    *next_chat_id += 1;
+    database::save_message(x, ai_message.clone()).await;
 
     // Return both messages as HTML
     Ok(html! {

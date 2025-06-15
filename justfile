@@ -1,9 +1,18 @@
 
 it:
     cargo install cargo-watch --locked
+    curl -sSfL https://get.tur.so/install.sh | bash
+    sudo curl -o /etc/yum.repos.d/beekeeper-studio.repo https://rpm.beekeeperstudio.io/beekeeper-studio.repo
+    sudo rpm --import https://rpm.beekeeperstudio.io/beekeeper.key
+    sudo dnf install beekeeper-studio
 
-run:
+
+run: db
     cargo run
+
+db:
+    -(kill -9 $(lsof -t -i:8080))
+    turso dev &
     
 watch:
     cargo watch -x run  
