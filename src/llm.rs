@@ -62,8 +62,9 @@ impl From<reqwest::Error> for LlmError {
 }
 
 pub async fn chat_completion(messages: Vec<Message>) -> Result<String, LlmError> {
-    let api_token = env::var("CHUTES_API_TOKEN")
-        .map_err(|_| LlmError::AuthError("CHUTES_API_TOKEN environment variable not set".to_string()))?;
+    let api_token = env::var("CHUTES_API_TOKEN").map_err(|_| {
+        LlmError::AuthError("CHUTES_API_TOKEN environment variable not set".to_string())
+    })?;
 
     let client = Client::new();
 
@@ -85,9 +86,12 @@ pub async fn chat_completion(messages: Vec<Message>) -> Result<String, LlmError>
 
     if !response.status().is_success() {
         let status = response.status();
-        let error_text = response.text().await.unwrap_or_else(|_| "Unknown error".to_string());
+        let error_text = response
+            .text()
+            .await
+            .unwrap_or_else(|_| "Unknown error".to_string());
         return Err(LlmError::RequestError(reqwest::Error::from(
-            reqwest::Client::new().get("").send().await.unwrap_err()
+            reqwest::Client::new().get("").send().await.unwrap_err(),
         )));
     }
 
@@ -103,7 +107,9 @@ pub async fn chat_completion(messages: Vec<Message>) -> Result<String, LlmError>
             Err(LlmError::ParseError("No message content found".to_string()))
         }
     } else {
-        Err(LlmError::ParseError("No choices found in response".to_string()))
+        Err(LlmError::ParseError(
+            "No choices found in response".to_string(),
+        ))
     }
 }
 
@@ -111,8 +117,9 @@ pub async fn chat_completion_streaming(
     messages: Vec<Message>,
     mut callback: impl FnMut(String),
 ) -> Result<String, LlmError> {
-    let api_token = env::var("CHUTES_API_TOKEN")
-        .map_err(|_| LlmError::AuthError("CHUTES_API_TOKEN environment variable not set".to_string()))?;
+    let api_token = env::var("CHUTES_API_TOKEN").map_err(|_| {
+        LlmError::AuthError("CHUTES_API_TOKEN environment variable not set".to_string())
+    })?;
 
     let client = Client::new();
 
@@ -134,8 +141,14 @@ pub async fn chat_completion_streaming(
 
     if !response.status().is_success() {
         let status = response.status();
-        let error_text = response.text().await.unwrap_or_else(|_| "Unknown error".to_string());
-        return Err(LlmError::ParseError(format!("API error {}: {}", status, error_text)));
+        let error_text = response
+            .text()
+            .await
+            .unwrap_or_else(|_| "Unknown error".to_string());
+        return Err(LlmError::ParseError(format!(
+            "API error {}: {}",
+            status, error_text
+        )));
     }
 
     let mut full_content = String::new();
@@ -156,12 +169,13 @@ pub async fn chat_completion_streaming(
                     break;
                 }
 
-                if let Ok(chunk_response) = serde_json::from_str::<ChatCompletionResponse>(json_str) {
+                if let Ok(chunk_response) = serde_json::from_str::<ChatCompletionResponse>(json_str)
+                {
                     if let Some(choice) = chunk_response.choices.first() {
                         if let Some(delta) = &choice.delta {
                             if let Some(content) = &delta.content {
                                 full_content.push_str(content);
-                                callback(content.clone());
+                                callback(content.to_owned());
                             }
                         }
                     }

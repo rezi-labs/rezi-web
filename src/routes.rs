@@ -1,10 +1,12 @@
 use actix_web::{HttpResponse, Responder, Result, delete, get, patch, post, web};
 use chrono::{DateTime, Utc};
+use futures_util::FutureExt;
 use maud::{Markup, html};
 use serde::{Deserialize, Serialize};
 use std::collections::HashMap;
 use std::sync::{Arc, Mutex};
 
+use crate::llm;
 use crate::view::render_todo_item;
 
 #[derive(Debug, Clone, Serialize, Deserialize)]
@@ -37,7 +39,7 @@ pub struct SendMessageRequest {
 lazy_static::lazy_static! {
     pub static ref TODO_STORAGE: Arc<Mutex<HashMap<u32, TodoItem>>> = Arc::new(Mutex::new(HashMap::new()));
     pub static ref CHAT_STORAGE: Arc<Mutex<Vec<ChatMessage>>> = Arc::new(Mutex::new(Vec::new()));
-    static ref NEXT_ID: Arc<Mutex<u32>> = Arc::new(Mutex::new(1));
+    pub static ref NEXT_ID: Arc<Mutex<u32>> = Arc::new(Mutex::new(1));
     static ref NEXT_CHAT_ID: Arc<Mutex<u32>> = Arc::new(Mutex::new(1));
 }
 
@@ -190,25 +192,7 @@ async fn send_message(form: web::Form<SendMessageRequest>) -> Result<Markup> {
 }
 
 async fn generate_ai_response(user_message: &str) -> String {
-    match crate::llm::simple_chat(user_message).await {
-        Ok(response) => response,
-        Err(e) => {
-            log::error!("LLM API error: {:?}", e);
-            // Fallback to simple responses
-            let message_lower = user_message.to_lowercase();
-            if message_lower.contains("hello") || message_lower.contains("hi") {
-                "Hello! How can I help you today?".to_string()
-            } else if message_lower.contains("todo") || message_lower.contains("task") {
-                "I see you're talking about todos! You can manage your tasks using the todo list feature.".to_string()
-            } else if message_lower.contains("how are you") {
-                "I'm doing great! Thanks for asking. How are you doing?".to_string()
-            } else if message_lower.contains("help") {
-                "I'm here to help! You can ask me about todos, chat with me, or just have a conversation.".to_string()
-            } else {
-                "That's interesting! Tell me more about it.".to_string()
-            }
-        }
-    }
+     llm::simple_chat(user_message).await.unwrap()
 }
 
 fn render_chat_message(message: &ChatMessage) -> Markup {
