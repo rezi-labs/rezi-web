@@ -1,5 +1,12 @@
 # Changelog
 
+## [0.1.1](https://github.com/LunchTimeCode/grocy/compare/v0.1.0...v0.1.1) (2025-06-28)
+
+
+### Bug Fixes
+
+* docker file ([d627000](https://github.com/LunchTimeCode/grocy/commit/d627000bd9ff6d053e710f344e2ccc3d4c025b5d))
+
 ## 0.1.0 (2025-06-28)
 
 
