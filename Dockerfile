@@ -13,7 +13,9 @@ FROM debian:bookworm-slim
 
 # Copy the build artifact from the build stage
 COPY --from=builder /usr/src/app/target/release/grocy /usr/local/bin/
-LABEL org.opencontainers.image.source https://github.com/LunchTimeCode/grocy
+# copy assets
+COPY --from=builder /usr/src/app/assets /usr/local/bin/assets
+LABEL org.opencontainers.image.source=https://github.com/LunchTimeCode/grocy
 
 # Set the startup command
 CMD ["grocy"]
