@@ -1,6 +1,9 @@
 use actix_web::{App, HttpServer, middleware::Logger, web};
 use env_logger::Env;
-use std::{env, sync::{Arc, Mutex}};
+use std::{
+    env,
+    sync::{Arc, Mutex},
+};
 
 use crate::{routes::health, view::todolist};
 
@@ -25,7 +28,7 @@ async fn main() -> std::io::Result<()> {
 
     let url = format!("http://{}:{}", c.host(), c.port());
 
-   let server = HttpServer::new(move || {
+    let server = HttpServer::new(move || {
         App::new()
             .wrap(Logger::default())
             .wrap(Logger::new("%a %{User-Agent}i"))
@@ -40,10 +43,10 @@ async fn main() -> std::io::Result<()> {
             .service(assets::scope())
             .service(health)
     });
-   
-   if env::var("OPEN_BROWSER").is_ok() {
-     webbrowser::open(&url).unwrap();
-   }
+
+    if env::var("OPEN_BROWSER").is_ok() {
+        webbrowser::open(&url).unwrap();
+    }
 
     server
         .bind((bind.host(), bind.port()))
