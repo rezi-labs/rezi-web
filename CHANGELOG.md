@@ -1,5 +1,14 @@
 # Changelog
 
+## [0.2.2](https://github.com/LunchTimeCode/grocy/compare/v0.2.1...v0.2.2) (2025-06-28)
+
+
+### Bug Fixes
+
+* do not try to open web browser on server ([e089ecf](https://github.com/LunchTimeCode/grocy/commit/e089ecf834f6aebc5bbbc18354124163589de2a1))
+* force version ([1268a3e](https://github.com/LunchTimeCode/grocy/commit/1268a3e428721c5edd031023b25854013af256fa))
+* image ([c5a358e](https://github.com/LunchTimeCode/grocy/commit/c5a358eb3746101fc3aad2aabd8fe16f3e6ae423))
+
 ## [0.2.1](https://github.com/LunchTimeCode/grocy/compare/v0.2.0...v0.2.1) (2025-06-28)
 
 
