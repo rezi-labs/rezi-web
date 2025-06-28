@@ -1,0 +1,10 @@
+services:
+  
+  grocy:
+    image: ghcr.io/lunchtimecode/grocy:latest
+    environment:
+      - NEST_API_KEY=your_api_key_here
+    ports:
+      - "9999:9999"
+    network_mode: host  
+    
