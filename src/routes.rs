@@ -1,14 +1,14 @@
 use actix_web::{HttpResponse, Responder, Result, delete, get, patch, post, web};
 use chrono::{DateTime, Utc};
 use libsql_client::Row;
-use log::error;
+use log::{error, info};
 use maud::{Markup, html};
 use rand::Rng;
 use serde::{Deserialize, Serialize};
 use std::str::FromStr;
 
 use crate::config::Server;
-use crate::database::{self, DBClient};
+use crate::database::{self, DBClient, int_to_bool};
 use crate::llm;
 use crate::view::render_item;
 
@@ -30,12 +30,12 @@ impl Item {
             return Err(err);
         };
 
-        let Ok(completed) = row.try_get::<&str>(2) else {
+        let Ok(completed) = row.try_get::<i64>(2) else {
             let err = format!("Item::from_row {row:?}");
             return Err(err);
         };
 
-        let completed: bool = completed.parse().unwrap();
+        let completed: bool = int_to_bool(completed);
 
         Ok(Item {
             id,
@@ -105,6 +105,8 @@ pub async fn create_item(
 #[patch("items/{id}/toggle")]
 pub async fn toggle_item(path: web::Path<i64>, client: web::Data<DBClient>) -> Result<Markup> {
     let id = path.into_inner();
+
+    info!("toggle_item: {id}");
     let client: &DBClient = client.get_ref();
     let item = database::toggle_item(client, id).await;
 

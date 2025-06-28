@@ -36,7 +36,7 @@ pub fn render(items: &[Item]) -> Markup {
                         "Add"
                     }
                 }
-                div id="todo-list" class="todo-container space-y-2" {
+                div id="todo-list" class="todo-container space-y-2 h-[700px] overflow-y-auto" {
                     @for item in items {
                         (render_item(item))
                     }

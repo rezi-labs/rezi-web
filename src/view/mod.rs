@@ -37,7 +37,7 @@ pub fn index(content: Option<Markup>, messages: &[ChatMessage]) -> Markup {
             meta charset="UTF-8";
             meta name="viewport" content="width=device-width, initial-scale=1.0";
             title {
-                "Todo & Chat App"
+                "Grocy"
             }
             (js("/assets/tw.js"))
             (js("/assets/theme-switcher.js"))

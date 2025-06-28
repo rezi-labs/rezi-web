@@ -17,7 +17,7 @@ pub fn render() -> Markup {
                     }
                     li {
                         a href="/items" {
-                            "List"
+                            "Groceries"
                         }
                     }
             }

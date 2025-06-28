@@ -164,8 +164,9 @@ pub async fn create_items(client: &DBClient, items: Vec<Item>) {
     // Build bulk insert SQL with multiple VALUES clauses
     let mut values_clauses = Vec::new();
     for item in &items {
+        let completed = bool_to_int(item.completed);
         let escaped_task = escape_sql_string(&item.task);
-        let value_clause = format!("({}, '{}', '{}')", item.id, escaped_task, item.completed);
+        let value_clause = format!("({}, '{}', '{}')", item.id, escaped_task, completed);
         values_clauses.push(value_clause);
     }
 
@@ -193,13 +194,14 @@ pub async fn create_item(client: &DBClient, item: Item) {
 
     info!("{item:?}");
 
+    let completed = bool_to_int(item.completed);
+
     let statement = format!(
         r#"INSERT INTO items
     (id, task, completed)
-    VALUES({}, '{}', '{}');"#,
+    VALUES({}, '{}', '{completed}');"#,
         item.id,
         escape_sql_string(&item.task),
-        item.completed
     );
 
     let st = Statement::new(statement);
@@ -233,9 +235,36 @@ pub async fn delete_item(client: &DBClient, item_id: i64) {
 #[allow(clippy::await_holding_lock)]
 pub async fn toggle_item(client: &DBClient, item_id: i64) -> Result<Item, String> {
     let locked_client = client.lock().unwrap();
+    info!("db toggle: {item_id}");
 
-    let old = get_item(client, item_id).await.unwrap();
-    let completed = !old.completed;
+    let statement = format!(
+        r#"SELECT id, task, completed
+    FROM items
+    WHERE id = {item_id};"#,
+    );
+
+    let st = Statement::new(statement);
+
+    let res = locked_client.execute(st).await.unwrap();
+    drop(locked_client);
+
+    let rows: Vec<Item> = res
+        .rows
+        .iter()
+        .filter_map(|r| Item::from_row(r).ok())
+        .collect();
+
+    let old = rows
+        .first()
+        .cloned()
+        .ok_or_else(|| "Item not found".to_string())
+        .unwrap();
+
+    info!("old: {old:?}");
+
+    let locked_client = client.lock().unwrap();
+
+    let completed = bool_to_int(!old.completed);
     let statement = format!(
         r#"UPDATE items
     SET completed = {completed}
@@ -274,4 +303,12 @@ pub async fn get_item(client: &DBClient, item_id: i64) -> Result<Item, String> {
     rows.first()
         .cloned()
         .ok_or_else(|| "Item not found".to_string())
+}
+
+pub fn bool_to_int(b: bool) -> i64 {
+    if b { 1 } else { 0 }
+}
+
+pub fn int_to_bool(i: i64) -> bool {
+    i == 1
 }
