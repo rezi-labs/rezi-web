@@ -7,7 +7,7 @@ push:
     just _d_push $(just get_version)
     
 _d_push version:
-    docker build -t {{image_name}}:{{version}} . 
+    docker --debug build -t {{image_name}}:{{version}} . 
     docker push {{image_name}}:{{version}}
 
 get_version:

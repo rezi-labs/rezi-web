@@ -5,7 +5,12 @@ edition = "2024"
 
 [dependencies]
 actix-files = "0.6.6"
-actix-web = "4.11.0"
+actix-web = { version = "4.11.0", default-features = false, features = [
+    "rustls",
+    "compress-brotli",
+    "http2",
+    "macros",
+] }
 chrono = { version = "0.4", features = ["serde"] }
 env_logger = "0.11.8"
 futures-util = "0.3"
@@ -15,7 +20,11 @@ libsql-client = "0.33.4"
 log = "0.4.27"
 maud = { version = "0.27.0", features = ["actix-web"] }
 rand = "0.9.1"
-reqwest = { version = "0.11", features = ["json", "stream"] }
+reqwest = { version = "0.11", default-features = false, features = [
+    "json",
+    "stream",
+    "rustls-tls",
+] }
 serde = { version = "1.0", features = ["derive"] }
 serde_json = "1.0"
 
