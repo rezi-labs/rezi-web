@@ -1,5 +1,12 @@
 # Changelog
 
+## [0.2.0](https://github.com/LunchTimeCode/grocy/compare/v0.1.1...v0.2.0) (2025-06-28)
+
+
+### Features
+
+* fixed deps ([d3aad5e](https://github.com/LunchTimeCode/grocy/commit/d3aad5e5f56c2eb61556b78e89d5cf76677ad994))
+
 ## [0.1.1](https://github.com/LunchTimeCode/grocy/compare/v0.1.0...v0.1.1) (2025-06-28)
 
 
