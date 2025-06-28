@@ -3,6 +3,7 @@ import 'docker.just'
 
 image_name := "ghcr.io/lunchtimecode/grocy"
 export NEST_API_KEY := "hello_world"
+export OPEN_BROWSER := "true"
 
 it:
     cargo install cargo-watch --locked
