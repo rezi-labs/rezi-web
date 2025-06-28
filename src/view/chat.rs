@@ -1,15 +1,11 @@
 use crate::database::{self, DBClient};
 use crate::routes::ChatMessage;
 use actix_web::Result as AwResult;
-use actix_web::{Scope, get, web};
+use actix_web::{get, web};
 use maud::{Markup, html};
 
-pub fn scope() -> Scope {
-    web::scope("/chat").service(index_route)
-}
-
 #[get("")]
-async fn index_route(client: web::Data<DBClient>) -> AwResult<Markup> {
+pub async fn index_route(client: web::Data<DBClient>) -> AwResult<Markup> {
     let sender = "You";
     let client = client.get_ref();
     let messages = database::get_messages(client, sender).await;
@@ -33,7 +29,7 @@ pub fn render(messages: &[ChatMessage]) -> Markup {
                         (render_chat_message(message))
                     }
                 }
-                form class="flex gap-2" hx-post="/api/chat" hx-target="#chat-messages" hx-swap="beforeend" hx-on--after-request="this.reset()" {
+                form class="flex gap-2" hx-post="/chat" hx-target="#chat-messages" hx-swap="beforeend" hx-on--after-request="this.reset()" {
                     input class="input input-bordered flex-1" type="text" name="message" placeholder="Type your message..." required;
                     button class="btn btn-primary" type="submit" {
                         svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24" {

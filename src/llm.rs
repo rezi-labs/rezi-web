@@ -1,31 +1,10 @@
 use reqwest::Client;
 use serde::{Deserialize, Serialize};
-use std::env;
 
-#[derive(Debug, Serialize)]
-pub struct ChatCompletionRequest {
-    pub model: String,
-    pub messages: Vec<Message>,
-    pub stream: bool,
-    pub max_tokens: u32,
-    pub temperature: f32,
-}
-
-#[derive(Debug, Serialize, Deserialize)]
-pub struct Message {
-    pub role: String,
-    pub content: String,
-}
-
-#[derive(Debug, Deserialize)]
-pub struct ChatCompletionResponse {
-    pub choices: Vec<Choice>,
-}
-
-#[derive(Debug, Deserialize)]
-pub struct Choice {
-    pub message: Option<Message>,
-}
+use crate::{
+    database::{self, DBClient},
+    routes::{Item, random_id},
+};
 
 #[derive(Debug)]
 pub enum LlmError {
@@ -34,84 +13,67 @@ pub enum LlmError {
     Parse(String),
 }
 
-pub async fn chat_completion(messages: Vec<Message>) -> Result<String, LlmError> {
-    let api_token = env::var("CHUTES_API_TOKEN")
-        .map_err(|_| LlmError::Auth("CHUTES_API_TOKEN environment variable not set".to_string()))?;
+#[derive(Debug, Serialize)]
+pub struct Prompt {
+    prompt: String,
+}
 
+#[derive(Debug, Deserialize)]
+pub struct TaskList {
+    list: Vec<String>,
+}
+
+pub async fn simple_chat(
+    nest_api: &str,
+    nest_api_key: &str,
+    user_message: &str,
+    db_client: &DBClient,
+) -> Result<String, LlmError> {
     let client = Client::new();
 
-    let request_body = ChatCompletionRequest {
-        model: "deepseek-ai/DeepSeek-V3-0324".to_string(),
-        messages,
-        stream: false, // Set to false for non-streaming response
-        max_tokens: 1024,
-        temperature: 0.7,
+    let prompt = Prompt {
+        prompt: user_message.to_string(),
     };
 
+    let full_url = format!("{}{}", nest_api, "/api/task");
+
     let response = client
-        .post("https://llm.chutes.ai/v1/chat/completions")
-        .header("Authorization", format!("Bearer {}", api_token))
-        .header("Content-Type", "application/json")
-        .json(&request_body)
+        .post(full_url)
+        .header("api-key", nest_api_key)
+        .json(&prompt)
         .send()
         .await
-        .map_err(|e| LlmError::Request(e.to_string()))?;
+        .map_err(|e| LlmError::Request(format!("Failed to send request: {}", e)))?;
 
     if !response.status().is_success() {
         let status = response.status();
-        let text = response
-            .text()
-            .await
-            .map_or("Unknown error".to_string(), |i| i);
-
-        let f = format!("status: {} text: {}", status.as_str(), text);
-
-        return Err(LlmError::Request(f));
+        let error_text = response.text().await.unwrap_or_default();
+        return Err(LlmError::Auth(format!(
+            "API returned status {}: {}",
+            status, error_text
+        )));
     }
 
-    let completion_response: ChatCompletionResponse = response
+    let task_list: TaskList = response
         .json()
         .await
         .map_err(|e| LlmError::Parse(format!("Failed to parse response: {}", e)))?;
 
-    if let Some(choice) = completion_response.choices.first() {
-        if let Some(message) = &choice.message {
-            Ok(message.content.clone())
-        } else {
-            Err(LlmError::Parse("No message content found".to_string()))
-        }
-    } else {
-        Err(LlmError::Parse("No choices found in response".to_string()))
-    }
-}
+    let items: Vec<Item> = task_list
+        .list
+        .iter()
+        .map(|t| Item {
+            id: random_id(),
+            task: t.clone(),
+            completed: false,
+        })
+        .collect();
 
-pub async fn simple_chat(user_message: &str) -> Result<String, LlmError> {
-    let messages = vec![Message {
-        role: "user".to_string(),
-        content: user_message.to_string(),
-    }];
+    database::create_items(db_client, items).await;
 
-    chat_completion(messages).await
-}
+    let tasks_string = task_list.list.join("\n");
 
-#[cfg(test)]
-mod tests {
-    use super::*;
+    let answer = format!("Created {}", tasks_string);
 
-    #[tokio::test]
-    async fn test_simple_chat() {
-        // This test requires CHUTES_API_TOKEN to be set
-        if env::var("CHUTES_API_TOKEN").is_ok() {
-            let result = simple_chat("Tell me a short joke").await;
-            match result {
-                Ok(response) => {
-                    println!("Response: {}", response);
-                    assert!(!response.is_empty());
-                }
-                Err(e) => {
-                    println!("Error: {:?}", e);
-                }
-            }
-        }
-    }
+    Ok(answer)
 }

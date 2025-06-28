@@ -5,10 +5,9 @@ use log::error;
 use maud::{Markup, html};
 use rand::Rng;
 use serde::{Deserialize, Serialize};
-use std::collections::HashMap;
 use std::str::FromStr;
-use std::sync::{Arc, Mutex};
 
+use crate::config::Server;
 use crate::database::{self, DBClient};
 use crate::llm;
 use crate::view::render_item;
@@ -21,10 +20,22 @@ pub struct Item {
 }
 impl Item {
     pub fn from_row(row: &Row) -> Result<Item, String> {
-        let id: u32 = row.try_get(0).unwrap();
-        let task: &str = row.try_get(1).unwrap();
-        let completed: u32 = row.try_get(4).unwrap();
-        let completed = completed == 1;
+        let Ok(id) = row.try_get::<u32>(0) else {
+            let err = format!("Item::from_row {:?}", row);
+            return Err(err);
+        };
+
+        let Ok(task) = row.try_get::<&str>(1) else {
+            let err = format!("Item::from_row {:?}", row);
+            return Err(err);
+        };
+
+        let Ok(completed) = row.try_get::<&str>(2) else {
+            let err = format!("Item::from_row {:?}", row);
+            return Err(err);
+        };
+
+        let completed: bool = completed.parse().unwrap();
 
         Ok(Item {
             id,
@@ -73,52 +84,44 @@ pub struct SendMessageRequest {
     pub message: String,
 }
 
-
-#[post("")]
-async fn create_item(form: web::Form<CreateTodoRequest>, client: web::Data<DBClient>) -> Result<Markup> {
-
+#[post("/items/single")]
+pub async fn create_item(
+    form: web::Form<CreateTodoRequest>,
+    client: web::Data<DBClient>,
+) -> Result<Markup> {
     let client: &DBClient = client.get_ref();
-    let id= random_id();
-    
+    let id = random_id();
+
     let item = Item {
         id: id,
         task: form.task.clone(),
         completed: false,
     };
-    database::create_item(client, item.clone());
-    
+    database::create_item(client, item.clone()).await;
 
     Ok(render_item(&item))
 }
 
-#[patch("/{id}/toggle")]
-async fn toggle_item(path: web::Path<u32>) -> Result<Markup> {
+#[patch("items/{id}/toggle")]
+pub async fn toggle_item(path: web::Path<i64>, client: web::Data<DBClient>) -> Result<Markup> {
     let id = path.into_inner();
-    let mut storage = ITEM_STORAGE.lock().unwrap();
+    let client: &DBClient = client.get_ref();
+    let item = database::toggle_item(client, id).await;
 
-    if let Some(todo) = storage.get_mut(&id) {
-        todo.completed = !todo.completed;
-        log::info!("{:?}", todo);
-        Ok(render_item(todo))
+    if let Ok(item) = item {
+        Ok(render_item(&item))
     } else {
         Ok(html! { "" })
     }
 }
 
-#[delete("/{id}")]
-async fn delete_item(path: web::Path<u32>) -> Result<Markup> {
+#[delete("items/{id}")]
+pub async fn delete_item(path: web::Path<i64>, client: web::Data<DBClient>) -> Result<Markup> {
     let id = path.into_inner();
-    let mut storage = ITEM_STORAGE.lock().unwrap();
+    let client: &DBClient = client.get_ref();
 
-    storage.remove(&id);
+    database::delete_item(client, id).await;
     Ok(html! { "" })
-}
-
-pub fn item_scope() -> actix_web::Scope {
-    web::scope("/items")
-        .service(create_item)
-        .service(toggle_item)
-        .service(delete_item)
 }
 
 pub fn random_id() -> u32 {
@@ -126,10 +129,11 @@ pub fn random_id() -> u32 {
     rng.random::<u32>()
 }
 
-#[post("")]
-async fn send_message(
+#[post("chat")]
+pub async fn send_message(
     form: web::Form<SendMessageRequest>,
     client: web::Data<DBClient>,
+    config: web::Data<Server>,
 ) -> Result<Markup> {
     log::info!("Received chat message: {}", form.message);
     let x: &DBClient = client.get_ref();
@@ -148,7 +152,9 @@ async fn send_message(
     log::info!("Added user message with ID: {}", chat_id);
 
     // Generate AI response
-    let ai_response = generate_ai_response(&form.message).await;
+    let ai_response =
+        generate_ai_response(&form.message, &config.nest_api(), &config.nest_api_key(), x).await;
+
     log::info!("Generated AI response: {}", ai_response);
 
     let ai_message = ChatMessage {
@@ -167,8 +173,13 @@ async fn send_message(
     })
 }
 
-async fn generate_ai_response(user_message: &str) -> String {
-    match llm::simple_chat(user_message).await {
+async fn generate_ai_response(
+    user_message: &str,
+    nest_api: &str,
+    nest_api_key: &str,
+    db_client: &DBClient,
+) -> String {
+    match llm::simple_chat(nest_api, nest_api_key, user_message, db_client).await {
         Ok(a) => a,
         Err(e) => {
             match e {
@@ -227,11 +238,7 @@ fn render_chat_message(message: &ChatMessage) -> Markup {
     }
 }
 
-pub fn chat_scope() -> actix_web::Scope {
-    web::scope("/chat").service(send_message)
-}
-
 #[get("/healthz")]
-async fn health() -> impl Responder {
+pub async fn health() -> impl Responder {
     HttpResponse::Ok()
 }

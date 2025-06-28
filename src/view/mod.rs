@@ -1,25 +1,18 @@
 use actix_web::Result as AwResult;
-use actix_web::{Scope, get, web};
+use actix_web::{get, web};
 use maud::{Markup, html};
 
 mod chat;
 mod navbar;
-mod todolist;
+pub mod todolist;
 
 pub use todolist::render_item;
 
 use crate::database::{self, DBClient};
 use crate::routes::ChatMessage;
 
-pub fn scope() -> Scope {
-    web::scope("/ui")
-        .service(chat::scope())
-        .service(todolist::scope())
-        .service(index_route)
-}
-
-#[get("")]
-async fn index_route(client: web::Data<DBClient>) -> AwResult<Markup> {
+#[get("/")]
+pub async fn index_route(client: web::Data<DBClient>) -> AwResult<Markup> {
     let sender = "You";
     let client = client.get_ref();
     let messages = database::get_messages(client, sender).await;

@@ -1,15 +1,11 @@
 use crate::database::{self, DBClient};
 use crate::routes::Item;
 use actix_web::Result as AwResult;
-use actix_web::{Scope, get, web};
+use actix_web::{get, web};
 use maud::{Markup, html};
 
-pub fn scope() -> Scope {
-    web::scope("list").service(index_route)
-}
-
-#[get("")]
-async fn index_route(client: web::Data<DBClient>) -> AwResult<Markup> {
+#[get("items")]
+pub async fn index_route(client: web::Data<DBClient>) -> AwResult<Markup> {
     let client = client.get_ref();
     let items: Vec<Item> = database::get_items(client).await;
 
@@ -30,7 +26,7 @@ pub fn render(items: &[Item]) -> Markup {
                     }
                     "List"
                 }
-                form class="flex gap-2 mb-4" hx-post="/api/todos" hx-target="#todo-list" hx-swap="beforeend" hx-on--after-request="this.reset()" {
+                form class="flex gap-2 mb-4" hx-post="/items/single" hx-target="#todo-list" hx-swap="beforeend" hx-on--after-request="this.reset()" {
                     input class="input input-bordered flex-1" type="text" name="task" placeholder="Add a new task..." required;
                     button class="btn btn-primary" type="submit" {
                         svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24" {
@@ -59,7 +55,7 @@ pub fn render_item(item: &Item) -> Markup {
                 name=(format!("todo-{}", item.id))
                 checked[item.completed]
 
-                hx-patch=(format!("/api/todos/{}/toggle", item.id))
+                hx-patch=(format!("/items/{}/toggle", item.id))
                 hx-target=(format!("#c-todo-{}", item.id))
                 hx-swap="outerHTML";
             span class={
@@ -72,7 +68,7 @@ pub fn render_item(item: &Item) -> Markup {
                 (item.task)
             }
             button class="btn btn-sm btn-error btn-outline"
-                hx-delete=(format!("/api/todos/{}", item.id))
+                hx-delete=(format!("/items/{}", item.id))
                 hx-target="closest div"
                 hx-swap="outerHTML"
                 hx-confirm="Are you sure you want to delete this item?" {

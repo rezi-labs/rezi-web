@@ -11,12 +11,12 @@ pub fn render() -> Markup {
         div class="navbar-center"{
                 ul class="menu menu-horizontal px-1" {
                     li {
-                        a href="/ui" {
+                        a href="/" {
                             "Chat"
                         }
                     }
                     li {
-                        a href="/ui/list" {
+                        a href="/items" {
                             "List"
                         }
                     }
