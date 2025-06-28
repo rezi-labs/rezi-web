@@ -234,9 +234,11 @@ pub async fn delete_item(client: &DBClient, item_id: i64) {
 pub async fn toggle_item(client: &DBClient, item_id: i64) -> Result<Item, String> {
     let locked_client = client.lock().unwrap();
 
+    let old = get_item(client, item_id).await.unwrap();
+    let completed = !old.completed;
     let statement = format!(
         r#"UPDATE items
-    SET completed = NOT completed
+    SET completed = {completed}
     WHERE id = {item_id};"#,
     );
 
