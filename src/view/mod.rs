@@ -30,7 +30,7 @@ pub fn js(path: impl Into<String>) -> Markup {
 }
 
 pub fn index(content: Option<Markup>, messages: &[ChatMessage]) -> Markup {
-    let content = content.unwrap_or_else(|| chat::render(&messages));
+    let content = content.unwrap_or_else(|| chat::render(messages));
     html! {
         (maud::DOCTYPE)
         head {

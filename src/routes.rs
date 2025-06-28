@@ -40,7 +40,7 @@ impl Item {
         Ok(Item {
             id,
             task: task.to_string(),
-            completed: completed,
+            completed,
         })
     }
 }
@@ -73,8 +73,8 @@ impl ChatMessage {
             id,
             content: content.to_string(),
             sender: sendr.to_string(),
-            timestamp: timestamp,
-            is_user: is_user,
+            timestamp,
+            is_user,
         })
     }
 }
@@ -93,7 +93,7 @@ pub async fn create_item(
     let id = random_id();
 
     let item = Item {
-        id: id,
+        id,
         task: form.task.clone(),
         completed: false,
     };

@@ -16,6 +16,7 @@ pub async fn create_client(url: String, token: Option<String>) -> libsql_client:
     .unwrap()
 }
 
+#[allow(clippy::await_holding_lock)]
 pub async fn migrations(client: &DBClient) {
     let client = client.lock().unwrap();
 
@@ -79,6 +80,7 @@ fn escape_sql_string(s: &str) -> String {
     s.replace("'", "''") // Escape single quotes by doubling them
 }
 
+#[allow(clippy::await_holding_lock)]
 pub async fn save_message(client: &DBClient, message: ChatMessage) {
     let client = client.lock().unwrap();
 
@@ -101,10 +103,11 @@ pub async fn save_message(client: &DBClient, message: ChatMessage) {
     drop(client);
     match res {
         Ok(s) => info!("{:?}", s),
-        Err(e) => error!("{}", e.to_string()),
+        Err(e) => error!("{}", e),
     }
 }
 
+#[allow(clippy::await_holding_lock)]
 pub async fn get_messages(client: &DBClient, _sender: &str) -> Vec<ChatMessage> {
     let client = client.lock().unwrap();
 
@@ -118,6 +121,7 @@ pub async fn get_messages(client: &DBClient, _sender: &str) -> Vec<ChatMessage> 
 
     let res = client.execute(stmt).await.unwrap();
 
+    drop(client);
     let rows: Vec<ChatMessage> = res
         .rows
         .iter()
@@ -126,6 +130,7 @@ pub async fn get_messages(client: &DBClient, _sender: &str) -> Vec<ChatMessage> 
     rows
 }
 
+#[allow(clippy::await_holding_lock)]
 pub async fn get_items(client: &DBClient) -> Vec<Item> {
     let client = client.lock().unwrap();
 
@@ -148,6 +153,7 @@ pub async fn get_items(client: &DBClient) -> Vec<Item> {
     rows
 }
 
+#[allow(clippy::await_holding_lock)]
 pub async fn create_items(client: &DBClient, items: Vec<Item>) {
     if items.is_empty() {
         return;
@@ -177,10 +183,11 @@ pub async fn create_items(client: &DBClient, items: Vec<Item>) {
 
     match res {
         Ok(s) => info!("Successfully inserted {} items: {:?}", items.len(), s),
-        Err(e) => error!("Failed to bulk insert items: {}", e.to_string()),
+        Err(e) => error!("Failed to bulk insert items: {}", e),
     }
 }
 
+#[allow(clippy::await_holding_lock)]
 pub async fn create_item(client: &DBClient, item: Item) {
     let client = client.lock().unwrap();
 
@@ -201,10 +208,10 @@ pub async fn create_item(client: &DBClient, item: Item) {
     drop(client);
     match res {
         Ok(s) => info!("{:?}", s),
-        Err(e) => error!("{}", e.to_string()),
+        Err(e) => error!("{}", e),
     }
 }
-
+#[allow(clippy::await_holding_lock)]
 pub async fn delete_item(client: &DBClient, item_id: i64) {
     let client = client.lock().unwrap();
 
@@ -220,10 +227,11 @@ pub async fn delete_item(client: &DBClient, item_id: i64) {
     drop(client);
     match res {
         Ok(s) => info!("{:?}", s),
-        Err(e) => error!("{}", e.to_string()),
+        Err(e) => error!("{}", e),
     }
 }
 
+#[allow(clippy::await_holding_lock)]
 pub async fn toggle_item(client: &DBClient, item_id: i64) -> Result<Item, String> {
     let locked_client = client.lock().unwrap();
 
@@ -242,6 +250,7 @@ pub async fn toggle_item(client: &DBClient, item_id: i64) -> Result<Item, String
     get_item(client, item_id).await
 }
 
+#[allow(clippy::await_holding_lock)]
 pub async fn get_item(client: &DBClient, item_id: i64) -> Result<Item, String> {
     let client = client.lock().unwrap();
 
@@ -256,11 +265,13 @@ pub async fn get_item(client: &DBClient, item_id: i64) -> Result<Item, String> {
 
     let res = client.execute(st).await.unwrap();
     drop(client);
+
     let rows: Vec<Item> = res
         .rows
         .iter()
         .filter_map(|r| Item::from_row(r).ok())
         .collect();
+
     rows.first()
         .cloned()
         .ok_or_else(|| "Item not found".to_string())

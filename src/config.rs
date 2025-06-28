@@ -1,6 +1,5 @@
 use std::env;
 
-
 #[derive(Clone)]
 pub struct Server {
     port: u16,
