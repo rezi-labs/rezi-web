@@ -1,3 +1,4 @@
+use log::info;
 use reqwest::Client;
 use serde::{Deserialize, Serialize};
 
@@ -36,6 +37,9 @@ pub async fn simple_chat(
     };
 
     let full_url = format!("{}{}", nest_api, "/api/task");
+
+    let masked = prompt.prompt.clone().split_off(10);
+    info!("calling: {full_url} with key: {masked} ");
 
     let response = client
         .post(full_url)
