@@ -21,17 +21,17 @@ pub struct Item {
 impl Item {
     pub fn from_row(row: &Row) -> Result<Item, String> {
         let Ok(id) = row.try_get::<u32>(0) else {
-            let err = format!("Item::from_row {:?}", row);
+            let err = format!("Item::from_row {row:?}");
             return Err(err);
         };
 
         let Ok(task) = row.try_get::<&str>(1) else {
-            let err = format!("Item::from_row {:?}", row);
+            let err = format!("Item::from_row {row:?}");
             return Err(err);
         };
 
         let Ok(completed) = row.try_get::<&str>(2) else {
-            let err = format!("Item::from_row {:?}", row);
+            let err = format!("Item::from_row {row:?}");
             return Err(err);
         };
 
@@ -149,13 +149,13 @@ pub async fn send_message(
     };
     database::save_message(x, user_message.clone()).await;
 
-    log::info!("Added user message with ID: {}", chat_id);
+    log::info!("Added user message with ID: {chat_id}");
 
     // Generate AI response
     let ai_response =
         generate_ai_response(&form.message, &config.nest_api(), &config.nest_api_key(), x).await;
 
-    log::info!("Generated AI response: {}", ai_response);
+    log::info!("Generated AI response: {ai_response}");
 
     let ai_message = ChatMessage {
         id: random_id(),
@@ -183,9 +183,9 @@ async fn generate_ai_response(
         Ok(a) => a,
         Err(e) => {
             match e {
-                llm::LlmError::Request(error) => error!("{}", error),
-                llm::LlmError::Auth(error) => error!("{}", error),
-                llm::LlmError::Parse(error) => error!("{}", error),
+                llm::LlmError::Request(error) => error!("{error}"),
+                llm::LlmError::Auth(error) => error!("{error}"),
+                llm::LlmError::Parse(error) => error!("{error}"),
             };
 
             "Something went wrong contacting the agent".to_string()

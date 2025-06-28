@@ -84,7 +84,7 @@ fn escape_sql_string(s: &str) -> String {
 pub async fn save_message(client: &DBClient, message: ChatMessage) {
     let client = client.lock().unwrap();
 
-    info!("{:?}", message);
+    info!("{message:?}");
 
     let statement = format!(
         r#"INSERT INTO chat_messages
@@ -102,8 +102,8 @@ pub async fn save_message(client: &DBClient, message: ChatMessage) {
     let res = client.execute(st).await;
     drop(client);
     match res {
-        Ok(s) => info!("{:?}", s),
-        Err(e) => error!("{}", e),
+        Ok(s) => info!("{s:?}"),
+        Err(e) => error!("{e}"),
     }
 }
 
@@ -183,7 +183,7 @@ pub async fn create_items(client: &DBClient, items: Vec<Item>) {
 
     match res {
         Ok(s) => info!("Successfully inserted {} items: {:?}", items.len(), s),
-        Err(e) => error!("Failed to bulk insert items: {}", e),
+        Err(e) => error!("Failed to bulk insert items: {e}"),
     }
 }
 
@@ -191,7 +191,7 @@ pub async fn create_items(client: &DBClient, items: Vec<Item>) {
 pub async fn create_item(client: &DBClient, item: Item) {
     let client = client.lock().unwrap();
 
-    info!("{:?}", item);
+    info!("{item:?}");
 
     let statement = format!(
         r#"INSERT INTO items
@@ -207,8 +207,8 @@ pub async fn create_item(client: &DBClient, item: Item) {
     let res = client.execute(st).await;
     drop(client);
     match res {
-        Ok(s) => info!("{:?}", s),
-        Err(e) => error!("{}", e),
+        Ok(s) => info!("{s:?}"),
+        Err(e) => error!("{e}"),
     }
 }
 #[allow(clippy::await_holding_lock)]
@@ -217,8 +217,7 @@ pub async fn delete_item(client: &DBClient, item_id: i64) {
 
     let statement = format!(
         r#"DELETE FROM items
-    WHERE id = {};"#,
-        item_id
+    WHERE id = {item_id};"#,
     );
 
     let st = Statement::new(statement);
@@ -226,8 +225,8 @@ pub async fn delete_item(client: &DBClient, item_id: i64) {
     let res = client.execute(st).await;
     drop(client);
     match res {
-        Ok(s) => info!("{:?}", s),
-        Err(e) => error!("{}", e),
+        Ok(s) => info!("{s:?}"),
+        Err(e) => error!("{e}"),
     }
 }
 
@@ -238,8 +237,7 @@ pub async fn toggle_item(client: &DBClient, item_id: i64) -> Result<Item, String
     let statement = format!(
         r#"UPDATE items
     SET completed = NOT completed
-    WHERE id = {};"#,
-        item_id
+    WHERE id = {item_id};"#,
     );
 
     let st = Statement::new(statement);
@@ -257,8 +255,7 @@ pub async fn get_item(client: &DBClient, item_id: i64) -> Result<Item, String> {
     let statement = format!(
         r#"SELECT id, task, completed
     FROM items
-    WHERE id = {};"#,
-        item_id
+    WHERE id = {item_id};"#,
     );
 
     let st = Statement::new(statement);

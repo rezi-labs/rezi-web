@@ -43,21 +43,20 @@ pub async fn simple_chat(
         .json(&prompt)
         .send()
         .await
-        .map_err(|e| LlmError::Request(format!("Failed to send request: {}", e)))?;
+        .map_err(|e| LlmError::Request(format!("Failed to send request: {e}")))?;
 
     if !response.status().is_success() {
         let status = response.status();
         let error_text = response.text().await.unwrap_or_default();
         return Err(LlmError::Auth(format!(
-            "API returned status {}: {}",
-            status, error_text
+            "API returned status {status}: {error_text}"
         )));
     }
 
     let task_list: TaskList = response
         .json()
         .await
-        .map_err(|e| LlmError::Parse(format!("Failed to parse response: {}", e)))?;
+        .map_err(|e| LlmError::Parse(format!("Failed to parse response: {e}")))?;
 
     let items: Vec<Item> = task_list
         .list
@@ -73,7 +72,7 @@ pub async fn simple_chat(
 
     let tasks_string = task_list.list.join("\n");
 
-    let answer = format!("Created {}", tasks_string);
+    let answer = format!("Created {tasks_string}");
 
     Ok(answer)
 }
