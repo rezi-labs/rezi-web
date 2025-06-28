@@ -1,5 +1,12 @@
 # Changelog
 
+## [0.2.1](https://github.com/LunchTimeCode/grocy/compare/v0.2.0...v0.2.1) (2025-06-28)
+
+
+### Bug Fixes
+
+* force version ([3a02e09](https://github.com/LunchTimeCode/grocy/commit/3a02e09becfb248c9e8421c65c0ea3ac2e83f120))
+
 ## [0.2.0](https://github.com/LunchTimeCode/grocy/compare/v0.1.1...v0.2.0) (2025-06-28)
 
 
