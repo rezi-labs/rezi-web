@@ -38,8 +38,8 @@ pub async fn simple_chat(
 
     let full_url = format!("{}{}", nest_api, "/api/task");
 
-    let masked = prompt.prompt.clone().split_off(10);
-    info!("calling: {nest_api_key} with key: {masked} ");
+    let masked = nest_api_key.to_string().split_off(10);
+    info!("calling: {full_url} with key: {masked} ");
 
     let response = client
         .post(full_url)
