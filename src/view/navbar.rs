@@ -29,10 +29,10 @@ pub fn render(user: &User) -> Markup {
                 div class="btn btn-ghost" tabindex="0" role="button" {
                     (user_icon())
                 }
-                ul class="dropdown-content menu-sm menu bg-base-100 w-44 rounded-box z-[1] p-2 shadow" tabindex="0" {
-                    li { "email: "(user.email())}
-                    li { "id: "(user.id())}
-                    li { "initials: "(user.initials())}
+                ul class="dropdown-content menu-sm menu bg-base-100 w-52 rounded-box z-1 mt-3 p-2 shadow" tabindex="0" {
+                    li { a {"email: " span{(user.email())}}}
+                    li { a {"id: " span{(user.id())}}}
+                    li { a {"initials: " span{(user.initials())}}}
                 }
             }
             div class="dropdown dropdown-end" {
@@ -41,27 +41,27 @@ pub fn render(user: &User) -> Markup {
                 }
                 ul class="dropdown-content menu-sm menu bg-base-100 w-52 rounded-box z-1 mt-3 p-2 shadow" tabindex="0" {
                     li { a onclick="changeTheme('light')" { "🌞" span { "Light" } } }
-                    li { a onclick="changeTheme('dark')" { "🌙 Dark" } }
-                    li { a onclick="changeTheme('synthwave')" { "🌆 Synth" } }
-                    li { a onclick="changeTheme('retro')" { "🕹️ Retro" } }
-                    li { a onclick="changeTheme('cyberpunk')" { "🤖 Cyberpunk" } }
-                    li { a onclick="changeTheme('valentine')" { "💝 Valentine" } }
-                    li { a onclick="changeTheme('halloween')" { "🎃 Halloween" } }
-                    li { a onclick="changeTheme('garden')" { "🌻 Garden" } }
-                    li { a onclick="changeTheme('forest')" { "🌲 Forest" } }
-                    li { a onclick="changeTheme('aqua')" { "🌊 Aqua" } }
-                    li { a onclick="changeTheme('luxury')" { "💎 Luxury" } }
-                    li { a onclick="changeTheme('dracula')" { "🧛 Dracula" } }
-                    li { a onclick="changeTheme('corporate')" { "🏢 Corporate" } }
-                    li { a onclick="changeTheme('business')" { "💼 Business" } }
-                    li { a onclick="changeTheme('night')" { "🌃 Night" } }
-                    li { a onclick="changeTheme('coffee')" { "☕ Coffee" } }
-                    li { a onclick="changeTheme('winter')" { "❄️ Winter" } }
-                    li { a onclick="changeTheme('dim')" { "🔅 Dim" } }
-                    li { a onclick="changeTheme('nord')" { "🏔️ Nord" } }
-                    li { a onclick="changeTheme('sunset')" { "🌅 Sunset" } }
+                    li { a onclick="changeTheme('dark')" { "🌙" span { "Dark" } } }
+                    li { a onclick="changeTheme('synthwave')" { "🌆" span { "Synth" } } }
+                    li { a onclick="changeTheme('retro')" { "🕹️" span { "Retro" } } }
+                    li { a onclick="changeTheme('cyberpunk')" { "🤖" span { "Cyberpunk" } } }
+                    li { a onclick="changeTheme('valentine')" { "💝" span { "Valentine" } } }
+                    li { a onclick="changeTheme('halloween')" { "🎃" span { "Halloween" } } }
+                    li { a onclick="changeTheme('garden')" { "🌻" span { "Garden" } } }
+                    li { a onclick="changeTheme('forest')" { "🌲" span { "Forest" } } }
+                    li { a onclick="changeTheme('aqua')" { "🌊" span { "Aqua" } } }
+                    li { a onclick="changeTheme('luxury')" { "💎" span { "Luxury" } } }
+                    li { a onclick="changeTheme('dracula')" { "🧛" span { "Dracula" } } }
+                    li { a onclick="changeTheme('corporate')" { "🏢" span { "Corporate" } } }
+                    li { a onclick="changeTheme('business')" { "💼" span { "Business" } } }
+                    li { a onclick="changeTheme('night')" { "🌃" span { "Night" } } }
+                    li { a onclick="changeTheme('coffee')" { "☕" span { "Coffee" } } }
+                    li { a onclick="changeTheme('winter')" { "❄️" span { "Winter" } } }
+                    li { a onclick="changeTheme('dim')" { "🔅" span { "Dim" } } }
+                    li { a onclick="changeTheme('nord')" { "🏔️" span { "Nord" } } }
+                    li { a onclick="changeTheme('sunset')" { "🌅" span { "Sunset" } } }
                     div class="divider my-1" {}
-                    li { a onclick="applyRandomTheme()" { "🎲 Random Theme" } }
+                    li { a onclick="applyRandomTheme()" { "🎲" span { "Random Theme" } } }
                 }
             }
         }
