@@ -33,6 +33,10 @@ impl Server {
     pub fn nest_api_key(&self) -> String {
         self.nest_api_key.clone()
     }
+
+    pub fn delay(&self) -> bool {
+        self.db_token().is_none()
+    }
 }
 
 pub fn from_env() -> Server {

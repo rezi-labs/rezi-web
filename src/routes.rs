@@ -137,6 +137,11 @@ pub async fn send_message(
     client: web::Data<DBClient>,
     config: web::Data<Server>,
 ) -> Result<Markup> {
+    // delay if delay is on
+    if config.delay() {
+        tokio::time::sleep(std::time::Duration::from_millis(2000)).await;
+    }
+
     log::info!("Received chat message: {}", form.message);
     let x: &DBClient = client.get_ref();
 
