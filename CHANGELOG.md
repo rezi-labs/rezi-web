@@ -1,5 +1,17 @@
 # Changelog
 
+## [0.4.0](https://github.com/LunchTimeCode/grocy/compare/v0.3.0...v0.4.0) (2025-06-29)
+
+
+### Features
+
+* per user ([507602d](https://github.com/LunchTimeCode/grocy/commit/507602d4fc9d01fefbbfdb7e43d624b0ed804d56))
+
+
+### Bug Fixes
+
+* dropdown ([68f5c94](https://github.com/LunchTimeCode/grocy/commit/68f5c948ba249092a13e2393404f342c412cd34d))
+
 ## [0.3.0](https://github.com/LunchTimeCode/grocy/compare/v0.2.5...v0.3.0) (2025-06-29)
 
 
