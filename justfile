@@ -1,10 +1,8 @@
 import 'docker.just'
 
-
 image_name := "ghcr.io/lunchtimecode/grocy"
 export NEST_API_KEY := "hello_world"
 export OPEN_BROWSER := "true"
-
 
 docker: db
     docker compose up
@@ -16,18 +14,16 @@ it:
     sudo rpm --import https://rpm.beekeeperstudio.io/beekeeper.key
     sudo dnf install beekeeper-studio
 
-
 run: db
     cargo run
 
 db:
     -(kill -9 $(lsof -t -i:8080))
     turso dev &
-    
+
 watch:
     cargo watch -x run  
-    
-    
+
 verify: lint test
 
 test:
@@ -36,7 +32,7 @@ test:
 lint:
     cargo fmt --all -- --check
     cargo clippy 
-    
+
 fmt:
     cargo fmt
     cargo fix --allow-dirty --allow-staged    
