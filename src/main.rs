@@ -1,4 +1,4 @@
-use actix_web::{App, HttpServer, middleware::Logger, web};
+use actix_web::{App, HttpServer, middleware::Logger, middleware::from_fn, web};
 use env_logger::Env;
 use std::{
     env,
@@ -11,7 +11,9 @@ mod assets;
 mod config;
 mod database;
 mod llm;
+mod message;
 mod routes;
+mod user;
 mod view;
 
 #[actix_web::main]
@@ -34,6 +36,7 @@ async fn main() -> std::io::Result<()> {
             .wrap(Logger::new("%a %{User-Agent}i"))
             .app_data(web::Data::new(shared_db.clone()))
             .app_data(web::Data::new(c.clone()))
+            .wrap(from_fn(user::user_extractor))
             .service(view::index_route)
             .service(todolist::index_route)
             .service(routes::send_message)

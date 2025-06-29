@@ -1,4 +1,7 @@
-use actix_web::{HttpResponse, Responder, Result, delete, get, patch, post, web};
+use actix_web::web::Data;
+use actix_web::{
+    HttpMessage, HttpRequest, HttpResponse, Responder, Result, delete, get, patch, post, web,
+};
 use chrono::{DateTime, Utc};
 use libsql_client::Row;
 use log::{error, info};
@@ -9,8 +12,8 @@ use std::str::FromStr;
 
 use crate::config::Server;
 use crate::database::{self, DBClient, int_to_bool};
-use crate::llm;
 use crate::view::render_item;
+use crate::{llm, message, user};
 
 #[derive(Debug, Clone, Serialize, Deserialize)]
 pub struct Item {
@@ -54,25 +57,39 @@ pub struct CreateTodoRequest {
 pub struct ChatMessage {
     pub id: u32,
     pub content: String,
+    pub ai_response: String,
     pub sender: String,
     pub timestamp: DateTime<Utc>,
     pub is_user: bool,
 }
 
 impl ChatMessage {
+    pub fn ai_message(&self) -> Self {
+        ChatMessage {
+            id: self.id,
+            content: self.ai_response.clone(),
+            ai_response: self.ai_response.clone(),
+            sender: self.sender.clone(),
+            timestamp: self.timestamp,
+            is_user: false,
+        }
+    }
+
     pub fn from_row(row: &Row) -> Result<ChatMessage, String> {
         let id: u32 = row.try_get(0).unwrap();
         let content: &str = row.try_get(1).unwrap();
-        let sendr: &str = row.try_get(2).unwrap();
-        let timestamp: &str = row.try_get(3).unwrap();
+        let ai_response: &str = row.try_get(2).unwrap();
+        let sender: &str = row.try_get(3).unwrap();
+        let timestamp: &str = row.try_get(4).unwrap();
         let timestamp: DateTime<Utc> = DateTime::from_str(timestamp).unwrap();
-        let is_user: &str = row.try_get(4).unwrap();
+        let is_user: &str = row.try_get(5).unwrap();
         let is_user = is_user == "true";
 
         Ok(ChatMessage {
             id,
             content: content.to_string(),
-            sender: sendr.to_string(),
+            ai_response: ai_response.to_string(),
+            sender: sender.to_string(),
             timestamp,
             is_user,
         })
@@ -84,31 +101,44 @@ pub struct SendMessageRequest {
     pub message: String,
 }
 
+pub fn get_user(req: HttpRequest) -> Option<user::User> {
+    req.extensions()
+        .get::<Data<user::User>>()
+        .map(|u| u.as_ref().clone())
+}
+
 #[post("/items/single")]
 pub async fn create_item(
     form: web::Form<CreateTodoRequest>,
     client: web::Data<DBClient>,
+    req: HttpRequest,
 ) -> Result<Markup> {
     let client: &DBClient = client.get_ref();
     let id = random_id();
+    let user = get_user(req).unwrap();
 
     let item = Item {
         id,
         task: form.task.clone(),
         completed: false,
     };
-    database::create_item(client, item.clone()).await;
+    database::create_item(client, item.clone(), user.id().to_string()).await;
 
     Ok(render_item(&item))
 }
 
 #[patch("items/{id}/toggle")]
-pub async fn toggle_item(path: web::Path<i64>, client: web::Data<DBClient>) -> Result<Markup> {
+pub async fn toggle_item(
+    path: web::Path<i64>,
+    client: web::Data<DBClient>,
+    req: HttpRequest,
+) -> Result<Markup> {
     let id = path.into_inner();
+    let user = get_user(req).unwrap();
 
     info!("toggle_item: {id}");
     let client: &DBClient = client.get_ref();
-    let item = database::toggle_item(client, id).await;
+    let item = database::toggle_item(client, id, user.id().to_string()).await;
 
     if let Ok(item) = item {
         Ok(render_item(&item))
@@ -118,11 +148,16 @@ pub async fn toggle_item(path: web::Path<i64>, client: web::Data<DBClient>) -> R
 }
 
 #[delete("items/{id}")]
-pub async fn delete_item(path: web::Path<i64>, client: web::Data<DBClient>) -> Result<Markup> {
+pub async fn delete_item(
+    path: web::Path<i64>,
+    client: web::Data<DBClient>,
+    req: HttpRequest,
+) -> Result<Markup> {
     let id = path.into_inner();
     let client: &DBClient = client.get_ref();
+    let user = get_user(req).unwrap();
 
-    database::delete_item(client, id).await;
+    database::delete_item(client, id, user.id().to_owned()).await;
     Ok(html! { "" })
 }
 
@@ -136,47 +171,58 @@ pub async fn send_message(
     form: web::Form<SendMessageRequest>,
     client: web::Data<DBClient>,
     config: web::Data<Server>,
+    req: HttpRequest,
 ) -> Result<Markup> {
+    let user = get_user(req).unwrap();
     // delay if delay is on
     if config.delay() {
         tokio::time::sleep(std::time::Duration::from_millis(2000)).await;
     }
 
     log::info!("Received chat message: {}", form.message);
-    let x: &DBClient = client.get_ref();
+    let db_client: &DBClient = client.get_ref();
 
     let chat_id = random_id();
     // Add user message
-    let user_message = ChatMessage {
-        id: chat_id,
-        content: form.message.clone(),
-        sender: "You".to_string(),
-        timestamp: Utc::now(),
-        is_user: true,
-    };
-    database::save_message(x, user_message.clone()).await;
 
     log::info!("Added user message with ID: {chat_id}");
 
     // Generate AI response
-    let ai_response =
-        generate_ai_response(&form.message, &config.nest_api(), &config.nest_api_key(), x).await;
+    let ai_response = generate_ai_response(
+        &form.message,
+        &config.nest_api(),
+        &config.nest_api_key(),
+        db_client,
+        user.id().to_string(),
+    )
+    .await;
 
     log::info!("Generated AI response: {ai_response}");
 
+    let user_message = ChatMessage {
+        id: chat_id,
+        content: form.message.clone(),
+        ai_response: ai_response.clone(),
+        sender: user.id().to_string(),
+        timestamp: Utc::now(),
+        is_user: true,
+    };
+    database::save_message(db_client, user_message.clone()).await;
+
+    // do not save ai message
     let ai_message = ChatMessage {
-        id: random_id(),
-        content: ai_response,
-        sender: "Assistant".to_string(),
+        id: chat_id,
+        content: ai_response.clone(),
+        ai_response: ai_response.clone(),
+        sender: "Agent".to_string(),
         timestamp: Utc::now(),
         is_user: false,
     };
-    database::save_message(x, ai_message.clone()).await;
 
     // Return both messages as HTML
     Ok(html! {
-        (render_chat_message(&user_message))
-        (render_chat_message(&ai_message))
+        (message::render(&user_message, Some(user.to_owned())))
+        (message::render(&ai_message, None))
     })
 }
 
@@ -185,8 +231,9 @@ async fn generate_ai_response(
     nest_api: &str,
     nest_api_key: &str,
     db_client: &DBClient,
+    user_id: String,
 ) -> String {
-    match llm::simple_chat(nest_api, nest_api_key, user_message, db_client).await {
+    match llm::simple_chat(nest_api, nest_api_key, user_message, user_id, db_client).await {
         Ok(a) => a,
         Err(e) => {
             match e {
@@ -196,51 +243,6 @@ async fn generate_ai_response(
             };
 
             "Something went wrong contacting the agent".to_string()
-        }
-    }
-}
-
-fn render_chat_message(message: &ChatMessage) -> Markup {
-    html! {
-        div class={
-            @if message.is_user {
-                "chat chat-end"
-            } @else {
-                "chat chat-start"
-            }
-        } {
-            div class="chat-image avatar" {
-                div class="w-10 rounded-full" {
-                    div class={
-                        @if message.is_user {
-                            "w-10 h-10 bg-secondary rounded-full flex items-center justify-center text-secondary-content font-bold"
-                        } @else {
-                            "w-10 h-10 bg-primary rounded-full flex items-center justify-center text-primary-content font-bold"
-                        }
-                    } {
-                        @if message.is_user {
-                            "Y"
-                        } @else {
-                            "A"
-                        }
-                    }
-                }
-            }
-            div class="chat-header" {
-                (message.sender)
-                time class="text-xs opacity-50" {
-                    (message.timestamp.format("%H:%M"))
-                }
-            }
-            div class={
-                @if message.is_user {
-                    "chat-bubble chat-bubble-primary"
-                } @else {
-                    "chat-bubble"
-                }
-            } {
-                (message.content)
-            }
         }
     }
 }

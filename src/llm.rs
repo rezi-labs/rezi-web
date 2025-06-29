@@ -28,6 +28,7 @@ pub async fn simple_chat(
     nest_api: &str,
     nest_api_key: &str,
     user_message: &str,
+    user_id: String,
     db_client: &DBClient,
 ) -> Result<String, LlmError> {
     let client = Client::new();
@@ -72,7 +73,7 @@ pub async fn simple_chat(
         })
         .collect();
 
-    database::create_items(db_client, items).await;
+    database::create_items(db_client, items, user_id).await;
 
     let tasks_string = task_list.list.join("\n");
 

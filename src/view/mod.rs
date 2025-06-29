@@ -1,4 +1,4 @@
-use actix_web::Result as AwResult;
+use actix_web::{HttpRequest, Result as AwResult};
 use actix_web::{get, web};
 use maud::{Markup, html};
 
@@ -9,14 +9,15 @@ pub mod todolist;
 pub use todolist::render_item;
 
 use crate::database::{self, DBClient};
-use crate::routes::ChatMessage;
+use crate::routes::{ChatMessage, get_user};
+use crate::user;
 
 #[get("/")]
-pub async fn index_route(client: web::Data<DBClient>) -> AwResult<Markup> {
-    let sender = "You";
+pub async fn index_route(client: web::Data<DBClient>, req: HttpRequest) -> AwResult<Markup> {
+    let user = get_user(req).unwrap();
     let client = client.get_ref();
-    let messages = database::get_messages(client, sender).await;
-    Ok(index(None, messages.as_slice()))
+    let messages = database::get_messages(client, user.id()).await;
+    Ok(index(None, messages.as_slice(), &user))
 }
 
 pub fn css(path: impl Into<String>) -> Markup {
@@ -29,8 +30,8 @@ pub fn js(path: impl Into<String>) -> Markup {
     html! {script src=(path) {}}
 }
 
-pub fn index(content: Option<Markup>, messages: &[ChatMessage]) -> Markup {
-    let content = content.unwrap_or_else(|| chat::render(messages));
+pub fn index(content: Option<Markup>, messages: &[ChatMessage], user: &user::User) -> Markup {
+    let content = content.unwrap_or_else(|| chat::render(messages, user));
     html! {
         (maud::DOCTYPE)
         head {
@@ -49,7 +50,7 @@ pub fn index(content: Option<Markup>, messages: &[ChatMessage]) -> Markup {
         }
         body {
             (js("/assets/htmxListener.js"))
-            (navbar::render())
+            (navbar::render(user))
 
             div class="container mx-auto p-4" {
                 div class="grid grid-cols-1 gap-6" {

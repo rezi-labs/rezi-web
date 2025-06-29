@@ -1,18 +1,22 @@
 use crate::database::{self, DBClient};
-use crate::routes::Item;
-use actix_web::Result as AwResult;
+use crate::routes::{self, Item};
+use actix_web::{HttpRequest, Result as AwResult};
 use actix_web::{get, web};
 use maud::{Markup, html};
 
 #[get("items")]
-pub async fn index_route(client: web::Data<DBClient>) -> AwResult<Markup> {
+pub async fn index_route(client: web::Data<DBClient>, req: HttpRequest) -> AwResult<Markup> {
     let client = client.get_ref();
-    let items: Vec<Item> = database::get_items(client).await;
+    let user = routes::get_user(req).unwrap();
+    let items: Vec<Item> = database::get_items(client, user.id().to_string()).await;
 
-    let sender = "You";
-    let messages = database::get_messages(client, sender).await;
+    let messages = database::get_messages(client, user.id()).await;
 
-    Ok(super::index(Some(render(&items)), messages.as_slice()))
+    Ok(super::index(
+        Some(render(&items)),
+        messages.as_slice(),
+        &user,
+    ))
 }
 
 pub fn render(items: &[Item]) -> Markup {

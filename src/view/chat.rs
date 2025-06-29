@@ -1,19 +1,24 @@
 use crate::database::{self, DBClient};
-use crate::routes::ChatMessage;
-use actix_web::Result as AwResult;
+use crate::routes::{ChatMessage, get_user};
+use crate::{message, user};
+use actix_web::{HttpRequest, Result as AwResult};
 use actix_web::{get, web};
 use maud::{Markup, html};
 
 #[get("")]
-pub async fn index_route(client: web::Data<DBClient>) -> AwResult<Markup> {
-    let sender = "You";
+pub async fn index_route(client: web::Data<DBClient>, req: HttpRequest) -> AwResult<Markup> {
+    let user = get_user(req).unwrap();
     let client = client.get_ref();
-    let messages = database::get_messages(client, sender).await;
+    let messages = database::get_messages(client, user.id()).await;
 
-    Ok(super::index(Some(render(&messages)), messages.as_slice()))
+    Ok(super::index(
+        Some(render(&messages, &user)),
+        messages.as_slice(),
+        &user,
+    ))
 }
 
-pub fn render(messages: &[ChatMessage]) -> Markup {
+pub fn render(messages: &[ChatMessage], user: &user::User) -> Markup {
     html! {
         div class="card bg-base-200 shadow-xl" {
             div class="card-body" {
@@ -26,7 +31,8 @@ pub fn render(messages: &[ChatMessage]) -> Markup {
                 }
                 div id="chat-messages" class="chat-container h-96 bg-base-100 p-4 rounded-lg mb-4 space-y-3 overflow-y-auto" {
                     @for message in messages {
-                        (render_chat_message(message))
+                        (message::render(message, Some(user.clone())))
+                        (message::render(&message.ai_message(), None))
                     }
                 }
                 form class="flex gap-2" hx-post="/chat" hx-target="#chat-messages" hx-swap="beforeend" hx-on--after-request="this.reset()" {
@@ -40,51 +46,6 @@ pub fn render(messages: &[ChatMessage]) -> Markup {
                     }
                     span id="spinner"  class="htmx-indicator loading loading-bars loading-md" {}
                 }
-            }
-        }
-    }
-}
-
-fn render_chat_message(message: &ChatMessage) -> Markup {
-    html! {
-        div class={
-            @if message.is_user {
-                "chat chat-end"
-            } @else {
-                "chat chat-start"
-            }
-        } {
-            div class="chat-image avatar" {
-                div class="w-10 rounded-full" {
-                    div class={
-                        @if message.is_user {
-                            "w-10 h-10 bg-secondary rounded-full flex items-center justify-center text-secondary-content font-bold"
-                        } @else {
-                            "w-10 h-10 bg-primary rounded-full flex items-center justify-center text-primary-content font-bold"
-                        }
-                    } {
-                        @if message.is_user {
-                            "Y"
-                        } @else {
-                            "A"
-                        }
-                    }
-                }
-            }
-            div class="chat-header" {
-                (message.sender)
-                time class="text-xs opacity-50" {
-                    (message.timestamp.format("%H:%M"))
-                }
-            }
-            div class={
-                @if message.is_user {
-                    "chat-bubble chat-bubble-primary"
-                } @else {
-                    "chat-bubble"
-                }
-            } {
-                (message.content)
             }
         }
     }

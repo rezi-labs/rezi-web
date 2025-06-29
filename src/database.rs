@@ -88,10 +88,11 @@ pub async fn save_message(client: &DBClient, message: ChatMessage) {
 
     let statement = format!(
         r#"INSERT INTO chat_messages
-    (id, content, sender, "timestamp", is_user, created_at)
-    VALUES({}, '{}', '{}', '{}', '{}', CURRENT_TIMESTAMP);"#,
+    (id, content, ai_response, sender, "timestamp", is_user, created_at)
+    VALUES({}, '{}', '{}', '{}', '{}', '{}', CURRENT_TIMESTAMP);"#,
         message.id,
         escape_sql_string(&message.content),
+        escape_sql_string(&message.ai_response),
         message.sender,
         message.timestamp,
         message.is_user
@@ -108,15 +109,17 @@ pub async fn save_message(client: &DBClient, message: ChatMessage) {
 }
 
 #[allow(clippy::await_holding_lock)]
-pub async fn get_messages(client: &DBClient, _sender: &str) -> Vec<ChatMessage> {
+pub async fn get_messages(client: &DBClient, user_id: &str) -> Vec<ChatMessage> {
     let client = client.lock().unwrap();
 
-    let stmt = libsql_client::Statement::new(
+    let stmt = libsql_client::Statement::with_args(
         "
-            SELECT id, content, sender, timestamp, is_user, created_at
-             FROM chat_messages
+            SELECT id, content, ai_response, sender, timestamp, is_user, created_at
+             FROM chat_messages 
+             WHERE sender = ?
              ORDER BY timestamp ASC
             ",
+        &[user_id],
     );
 
     let res = client.execute(stmt).await.unwrap();
@@ -131,14 +134,16 @@ pub async fn get_messages(client: &DBClient, _sender: &str) -> Vec<ChatMessage> 
 }
 
 #[allow(clippy::await_holding_lock)]
-pub async fn get_items(client: &DBClient) -> Vec<Item> {
+pub async fn get_items(client: &DBClient, owner_id: String) -> Vec<Item> {
     let client = client.lock().unwrap();
 
-    let stmt = libsql_client::Statement::new(
+    let stmt = libsql_client::Statement::with_args(
         "
             SELECT id, task, completed
             FROM items
+            WHERE owner_id = ?
             ",
+        &[owner_id],
     );
 
     let res = client.execute(stmt).await.unwrap();
@@ -154,7 +159,7 @@ pub async fn get_items(client: &DBClient) -> Vec<Item> {
 }
 
 #[allow(clippy::await_holding_lock)]
-pub async fn create_items(client: &DBClient, items: Vec<Item>) {
+pub async fn create_items(client: &DBClient, items: Vec<Item>, user_id: String) {
     if items.is_empty() {
         return;
     }
@@ -166,7 +171,10 @@ pub async fn create_items(client: &DBClient, items: Vec<Item>) {
     for item in &items {
         let completed = bool_to_int(item.completed);
         let escaped_task = escape_sql_string(&item.task);
-        let value_clause = format!("({}, '{}', '{}')", item.id, escaped_task, completed);
+        let value_clause = format!(
+            "({}, '{}', '{}', '{}')",
+            item.id, user_id, escaped_task, completed
+        );
         values_clauses.push(value_clause);
     }
 
@@ -189,7 +197,7 @@ pub async fn create_items(client: &DBClient, items: Vec<Item>) {
 }
 
 #[allow(clippy::await_holding_lock)]
-pub async fn create_item(client: &DBClient, item: Item) {
+pub async fn create_item(client: &DBClient, item: Item, owner_id: String) {
     let client = client.lock().unwrap();
 
     info!("{item:?}");
@@ -198,9 +206,10 @@ pub async fn create_item(client: &DBClient, item: Item) {
 
     let statement = format!(
         r#"INSERT INTO items
-    (id, task, completed)
-    VALUES({}, '{}', '{completed}');"#,
+    (id, owner_id, task, completed)
+    VALUES({}, '{}', '{}', '{completed}');"#,
         item.id,
+        owner_id,
         escape_sql_string(&item.task),
     );
 
@@ -214,12 +223,12 @@ pub async fn create_item(client: &DBClient, item: Item) {
     }
 }
 #[allow(clippy::await_holding_lock)]
-pub async fn delete_item(client: &DBClient, item_id: i64) {
+pub async fn delete_item(client: &DBClient, item_id: i64, owner_id: String) {
     let client = client.lock().unwrap();
 
     let statement = format!(
         r#"DELETE FROM items
-    WHERE id = {item_id};"#,
+    WHERE id = {item_id} AND owner_id = {owner_id};"#,
     );
 
     let st = Statement::new(statement);
@@ -233,14 +242,18 @@ pub async fn delete_item(client: &DBClient, item_id: i64) {
 }
 
 #[allow(clippy::await_holding_lock)]
-pub async fn toggle_item(client: &DBClient, item_id: i64) -> Result<Item, String> {
+pub async fn toggle_item(
+    client: &DBClient,
+    item_id: i64,
+    owner_id: String,
+) -> Result<Item, String> {
     let locked_client = client.lock().unwrap();
     info!("db toggle: {item_id}");
 
     let statement = format!(
         r#"SELECT id, task, completed
     FROM items
-    WHERE id = {item_id};"#,
+    WHERE id = {item_id} AND owner_id = {owner_id};"#,
     );
 
     let st = Statement::new(statement);
@@ -276,17 +289,17 @@ pub async fn toggle_item(client: &DBClient, item_id: i64) -> Result<Item, String
     let _res = locked_client.execute(st).await;
 
     drop(locked_client);
-    get_item(client, item_id).await
+    get_item(client, item_id, owner_id).await
 }
 
 #[allow(clippy::await_holding_lock)]
-pub async fn get_item(client: &DBClient, item_id: i64) -> Result<Item, String> {
+pub async fn get_item(client: &DBClient, item_id: i64, owner_id: String) -> Result<Item, String> {
     let client = client.lock().unwrap();
 
     let statement = format!(
         r#"SELECT id, task, completed
     FROM items
-    WHERE id = {item_id};"#,
+    WHERE id = {item_id} AND owner_id = {owner_id};"#,
     );
 
     let st = Statement::new(statement);
