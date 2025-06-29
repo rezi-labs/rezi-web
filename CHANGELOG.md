@@ -1,5 +1,18 @@
 # Changelog
 
+## [0.3.0](https://github.com/LunchTimeCode/grocy/compare/v0.2.5...v0.3.0) (2025-06-29)
+
+
+### Features
+
+* try push with release token ([987df10](https://github.com/LunchTimeCode/grocy/commit/987df10971b7cec6e8db3b6193f968320071f576))
+
+
+### Bug Fixes
+
+* docker build perf ([c6c7450](https://github.com/LunchTimeCode/grocy/commit/c6c74509dd886194fa64c1504b33c42e01ee88d6))
+* loading icon ([30c2a7c](https://github.com/LunchTimeCode/grocy/commit/30c2a7c6e7fadc5e3de234c19eea0c8bab174178))
+
 ## [0.2.5](https://github.com/LunchTimeCode/grocy/compare/v0.2.4...v0.2.5) (2025-06-28)
 
 
