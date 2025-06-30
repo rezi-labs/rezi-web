@@ -1,5 +1,5 @@
 # Chef stage - prepare recipe
-FROM rust:1.85-slim AS chef
+FROM rust:1.88-slim AS chef
 RUN cargo install cargo-chef
 WORKDIR /usr/src/app
 
