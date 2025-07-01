@@ -22,6 +22,14 @@ pub struct Item {
     pub completed: bool,
 }
 impl Item {
+    pub fn random_item() -> Item {
+        Item {
+            id: random_id(),
+            task: String::from("Random Task"),
+            completed: false,
+        }
+    }
+
     pub fn from_row(row: &Row) -> Result<Item, String> {
         let Ok(id) = row.try_get::<u32>(0) else {
             let err = format!("Item::from_row {row:?}");

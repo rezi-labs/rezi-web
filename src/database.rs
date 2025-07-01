@@ -3,7 +3,10 @@ use std::sync::{Arc, Mutex};
 use libsql_client::Statement;
 use log::{error, info};
 
-use crate::routes::{ChatMessage, Item};
+use crate::{
+    config::Server,
+    routes::{ChatMessage, Item},
+};
 
 pub type DBClient = Arc<Mutex<libsql_client::Client>>;
 
@@ -17,7 +20,8 @@ pub async fn create_client(url: String, token: Option<String>) -> libsql_client:
 }
 
 #[allow(clippy::await_holding_lock)]
-pub async fn migrations(client: &DBClient) {
+pub async fn migrations(client: &DBClient, config: &Server) {
+    let non_locked = &client.clone();
     let client = client.lock().unwrap();
 
     // Run base table migrations first
@@ -74,6 +78,12 @@ pub async fn migrations(client: &DBClient) {
         .expect("update_todos_timestamp_trigger migration failed");
 
     drop(client);
+
+    // test client if in local
+    if config.db_token().is_none() {
+        let item = (0..9).map(|_| Item::random_item()).collect::<Vec<Item>>();
+        create_items(non_locked, item, "test_user".to_string()).await;
+    }
 }
 
 fn escape_sql_string(s: &str) -> String {
@@ -115,7 +125,7 @@ pub async fn get_messages(client: &DBClient, user_id: &str) -> Vec<ChatMessage> 
     let stmt = libsql_client::Statement::with_args(
         "
             SELECT id, content, ai_response, sender, timestamp, is_user, created_at
-             FROM chat_messages 
+             FROM chat_messages
              WHERE sender = ?
              ORDER BY timestamp ASC
             ",
@@ -179,7 +189,7 @@ pub async fn create_items(client: &DBClient, items: Vec<Item>, user_id: String) 
     }
 
     let statement = format!(
-        r#"INSERT INTO items (id, task, completed) VALUES {};"#,
+        r#"INSERT INTO items (id, task, owner_id, completed) VALUES {};"#,
         values_clauses.join(", ")
     );
 

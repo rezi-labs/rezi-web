@@ -76,7 +76,7 @@ pub fn get_user(token: &str) -> Result<User, String> {
     let user = match user {
         Ok(user) => user,
         Err(e) => {
-            log::error!("Invalid token: {}", e);
+            log::error!("Invalid token: {e}");
             return Err("Invalid token".to_string());
         }
     };
