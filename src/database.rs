@@ -189,7 +189,7 @@ pub async fn create_items(client: &DBClient, items: Vec<Item>, user_id: String) 
     }
 
     let statement = format!(
-        r#"INSERT INTO items (id, task, owner_id, completed) VALUES {};"#,
+        r#"INSERT INTO items (id, owner_id, task, completed) VALUES {};"#,
         values_clauses.join(", ")
     );
 
