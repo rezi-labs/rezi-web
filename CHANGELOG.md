@@ -1,5 +1,12 @@
 # Changelog
 
+## [0.4.2](https://github.com/LunchTimeCode/grocy/compare/v0.4.1...v0.4.2) (2025-07-01)
+
+
+### Bug Fixes
+
+* bulk insert ([3d8f99b](https://github.com/LunchTimeCode/grocy/commit/3d8f99b4e1acc528dba3fb106cdd3c218c268a09))
+
 ## [0.4.1](https://github.com/LunchTimeCode/grocy/compare/v0.4.0...v0.4.1) (2025-07-01)
 
 
