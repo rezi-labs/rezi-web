@@ -1,6 +1,6 @@
 use maud::{Markup, html};
 
-use crate::user::User;
+use crate::unsafe_token_decode::User;
 
 pub fn render(user: &User) -> Markup {
     html! {

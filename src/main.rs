@@ -13,6 +13,7 @@ mod database;
 mod llm;
 mod message;
 mod routes;
+mod unsafe_token_decode;
 mod user;
 mod view;
 

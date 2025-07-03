@@ -13,7 +13,7 @@ use std::str::FromStr;
 use crate::config::Server;
 use crate::database::{self, DBClient, int_to_bool};
 use crate::view::render_item;
-use crate::{llm, message, user};
+use crate::{llm, message, unsafe_token_decode};
 
 #[derive(Debug, Clone, Serialize, Deserialize)]
 pub struct Item {
@@ -109,9 +109,9 @@ pub struct SendMessageRequest {
     pub message: String,
 }
 
-pub fn get_user(req: HttpRequest) -> Option<user::User> {
+pub fn get_user(req: HttpRequest) -> Option<unsafe_token_decode::User> {
     req.extensions()
-        .get::<Data<user::User>>()
+        .get::<Data<unsafe_token_decode::User>>()
         .map(|u| u.as_ref().clone())
 }
 

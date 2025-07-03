@@ -10,7 +10,7 @@ pub use todolist::render_item;
 
 use crate::database::{self, DBClient};
 use crate::routes::{ChatMessage, get_user};
-use crate::user;
+use crate::unsafe_token_decode;
 
 #[get("/")]
 pub async fn index_route(client: web::Data<DBClient>, req: HttpRequest) -> AwResult<Markup> {
@@ -30,7 +30,11 @@ pub fn js(path: impl Into<String>) -> Markup {
     html! {script src=(path) {}}
 }
 
-pub fn index(content: Option<Markup>, messages: &[ChatMessage], user: &user::User) -> Markup {
+pub fn index(
+    content: Option<Markup>,
+    messages: &[ChatMessage],
+    user: &unsafe_token_decode::User,
+) -> Markup {
     let content = content.unwrap_or_else(|| chat::render(messages, user));
     html! {
         (maud::DOCTYPE)

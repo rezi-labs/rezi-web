@@ -1,8 +1,8 @@
 use maud::{Markup, html};
 
-use crate::{routes::ChatMessage, user};
+use crate::{routes::ChatMessage, unsafe_token_decode::User};
 
-pub fn render(message: &ChatMessage, user: Option<user::User>) -> Markup {
+pub fn render(message: &ChatMessage, user: Option<User>) -> Markup {
     let initials = match user.clone() {
         Some(u) => u.initials(),
         None => "GY".to_string(),

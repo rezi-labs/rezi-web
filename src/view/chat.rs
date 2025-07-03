@@ -1,6 +1,6 @@
 use crate::database::{self, DBClient};
 use crate::routes::{ChatMessage, get_user};
-use crate::{message, user};
+use crate::{message, unsafe_token_decode};
 use actix_web::{HttpRequest, Result as AwResult};
 use actix_web::{get, web};
 use maud::{Markup, html};
@@ -18,7 +18,7 @@ pub async fn index_route(client: web::Data<DBClient>, req: HttpRequest) -> AwRes
     ))
 }
 
-pub fn render(messages: &[ChatMessage], user: &user::User) -> Markup {
+pub fn render(messages: &[ChatMessage], user: &unsafe_token_decode::User) -> Markup {
     html! {
         div class="card bg-base-200 shadow-xl" {
             div class="card-body" {
