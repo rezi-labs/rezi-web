@@ -9,7 +9,9 @@ use crate::{routes::health, view::todolist};
 
 mod assets;
 mod config;
+mod csv;
 mod database;
+mod ical;
 mod llm;
 mod message;
 mod routes;
@@ -44,6 +46,8 @@ async fn main() -> std::io::Result<()> {
             .service(routes::create_item)
             .service(routes::toggle_item)
             .service(routes::delete_item)
+            .service(routes::items_ical)
+            .service(routes::items_csv)
             .service(assets::scope())
             .service(health)
     });

@@ -1,6 +1,6 @@
 use maud::{Markup, html};
 
-use crate::unsafe_token_decode::User;
+use crate::{unsafe_token_decode::User, view::icons};
 
 pub fn render(user: &User) -> Markup {
     html! {
@@ -27,7 +27,27 @@ pub fn render(user: &User) -> Markup {
         div class="navbar-end" {
             div class="dropdown dropdown-end" {
                 div class="btn btn-ghost" tabindex="0" role="button" {
-                    (user_icon())
+                    (icons::share_icon())
+                }
+                ul class="dropdown-content menu-sm menu bg-base-100 w-52 rounded-box z-1 mt-3 p-2 shadow" tabindex="0" {
+                    li { a class="btn btn-ghost bnt-xl" href="/items/ical" hx-swap="none" {
+                        (icons::apple_icon())
+                         span{
+                             "IOS"
+                         }
+                    }}
+                    li { a class="btn btn-ghost bnt-xl" href="/items/csv" hx-swap="none" {
+                        (icons::google_icon())
+                         span{
+                             "Google"
+                         }
+                    }}
+                }
+            }
+
+            div class="dropdown dropdown-end" {
+                div class="btn btn-ghost" tabindex="0" role="button" {
+                    (icons::user_icon())
                 }
                 ul class="dropdown-content menu-sm menu bg-base-100 w-52 rounded-box z-1 mt-3 p-2 shadow" tabindex="0" {
                     li { a {"email: " span{(user.email())}}}
@@ -66,15 +86,6 @@ pub fn render(user: &User) -> Markup {
             }
         }
     }
-    }
-}
-
-pub fn user_icon() -> Markup {
-    html! {
-        svg class="size-6" xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke-width="1.5" stroke="currentColor" {
-            path stroke-linecap="round" stroke-linejoin="round" d="M15.75 6a3.75 3.75 0 1 1-7.5 0 3.75 3.75 0 0 1 7.5 0ZM4.501 20.118a7.5 7.5 0 0 1 14.998 0A17.933 17.933 0 0 1 12 21.75c-2.676 0-5.216-.584-7.499-1.632Z" {
-            }
-        }
     }
 }
 

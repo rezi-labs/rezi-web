@@ -1,3 +1,4 @@
+use actix_web::http::header::CONTENT_DISPOSITION;
 use actix_web::web::Data;
 use actix_web::{
     HttpMessage, HttpRequest, HttpResponse, Responder, Result, delete, get, patch, post, web,
@@ -13,7 +14,7 @@ use std::str::FromStr;
 use crate::config::Server;
 use crate::database::{self, DBClient, int_to_bool};
 use crate::view::render_item;
-use crate::{llm, message, unsafe_token_decode};
+use crate::{csv, ical, llm, message, unsafe_token_decode};
 
 #[derive(Debug, Clone, Serialize, Deserialize)]
 pub struct Item {
@@ -253,6 +254,39 @@ async fn generate_ai_response(
             "Something went wrong contacting the agent".to_string()
         }
     }
+}
+
+#[get("/items/ical")]
+pub async fn items_ical(client: web::Data<DBClient>, req: HttpRequest) -> Result<HttpResponse> {
+    let user = get_user(req).unwrap();
+    let owner_id = user.id().to_string();
+    let db_client: &DBClient = client.get_ref();
+    let items = database::get_items(db_client, owner_id).await;
+    let ical_file = ical::items_to_events(items.as_slice());
+
+    // directive download
+    let response = HttpResponse::Ok()
+        .append_header((CONTENT_DISPOSITION, "attachment; filename=\"calendar.ics\""))
+        .content_type("application/octet-stream")
+        .body(ical_file);
+
+    Ok(response)
+}
+
+#[get("/items/csv")]
+pub async fn items_csv(client: web::Data<DBClient>, req: HttpRequest) -> Result<HttpResponse> {
+    let user = get_user(req).unwrap();
+    let owner_id = user.id().to_string();
+    let db_client: &DBClient = client.get_ref();
+    let items = database::get_items(db_client, owner_id).await;
+    let csv_file = csv::items_to_events(items.as_slice());
+
+    let response = HttpResponse::Ok()
+        .append_header((CONTENT_DISPOSITION, "attachment; filename=\"calendar.csv\""))
+        .content_type("application/octet-stream")
+        .body(csv_file);
+
+    Ok(response)
 }
 
 #[get("/healthz")]

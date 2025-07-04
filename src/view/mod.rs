@@ -3,6 +3,7 @@ use actix_web::{get, web};
 use maud::{Markup, html};
 
 mod chat;
+mod icons;
 mod navbar;
 pub mod todolist;
 
