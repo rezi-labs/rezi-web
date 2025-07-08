@@ -1,3 +1,5 @@
+use crate::scrapy;
+
 pub async fn hex(url: String) -> Result<String, String> {
     let html = get_html_from_url(url).await?;
     let result = scrapy::extract_ingredients(&html);

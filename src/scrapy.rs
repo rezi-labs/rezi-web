@@ -65,7 +65,7 @@ fn clean_ingredient_text(element: &ElementRef) -> String {
     let text = element.text().collect::<String>();
 
     // Remove extra whitespace and common prefixes/suffixes
-    let text = text.trim().replace('\n', " ").replace('\t', " ");
+    let text = text.trim().replace(['\n', '\t'], " ");
 
     // Remove bullet points and numbering
     let text = BULLET_REGEX.replace(&text, "");
@@ -82,7 +82,7 @@ fn is_likely_ingredient(text: &str) -> bool {
     let len = text.len();
 
     // Too short or too long
-    if len < 3 || len > 200 {
+    if !(3..=200).contains(&len) {
         return false;
     }
 
