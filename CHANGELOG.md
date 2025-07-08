@@ -1,5 +1,18 @@
 # Changelog
 
+## [0.5.0](https://github.com/LunchTimeCode/grocy/compare/v0.4.3...v0.5.0) (2025-07-08)
+
+
+### Features
+
+* format ([9100809](https://github.com/LunchTimeCode/grocy/commit/9100809af1e0f969b71a38faa9b6b2806c219cfb))
+* share tasks ([cc7907d](https://github.com/LunchTimeCode/grocy/commit/cc7907d5c5935408d8f7a8052430b890bd823881))
+
+
+### Bug Fixes
+
+* log token valid parts ([92b52fe](https://github.com/LunchTimeCode/grocy/commit/92b52fe7d9a66fc30f690b69e9dc854f3e2728a9))
+
 ## [0.4.3](https://github.com/LunchTimeCode/grocy/compare/v0.4.2...v0.4.3) (2025-07-03)
 
 
