@@ -87,6 +87,27 @@ pub async fn migrations(client: &DBClient, config: &Server) {
         .await
         .expect("with_results migration failed");
 
+    let idx_witch_results_owner_id_sql =
+        include_str!("../migrations/idx_witch_results_owner_id.sql");
+    client
+        .execute(idx_witch_results_owner_id_sql)
+        .await
+        .expect("idx_witch_results_owner_id migration failed");
+
+    let idx_witch_results_timestamp_sql =
+        include_str!("../migrations/idx_witch_results_timestamp.sql");
+    client
+        .execute(idx_witch_results_timestamp_sql)
+        .await
+        .expect("idx_witch_results_timestamp migration failed");
+
+    let idx_witch_results_owner_id_timestamp_sql =
+        include_str!("../migrations/idx_witch_results_owner_id_timestamp.sql");
+    client
+        .execute(idx_witch_results_owner_id_timestamp_sql)
+        .await
+        .expect("idx_witch_results_owner_id_timestamp migration failed");
+
     drop(client);
 
     // test client if in local
