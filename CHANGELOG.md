@@ -1,5 +1,17 @@
 # Changelog
 
+## [0.7.0](https://github.com/LunchTimeCode/grocy/compare/v0.6.2...v0.7.0) (2025-07-08)
+
+
+### Features
+
+* witch ([6d0c7e0](https://github.com/LunchTimeCode/grocy/commit/6d0c7e0085dbe7e9a6dff5df221d1e73766980ae))
+
+
+### Bug Fixes
+
+* add indexes for witch ([51a18c9](https://github.com/LunchTimeCode/grocy/commit/51a18c943b97f932fe7722ba72fc173aeed04a9b))
+
 ## [0.6.2](https://github.com/LunchTimeCode/grocy/compare/v0.6.1...v0.6.2) (2025-07-08)
 
 
