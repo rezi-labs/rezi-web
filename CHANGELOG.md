@@ -1,5 +1,13 @@
 # Changelog
 
+## [0.6.2](https://github.com/LunchTimeCode/grocy/compare/v0.6.1...v0.6.2) (2025-07-08)
+
+
+### Bug Fixes
+
+* add system message ([3a8c25d](https://github.com/LunchTimeCode/grocy/commit/3a8c25dc1d2daa7461a685fa50b426205d0861eb))
+* add system message ([#23](https://github.com/LunchTimeCode/grocy/issues/23)) ([56344ce](https://github.com/LunchTimeCode/grocy/commit/56344ce40e1a0d56f999ab5eed0ccf63940c1ee4))
+
 ## [0.6.1](https://github.com/LunchTimeCode/grocy/compare/v0.6.0...v0.6.1) (2025-07-08)
 
 
