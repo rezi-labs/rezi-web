@@ -29,16 +29,16 @@ pub fn render(user: &User) -> Markup {
                 div class="btn btn-ghost" tabindex="0" role="button" {
                     (icons::share_icon())
                 }
-                ul class="dropdown-content menu-sm menu bg-base-100 w-52 rounded-box z-1 mt-3 p-2 shadow" tabindex="0" {
-                    li { a class="btn btn-ghost bnt-xl" href="/items/ical" hx-swap="none" {
+                ul class="dropdown-content menu-sm menu w-52 bg-base-100 rounded-box z-1 mt-3 p-2 shadow" tabindex="0" {
+                    li { a class="btn bg-blacks text-white grid grid-cols-2" href="/items/ical" hx-swap="none" {
                         (icons::apple_icon())
-                         span{
-                             "IOS"
+                         span .w-9 {
+                             "Apple"
                          }
                     }}
-                    li { a class="btn btn-ghost bnt-xl" href="/items/csv" hx-swap="none" {
+                    li { a class="btn bg-whites text-black grid grid-cols-2" href="/items/csv" hx-swap="none" {
                         (icons::google_icon())
-                         span{
+                         span .w-9 {
                              "Google"
                          }
                     }}
