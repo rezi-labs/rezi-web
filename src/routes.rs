@@ -175,6 +175,50 @@ pub fn random_id() -> u32 {
     rng.random::<u32>()
 }
 
+#[post("/ai/items")]
+pub async fn create_item_with_ai(
+    form: web::Form<SendMessageRequest>,
+    client: web::Data<DBClient>,
+    config: web::Data<Server>,
+    req: HttpRequest,
+) -> Result<Markup> {
+    let user = get_user(req).unwrap();
+    // delay if delay is on
+    if config.delay() {
+        tokio::time::sleep(std::time::Duration::from_millis(2000)).await;
+    }
+
+    log::info!("Received task message: {}", form.message);
+    let db_client: &DBClient = client.get_ref();
+
+    // Generate AI response
+    let ai_response = generate_task_response(
+        &form.message,
+        &config.nest_api(),
+        &config.nest_api_key(),
+        db_client,
+        user.id().to_string(),
+    )
+    .await;
+
+    let chat_id = random_id();
+
+    // do not save ai message
+    let ai_message = ChatMessage {
+        id: chat_id,
+        content: ai_response.clone(),
+        ai_response: ai_response.clone(),
+        sender: "Agent".to_string(),
+        timestamp: Utc::now(),
+        is_user: false,
+    };
+
+    // Return both messages as HTML
+    Ok(html! {
+        (message::render(&ai_message, None))
+    })
+}
+
 #[post("chat")]
 pub async fn send_message(
     form: web::Form<SendMessageRequest>,
@@ -197,14 +241,8 @@ pub async fn send_message(
     log::info!("Added user message with ID: {chat_id}");
 
     // Generate AI response
-    let ai_response = generate_ai_response(
-        &form.message,
-        &config.nest_api(),
-        &config.nest_api_key(),
-        db_client,
-        user.id().to_string(),
-    )
-    .await;
+    let ai_response =
+        generate_ai_response(&form.message, &config.nest_api(), &config.nest_api_key()).await;
 
     log::info!("Generated AI response: {ai_response}");
 
@@ -235,14 +273,30 @@ pub async fn send_message(
     })
 }
 
-async fn generate_ai_response(
+async fn generate_ai_response(user_message: &str, nest_api: &str, nest_api_key: &str) -> String {
+    match llm::simple_chat_response(nest_api, nest_api_key, user_message).await {
+        Ok(a) => a,
+        Err(e) => {
+            match e {
+                llm::LlmError::Request(error) => error!("{error}"),
+                llm::LlmError::Auth(error) => error!("{error}"),
+                llm::LlmError::Parse(error) => error!("{error}"),
+            };
+
+            "Something went wrong contacting the agent".to_string()
+        }
+    }
+}
+
+async fn generate_task_response(
     user_message: &str,
     nest_api: &str,
     nest_api_key: &str,
     db_client: &DBClient,
     user_id: String,
 ) -> String {
-    match llm::simple_chat(nest_api, nest_api_key, user_message, user_id, db_client).await {
+    match llm::simple_item_response(nest_api, nest_api_key, user_message, user_id, db_client).await
+    {
         Ok(a) => a,
         Err(e) => {
             match e {
