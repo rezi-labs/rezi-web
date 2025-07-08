@@ -2,6 +2,17 @@ use regex::Regex;
 use scraper::{ElementRef, Html, Selector};
 use std::collections::HashSet;
 
+lazy_static::lazy_static! {
+    static ref BULLET_REGEX: Regex = Regex::new(r"^[\d\s]*[•\-\*]\s*").unwrap();
+    static ref NUMBER_REGEX: Regex = Regex::new(r"^\d+\.\s*").unwrap();
+    static ref WHITESPACE_REGEX: Regex = Regex::new(r"\s+").unwrap();
+    static ref INGREDIENT_REGEX: Regex = Regex::new(r#""recipeIngredient"\s*:\s*\[(.*?)\]"#).unwrap();
+    static ref ITEM_REGEX: Regex = Regex::new(r#""([^"]+)""#).unwrap();
+    static ref MEASUREMENT_REGEX: Regex = Regex::new(
+        r"(?i)(?:^|\n)\s*(?:\d+(?:\.\d+)?|\d+/\d+|\d+\s+\d+/\d+)?\s*(?:cups?|tbsp|tsp|teaspoons?|tablespoons?|oz|ounces?|lbs?|pounds?|g|grams?|kg|ml|l|liters?|cloves?|pieces?|slices?|strips?|dashes?|pinches?)\s+(?:of\s+)?([^\n\r]+)"
+    ).unwrap();
+}
+
 pub fn extract_ingredients(html: &str) -> Vec<String> {
     let document = Html::parse_document(html);
     let mut ingredients = Vec::new();
@@ -57,16 +68,13 @@ fn clean_ingredient_text(element: &ElementRef) -> String {
     let text = text.trim().replace('\n', " ").replace('\t', " ");
 
     // Remove bullet points and numbering
-    let bullet_regex = Regex::new(r"^[\d\s]*[•\-\*]\s*").unwrap();
-    let text = bullet_regex.replace(&text, "");
+    let text = BULLET_REGEX.replace(&text, "");
 
     // Remove leading numbers (1., 2., etc.)
-    let number_regex = Regex::new(r"^\d+\.\s*").unwrap();
-    let text = number_regex.replace(&text, "");
+    let text = NUMBER_REGEX.replace(&text, "");
 
     // Normalize whitespace
-    let whitespace_regex = Regex::new(r"\s+").unwrap();
-    whitespace_regex.replace_all(&text, " ").trim().to_string()
+    WHITESPACE_REGEX.replace_all(&text, " ").trim().to_string()
 }
 
 fn is_likely_ingredient(text: &str) -> bool {
@@ -119,14 +127,11 @@ fn extract_from_json_ld(document: &Html) -> Vec<String> {
         let json_text = script.text().collect::<String>();
 
         // Simple regex-based extraction for recipeIngredient
-        let ingredient_regex = Regex::new(r#""recipeIngredient"\s*:\s*\[(.*?)\]"#).unwrap();
-
-        if let Some(captures) = ingredient_regex.captures(&json_text) {
+        if let Some(captures) = INGREDIENT_REGEX.captures(&json_text) {
             let ingredients_str = captures.get(1).unwrap().as_str();
 
             // Extract individual ingredients from the JSON array
-            let item_regex = Regex::new(r#""([^"]+)""#).unwrap();
-            for cap in item_regex.captures_iter(ingredients_str) {
+            for cap in ITEM_REGEX.captures_iter(ingredients_str) {
                 let ingredient = cap.get(1).unwrap().as_str().to_string();
                 if is_likely_ingredient(&ingredient) {
                     ingredients.push(ingredient);
@@ -142,11 +147,7 @@ fn extract_from_text_patterns(html: &str) -> Vec<String> {
     let mut ingredients = Vec::new();
 
     // Look for common measurement patterns that indicate ingredients
-    let measurement_regex = Regex::new(
-        r"(?i)(?:^|\n)\s*(?:\d+(?:\.\d+)?|\d+/\d+|\d+\s+\d+/\d+)?\s*(?:cups?|tbsp|tsp|teaspoons?|tablespoons?|oz|ounces?|lbs?|pounds?|g|grams?|kg|ml|l|liters?|cloves?|pieces?|slices?|strips?|dashes?|pinches?)\s+(?:of\s+)?([^\n\r]+)"
-    ).unwrap();
-
-    for cap in measurement_regex.captures_iter(html) {
+    for cap in MEASUREMENT_REGEX.captures_iter(html) {
         if let Some(ingredient_match) = cap.get(1) {
             let ingredient = ingredient_match.as_str().trim();
             if is_likely_ingredient(ingredient) {
