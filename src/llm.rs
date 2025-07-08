@@ -33,8 +33,13 @@ pub async fn simple_item_response(
 ) -> Result<String, LlmError> {
     let client = Client::new();
 
+    let with_sys = format!(
+        "{}{}",
+        "Create only grocery items out of this, ignore everything else: ", user_message
+    );
+
     let prompt = Prompt {
-        prompt: user_message.to_string(),
+        prompt: with_sys.to_string(),
     };
 
     let full_url = format!("{}{}", nest_api, "/api/task");
