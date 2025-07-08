@@ -233,7 +233,13 @@ pub async fn add_witch_items(
         }
 
         Some(url) => {
-            let hex = witch::hex(url.clone());
+            let hex = witch::hex(url.clone()).await;
+
+            let Ok(hex) = hex else {
+                return Err(actix_web::error::ErrorBadRequest(
+                    "Could not fetch hex".to_string(),
+                ));
+            };
 
             let ai_response = generate_task_response(
                 &hex,
