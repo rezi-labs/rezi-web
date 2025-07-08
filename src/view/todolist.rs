@@ -11,13 +11,7 @@ pub async fn index_route(client: web::Data<DBClient>, req: HttpRequest) -> AwRes
     let user = routes::get_user(req).unwrap();
     let items: Vec<Item> = database::get_items(client, user.id().to_string()).await;
 
-    let messages = database::get_messages(client, user.id()).await;
-
-    Ok(super::index(
-        Some(render(&items)),
-        messages.as_slice(),
-        &user,
-    ))
+    Ok(super::index(Some(render(&items)), &user))
 }
 
 pub fn render(items: &[Item]) -> Markup {

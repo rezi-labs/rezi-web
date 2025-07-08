@@ -18,6 +18,7 @@ mod routes;
 mod unsafe_token_decode;
 mod user;
 mod view;
+mod witch;
 
 #[actix_web::main]
 async fn main() -> std::io::Result<()> {
@@ -41,9 +42,12 @@ async fn main() -> std::io::Result<()> {
             .app_data(web::Data::new(c.clone()))
             .wrap(from_fn(user::user_extractor))
             .service(view::index_route)
+            .service(view::grocy_endpoint)
+            .service(view::witch_endpoint)
             .service(todolist::index_route)
             .service(routes::send_message)
             .service(routes::create_item_with_ai)
+            .service(routes::add_witch_items)
             .service(routes::create_item)
             .service(routes::toggle_item)
             .service(routes::delete_item)

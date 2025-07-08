@@ -13,8 +13,8 @@ use std::str::FromStr;
 
 use crate::config::Server;
 use crate::database::{self, DBClient, int_to_bool};
-use crate::view::render_item;
-use crate::{csv, ical, llm, message, unsafe_token_decode};
+use crate::view::{self, render_item};
+use crate::{csv, ical, llm, message, unsafe_token_decode, witch};
 
 #[derive(Debug, Clone, Serialize, Deserialize)]
 pub struct Item {
@@ -175,6 +175,95 @@ pub fn random_id() -> u32 {
     rng.random::<u32>()
 }
 
+#[derive(Deserialize)]
+pub struct SendWitchRequest {
+    pub url: Option<String>,
+    pub witch_id: Option<u32>,
+}
+
+#[post("/witch")]
+pub async fn add_witch_items(
+    form: web::Form<SendWitchRequest>,
+    client: web::Data<DBClient>,
+    config: web::Data<Server>,
+    req: HttpRequest,
+) -> Result<Markup> {
+    let user = get_user(req).unwrap();
+    // delay if delay is on
+    if config.delay() {
+        tokio::time::sleep(std::time::Duration::from_millis(2000)).await;
+    }
+
+    let db_client: &DBClient = client.get_ref();
+
+    let url = form.url.clone();
+    let witch_id = form.witch_id;
+
+    let owner_id = user.id().to_owned();
+
+    let witch_result = match url {
+        None => {
+            let Some(witch_id) = witch_id else {
+                return Err(actix_web::error::ErrorBadRequest(
+                    "Missing witch_id".to_string(),
+                ));
+            };
+
+            let witch_result = database::get_single_witch_result(db_client, &witch_id).await;
+
+            let Ok(witch_result) = witch_result else {
+                return Err(actix_web::error::ErrorBadRequest(
+                    "Did not find witch_id".to_string(),
+                ));
+            };
+
+            let ai_response = generate_task_response(
+                &witch_result.content,
+                &config.nest_api(),
+                &config.nest_api_key(),
+                db_client,
+                user.id().to_string(),
+            )
+            .await;
+
+            // do not save again the witch result
+            log::info!("hex response: {ai_response}");
+
+            witch_result
+        }
+
+        Some(url) => {
+            let hex = witch::hex(url.clone());
+
+            let ai_response = generate_task_response(
+                &hex,
+                &config.nest_api(),
+                &config.nest_api_key(),
+                db_client,
+                user.id().to_string(),
+            )
+            .await;
+
+            let witch_id =
+                database::add_witch_result(db_client, &url, &ai_response, &owner_id).await;
+            let Ok(witch_id) = witch_id else {
+                return Err(actix_web::error::ErrorBadRequest(
+                    "Missing witch_id".to_string(),
+                ));
+            };
+            let witch_result = database::get_single_witch_result(db_client, &witch_id).await;
+            let Ok(witch_result) = witch_result else {
+                return Err(actix_web::error::ErrorBadRequest(
+                    "Could not find created witch_id".to_string(),
+                ));
+            };
+            witch_result
+        }
+    };
+
+    Ok(view::chat::witch_result(&witch_result))
+}
+
 #[post("/ai/items")]
 pub async fn create_item_with_ai(
     form: web::Form<SendMessageRequest>,
@@ -328,10 +417,9 @@ pub async fn items_ical(client: web::Data<DBClient>, req: HttpRequest) -> Result
     let items = database::get_items(db_client, owner_id).await;
     let ical_file = ical::items_to_events(items.as_slice());
 
-    // directive download
     let response = HttpResponse::Ok()
         .append_header((CONTENT_DISPOSITION, "attachment; filename=\"calendar.ics\""))
-        .content_type("application/octet-stream")
+        .content_type("text/calendar")
         .body(ical_file);
 
     Ok(response)
