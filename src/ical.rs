@@ -24,10 +24,7 @@ pub fn items_to_events(items: &[Item]) -> String {
 }
 
 fn generate_ical_event(title: &str, start: &str, end: &str) -> String {
-    format!(
-        "BEGIN:VEVENT\nSUMMARY:{}\nDTSTART:{}\nDTEND:{}\nEND:VEVENT",
-        title, start, end
-    )
+    format!("BEGIN:VEVENT\nSUMMARY:{title}\nDTSTART:{start}\nDTEND:{end}\nEND:VEVENT")
 }
 
 fn now() -> DateTime<Utc> {
