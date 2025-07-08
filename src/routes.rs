@@ -203,6 +203,16 @@ pub async fn create_item_with_ai(
 
     let chat_id = random_id();
 
+    let user_message = ChatMessage {
+        id: chat_id,
+        content: form.message.clone(),
+        ai_response: ai_response.clone(),
+        sender: user.id().to_string(),
+        timestamp: Utc::now(),
+        is_user: true,
+    };
+    database::save_message(db_client, user_message.clone()).await;
+
     // do not save ai message
     let ai_message = ChatMessage {
         id: chat_id,
@@ -213,8 +223,8 @@ pub async fn create_item_with_ai(
         is_user: false,
     };
 
-    // Return both messages as HTML
     Ok(html! {
+        (message::render(&user_message, Some(user.to_owned())))
         (message::render(&ai_message, None))
     })
 }
