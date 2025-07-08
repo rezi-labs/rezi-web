@@ -1,5 +1,13 @@
 # Changelog
 
+## [0.6.0](https://github.com/LunchTimeCode/grocy/compare/v0.5.0...v0.6.0) (2025-07-08)
+
+
+### Features
+
+* magic button ([46a40ed](https://github.com/LunchTimeCode/grocy/commit/46a40ed6bf3568494761ecd6688a6f6eb154f8b8))
+* magic button ([#19](https://github.com/LunchTimeCode/grocy/issues/19)) ([088f6ce](https://github.com/LunchTimeCode/grocy/commit/088f6ced51827a6ffaf04f6cc209697a5a76f698))
+
 ## [0.5.0](https://github.com/LunchTimeCode/grocy/compare/v0.4.3...v0.5.0) (2025-07-08)
 
 
