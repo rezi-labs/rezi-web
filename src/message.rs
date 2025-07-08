@@ -53,20 +53,29 @@ pub fn render(message: &ChatMessage, user: Option<User>) -> Markup {
 
             }
             div class="chat-footer opacity-50"{
-                  (ai_btn())
+                  (ai_btn(&message))
             }
 
         }
     }
 }
 
-pub fn ai_btn() -> Markup {
-    html! {    span {
-        button class="btn btn-xs btn-accent" hx-post="ai/items" hx-indicator="#spinner"{
-            (spark_icon())
-            "grocery"
+pub fn ai_btn(message: &ChatMessage) -> Markup {
+    let id = format!("ai-btn-{}", message.id);
+    let spinner_id = format!("ai-btn-spinner-{}-{}", message.id, message.is_user);
+    html! {
+        span {
+
+        form id=(id) {
+            input type="hidden" name="message" value=(message.content)  {}
+
+            button class="btn btn-xs btn-accent" type="submit" hx-post="ai/items" hx-target="#chat-messages"  hx-indicator={"#"(spinner_id)} hx-swap="beforeend" hx-on--after-request="this.reset()" {
+                (spark_icon())
+                "grocery"
+            }
         }
-        span id="spinner"  class="htmx-indicator loading loading-bars loading-md" {}
+
+        span id=(spinner_id)  class="htmx-indicator loading loading-bars loading-md" {}
     }}
 }
 
