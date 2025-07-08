@@ -1,5 +1,13 @@
 # Changelog
 
+## [0.6.1](https://github.com/LunchTimeCode/grocy/compare/v0.6.0...v0.6.1) (2025-07-08)
+
+
+### Bug Fixes
+
+* ai magic ([e0e59dc](https://github.com/LunchTimeCode/grocy/commit/e0e59dc52460751c26a6babc747fa6d1a075e6e2))
+* ai magic ([#21](https://github.com/LunchTimeCode/grocy/issues/21)) ([d3e5d80](https://github.com/LunchTimeCode/grocy/commit/d3e5d80108baad20945e6bbcde8ca7c18445d0df))
+
 ## [0.6.0](https://github.com/LunchTimeCode/grocy/compare/v0.5.0...v0.6.0) (2025-07-08)
 
 
