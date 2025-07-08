@@ -1,5 +1,19 @@
 # Changelog
 
+## [0.8.0](https://github.com/LunchTimeCode/grocy/compare/v0.7.0...v0.8.0) (2025-07-08)
+
+
+### Features
+
+* add scrapy ([58a4137](https://github.com/LunchTimeCode/grocy/commit/58a4137473a59b2b81731de8d6ad5da0c880c318))
+
+
+### Bug Fixes
+
+* make scrapy go brr ([09ca4c5](https://github.com/LunchTimeCode/grocy/commit/09ca4c588141ec1948dc151dcffcd9a1a4442928))
+* remove targe folder ([61901d1](https://github.com/LunchTimeCode/grocy/commit/61901d13776b7c117cbd8a7530e1d581260409db))
+* remove target folder ([f6e0df8](https://github.com/LunchTimeCode/grocy/commit/f6e0df8c3ec6df87d54407b8089de950228e8dc3))
+
 ## [0.7.0](https://github.com/LunchTimeCode/grocy/compare/v0.6.2...v0.7.0) (2025-07-08)
 
 
