@@ -36,7 +36,8 @@ pub fn decode_jwt_unsafe(token: &str) -> Result<User, String> {
     // Split the JWT into its three parts
     let parts: Vec<&str> = token.split('.').collect();
     if parts.len() != 3 {
-        return Err("Invalid JWT format: must have 3 parts".to_string());
+        let msg = format!("Invalid JWT format: must have 3 parts {token}");
+        return Err(msg);
     }
 
     // Decode the payload (second part)
