@@ -1,5 +1,17 @@
 # Changelog
 
+## [0.9.0](https://github.com/LunchTimeCode/grocy/compare/v0.8.1...v0.9.0) (2025-07-16)
+
+
+### Features
+
+* sidebar menue ([ecd3057](https://github.com/LunchTimeCode/grocy/commit/ecd30572d322b891b1890ec67fd0df0ebb0b5b87))
+
+
+### Bug Fixes
+
+* side menu ([b855a4f](https://github.com/LunchTimeCode/grocy/commit/b855a4f1941f73dd7fb343adc791723975a690c3))
+
 ## [0.8.1](https://github.com/LunchTimeCode/grocy/compare/v0.8.0...v0.8.1) (2025-07-08)
 
 
