@@ -7,7 +7,7 @@ use maud::{Markup, html};
 
 pub fn render() -> Markup {
     html! {
-        div class="join" {
+        div class="join" .p-2 {
             button class="btn join-item" hx-get="/grocy" hx-target="#magic" hx-swap="innerHTML" hx-trigger="click, load" {
                 (chat_icon())"Grocy"
             }
@@ -15,7 +15,7 @@ pub fn render() -> Markup {
                 (spark_icon())"Witch"
             }
         }
-        div id="magic" {
+        div id="magic" .p-2 {
 
         }
     }
@@ -61,7 +61,7 @@ pub fn witch_result(result: &WitchResult) -> Markup {
 pub fn witch(results: &[WitchResult]) -> Markup {
     html! {
 
-        ul id="result-message" class="list h-96 bg-base-200 p-4 rounded-lg mb-4 space-y-3 overflow-y-auto" {
+        ul id="result-message" class="list h-full bg-base-200 p-4 rounded-lg mb-4 space-y-3 overflow-y-auto" {
             li class="p-4 pb-2 text-xs opacity-60 tracking-wide" {
                   "The work of the witch"
               }
@@ -83,7 +83,7 @@ pub fn witch(results: &[WitchResult]) -> Markup {
 
 pub fn grocy(messages: &[ChatMessage], user: &unsafe_token_decode::User) -> Markup {
     html! {
-                div id="chat-messages" class="chat-container h-96 bg-base-200 p-4 rounded-lg mb-4 space-y-3 overflow-y-auto" {
+                div id="chat-messages" class="chat-container h-full bg-base-200 p-4 rounded-lg mb-4 space-y-3 overflow-y-auto" {
                     @for message in messages {
                         (message::render(message, Some(user.clone())))
                         (message::render(&message.ai_message(), None))

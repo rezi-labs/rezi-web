@@ -5,19 +5,18 @@ use maud::{Markup, html};
 pub mod chat;
 mod icons;
 mod navbar;
+pub mod profile;
 pub mod todolist;
 
 pub use todolist::render_item;
 
 use crate::database::{self, DBClient};
 use crate::routes::get_user;
-use crate::unsafe_token_decode;
 use crate::view::chat::witch;
 
 #[get("/")]
-pub async fn index_route(req: HttpRequest) -> AwResult<Markup> {
-    let user = get_user(req).unwrap();
-    Ok(index(None, &user))
+pub async fn index_route() -> AwResult<Markup> {
+    Ok(index(None))
 }
 
 #[get("/grocy")]
@@ -48,7 +47,7 @@ pub fn js(path: impl Into<String>) -> Markup {
     html! {script src=(path) {}}
 }
 
-pub fn index(content: Option<Markup>, user: &unsafe_token_decode::User) -> Markup {
+pub fn index(content: Option<Markup>) -> Markup {
     let content = content.unwrap_or_else(chat::render);
     html! {
         (maud::DOCTYPE)
@@ -68,12 +67,16 @@ pub fn index(content: Option<Markup>, user: &unsafe_token_decode::User) -> Marku
         }
         body {
             (js("/assets/htmxListener.js"))
-            (navbar::render(user))
 
-            div class="container mx-auto p-2" {
-                div class="grid grid-cols-1 gap-6" {
-                  (content)
+
+            div class="flex h-screen" {
+                div class="w-36 shadow-lg" {
+                    (navbar::render())
                 }
+                div class="flex-1"{
+                    (content)
+                }
+
             }
         }
     }

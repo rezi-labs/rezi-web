@@ -11,37 +11,39 @@ pub async fn index_route(client: web::Data<DBClient>, req: HttpRequest) -> AwRes
     let user = routes::get_user(req).unwrap();
     let items: Vec<Item> = database::get_items(client, user.id().to_string()).await;
 
-    Ok(super::index(Some(render(&items)), &user))
+    Ok(super::index(Some(render(&items))))
 }
 
 pub fn render(items: &[Item]) -> Markup {
     html! {
+        div .p-2 {
+            div class="card bg-base-200 shadow-xl" {
+                div class="card-body" {
 
-        div class="card bg-base-200 shadow-xl" {
-            div class="card-body" {
-
-                h2 class="card-title text-2xl mb-4" {
-                    svg class="w-6 h-6" fill="none" stroke="currentColor" viewBox="0 0 24 24" {
-                        path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 5H7a2 2 0 00-2 2v10a2 2 0 002 2h8a2 2 0 002-2V7a2 2 0 00-2-2h-2M9 5a2 2 0 002 2h2a2 2 0 002-2M9 5a2 2 0 012-2h2a2 2 0 012 2m-6 9l2 2 4-4" {
+                    h2 class="card-title text-2xl mb-4" {
+                        svg class="w-6 h-6" fill="none" stroke="currentColor" viewBox="0 0 24 24" {
+                            path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 5H7a2 2 0 00-2 2v10a2 2 0 002 2h8a2 2 0 002-2V7a2 2 0 00-2-2h-2M9 5a2 2 0 002 2h2a2 2 0 002-2M9 5a2 2 0 012-2h2a2 2 0 012 2m-6 9l2 2 4-4" {
+                            }
+                        }
+                        "List"
+                    }
+                    form class="flex gap-2 mb-4" hx-post="/items/single" hx-target="#todo-list" hx-swap="beforeend" hx-on--after-request="this.reset()" {
+                        input class="input input-bordered flex-1" type="text" name="task" placeholder="Add a new task..." required;
+                        button class="btn btn-primary" type="submit" {
+                            (icons::add_icon())
+                            "Add"
                         }
                     }
-                    "List"
-                }
-                form class="flex gap-2 mb-4" hx-post="/items/single" hx-target="#todo-list" hx-swap="beforeend" hx-on--after-request="this.reset()" {
-                    input class="input input-bordered flex-1" type="text" name="task" placeholder="Add a new task..." required;
-                    button class="btn btn-primary" type="submit" {
-                        (icons::add_icon())
-                        "Add"
-                    }
-                }
 
-                div id="todo-list" class="todo-container space-y-2 h-[700px] overflow-y-auto" {
-                    @for item in items {
-                        (render_item(item))
+                    div id="todo-list" class="todo-container space-y-2 h-[700px] overflow-y-auto" {
+                        @for item in items {
+                            (render_item(item))
+                        }
                     }
                 }
             }
         }
+
     }
 }
 

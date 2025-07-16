@@ -45,6 +45,7 @@ async fn main() -> std::io::Result<()> {
             .service(view::index_route)
             .service(view::grocy_endpoint)
             .service(view::witch_endpoint)
+            .service(view::profile::profile_endpoint)
             .service(todolist::index_route)
             .service(routes::send_message)
             .service(routes::create_item_with_ai)
