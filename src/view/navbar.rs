@@ -8,81 +8,117 @@ use crate::{
 
 pub fn render(user: &User) -> Markup {
     html! {
-        div class="navbar bg-base-200 shadow-lg" {
-        div class="navbar-start" {
-            h1 class="text-xl font-bold" {
-                "Grocy"
-            }
-        }
-        div class="navbar-center"{
-                ul class="menu menu-horizontal px-1" {
-                    li {
-                        a href="/" {
-                            (spark_icon())
-                        }
-                    }
-                    li {
-                        a href="/items" {
-                            (list_icon())
-                        }
-                    }
-            }
-        }
-        div class="navbar-end" {
-            div class="dropdown dropdown-end" {
-                div class="btn btn-ghost" tabindex="0" role="button" {
-                    (icons::share_icon())
+
+        div .drawer {
+            input id="main-drawer" type="checkbox" class="drawer-toggle"{}
+            div .drawer-content {
+                label for="main-drawer" class="btn btn-primary drawer-button" {
+                    (icons::house_icon())
                 }
-                ul class="dropdown-content menu-sm menu w-52 bg-base-100 rounded-box z-1 mt-3 p-2 shadow" tabindex="0" {
-                    li { a class="btn grid grid-cols-2" href="/items/csv" hx-swap="none" {
-                         span .w-9 {
-                             "CSV"
-                         }
-                    }}
+            }
+            div class="drawer-side" {
+                label for="main-drawer" aria-label="close sidebar" class="drawer-overlay" {}
+                (navbar(user))
+            }
+
+        }
+
+    }
+}
+
+fn navbar(user: &User) -> Markup {
+    html! {
+        div class="bg-base-200 min-h-full w-80 p-4" {
+            div class="mb-6" {
+                h1 class="text-xl font-bold mb-4" {
+                    "Grocy"
                 }
             }
 
-            div class="dropdown dropdown-end" {
-                div class="btn btn-ghost" tabindex="0" role="button" {
-                    (icons::user_icon())
+            // Main navigation menu
+            ul class="menu menu-vertical px-1 space-y-2" {
+                li {
+                    a href="/" class="flex items-center gap-3 p-3 rounded-lg hover:bg-base-300" {
+                        (spark_icon())
+                        span { "Home" }
+                    }
                 }
-                ul class="dropdown-content menu-sm menu bg-base-100 w-52 rounded-box z-1 mt-3 p-2 shadow" tabindex="0" {
-                    li { a {"email: " span{(user.email())}}}
-                    li { a {"id: " span{(user.id())}}}
-                    li { a {"initials: " span{(user.initials())}}}
+                li {
+                    a href="/items" class="flex items-center gap-3 p-3 rounded-lg hover:bg-base-300" {
+                        (list_icon())
+                        span { "Items" }
+                    }
                 }
             }
-            div class="dropdown dropdown-end" {
-                div class="btn btn-ghost" tabindex="0" role="button" {
-                  (theme_icon())
+
+            div class="divider my-4" {}
+
+            // Secondary menu items
+            ul class="menu menu-vertical px-1 space-y-2" {
+                li {
+                    details {
+                        summary class="flex items-center gap-3 p-3 rounded-lg hover:bg-base-300" {
+                            (icons::share_icon())
+                            span { "Export" }
+                        }
+                        ul class="ml-6 mt-2 space-y-1" {
+                            li {
+                                a href="/items/csv" hx-swap="none" class="p-2 rounded hover:bg-base-300" {
+                                    "CSV Export"
+                                }
+                            }
+                        }
+                    }
                 }
-                ul class="dropdown-content menu-sm menu bg-base-100 w-52 rounded-box z-1 mt-3 p-2 shadow" tabindex="0" {
-                    li { a onclick="changeTheme('light')" { "🌞" span { "Light" } } }
-                    li { a onclick="changeTheme('dark')" { "🌙" span { "Dark" } } }
-                    li { a onclick="changeTheme('synthwave')" { "🌆" span { "Synth" } } }
-                    li { a onclick="changeTheme('retro')" { "🕹️" span { "Retro" } } }
-                    li { a onclick="changeTheme('cyberpunk')" { "🤖" span { "Cyberpunk" } } }
-                    li { a onclick="changeTheme('valentine')" { "💝" span { "Valentine" } } }
-                    li { a onclick="changeTheme('halloween')" { "🎃" span { "Halloween" } } }
-                    li { a onclick="changeTheme('garden')" { "🌻" span { "Garden" } } }
-                    li { a onclick="changeTheme('forest')" { "🌲" span { "Forest" } } }
-                    li { a onclick="changeTheme('aqua')" { "🌊" span { "Aqua" } } }
-                    li { a onclick="changeTheme('luxury')" { "💎" span { "Luxury" } } }
-                    li { a onclick="changeTheme('dracula')" { "🧛" span { "Dracula" } } }
-                    li { a onclick="changeTheme('corporate')" { "🏢" span { "Corporate" } } }
-                    li { a onclick="changeTheme('business')" { "💼" span { "Business" } } }
-                    li { a onclick="changeTheme('night')" { "🌃" span { "Night" } } }
-                    li { a onclick="changeTheme('coffee')" { "☕" span { "Coffee" } } }
-                    li { a onclick="changeTheme('winter')" { "❄️" span { "Winter" } } }
-                    li { a onclick="changeTheme('dim')" { "🔅" span { "Dim" } } }
-                    li { a onclick="changeTheme('nord')" { "🏔️" span { "Nord" } } }
-                    li { a onclick="changeTheme('sunset')" { "🌅" span { "Sunset" } } }
-                    div class="divider my-1" {}
-                    li { a onclick="applyRandomTheme()" { "🎲" span { "Random Theme" } } }
+
+                li {
+                    details {
+                        summary class="flex items-center gap-3 p-3 rounded-lg hover:bg-base-300" {
+                            (icons::user_icon())
+                            span { "Profile" }
+                        }
+                        ul class="ml-6 mt-2 space-y-1" {
+                            li { div class="p-2 text-sm text-base-content/70" { "Email: " span{(user.email())} } }
+                            li { div class="p-2 text-sm text-base-content/70" { "ID: " span{(user.id())} } }
+                            li { div class="p-2 text-sm text-base-content/70" { "Initials: " span{(user.initials())} } }
+                        }
+                    }
+                }
+
+                li {
+                    details {
+                        summary class="flex items-center gap-3 p-3 rounded-lg hover:bg-base-300" {
+                            (theme_icon())
+                            span { "Theme" }
+                        }
+                        ul class="ml-6 mt-2 space-y-1" {
+                            li { a onclick="changeTheme('light')" class="p-2 rounded hover:bg-base-300 flex items-center gap-2" { "🌞" span { "Light" } } }
+                            li { a onclick="changeTheme('dark')" class="p-2 rounded hover:bg-base-300 flex items-center gap-2" { "🌙" span { "Dark" } } }
+                            li { a onclick="changeTheme('synthwave')" class="p-2 rounded hover:bg-base-300 flex items-center gap-2" { "🌆" span { "Synth" } } }
+                            li { a onclick="changeTheme('retro')" class="p-2 rounded hover:bg-base-300 flex items-center gap-2" { "🕹️" span { "Retro" } } }
+                            li { a onclick="changeTheme('cyberpunk')" class="p-2 rounded hover:bg-base-300 flex items-center gap-2" { "🤖" span { "Cyberpunk" } } }
+                            li { a onclick="changeTheme('valentine')" class="p-2 rounded hover:bg-base-300 flex items-center gap-2" { "💝" span { "Valentine" } } }
+                            li { a onclick="changeTheme('halloween')" class="p-2 rounded hover:bg-base-300 flex items-center gap-2" { "🎃" span { "Halloween" } } }
+                            li { a onclick="changeTheme('garden')" class="p-2 rounded hover:bg-base-300 flex items-center gap-2" { "🌻" span { "Garden" } } }
+                            li { a onclick="changeTheme('forest')" class="p-2 rounded hover:bg-base-300 flex items-center gap-2" { "🌲" span { "Forest" } } }
+                            li { a onclick="changeTheme('aqua')" class="p-2 rounded hover:bg-base-300 flex items-center gap-2" { "🌊" span { "Aqua" } } }
+                            li { a onclick="changeTheme('luxury')" class="p-2 rounded hover:bg-base-300 flex items-center gap-2" { "💎" span { "Luxury" } } }
+                            li { a onclick="changeTheme('dracula')" class="p-2 rounded hover:bg-base-300 flex items-center gap-2" { "🧛" span { "Dracula" } } }
+                            li { a onclick="changeTheme('corporate')" class="p-2 rounded hover:bg-base-300 flex items-center gap-2" { "🏢" span { "Corporate" } } }
+                            li { a onclick="changeTheme('business')" class="p-2 rounded hover:bg-base-300 flex items-center gap-2" { "💼" span { "Business" } } }
+                            li { a onclick="changeTheme('night')" class="p-2 rounded hover:bg-base-300 flex items-center gap-2" { "🌃" span { "Night" } } }
+                            li { a onclick="changeTheme('coffee')" class="p-2 rounded hover:bg-base-300 flex items-center gap-2" { "☕" span { "Coffee" } } }
+                            li { a onclick="changeTheme('winter')" class="p-2 rounded hover:bg-base-300 flex items-center gap-2" { "❄️" span { "Winter" } } }
+                            li { a onclick="changeTheme('dim')" class="p-2 rounded hover:bg-base-300 flex items-center gap-2" { "🔅" span { "Dim" } } }
+                            li { a onclick="changeTheme('nord')" class="p-2 rounded hover:bg-base-300 flex items-center gap-2" { "🏔️" span { "Nord" } } }
+                            li { a onclick="changeTheme('sunset')" class="p-2 rounded hover:bg-base-300 flex items-center gap-2" { "🌅" span { "Sunset" } } }
+                            div class="divider my-1" {}
+                            li { a onclick="applyRandomTheme()" class="p-2 rounded hover:bg-base-300 flex items-center gap-2" { "🎲" span { "Random Theme" } } }
+                        }
+                    }
                 }
             }
         }
-    }
     }
 }
 
