@@ -19,13 +19,13 @@ pub async fn index_route() -> AwResult<Markup> {
     Ok(index(None))
 }
 
-#[get("/grocy")]
-pub async fn grocy_endpoint(client: web::Data<DBClient>, req: HttpRequest) -> AwResult<Markup> {
+#[get("/chat")]
+pub async fn chat_endpoint(client: web::Data<DBClient>, req: HttpRequest) -> AwResult<Markup> {
     let user = get_user(req).unwrap();
     let client = client.get_ref();
     let messages = database::get_messages(client, user.id()).await;
 
-    Ok(chat::grocy(&messages, &user))
+    Ok(chat::chat(&messages, &user))
 }
 
 #[get("/witch")]
@@ -55,7 +55,7 @@ pub fn index(content: Option<Markup>) -> Markup {
             meta charset="UTF-8";
             meta name="viewport" content="width=device-width, initial-scale=1.0";
             title {
-                "Grocy"
+                "Morgana"
             }
             (js("/assets/tw.js"))
             (js("/assets/theme-switcher.js"))

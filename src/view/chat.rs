@@ -8,12 +8,13 @@ use maud::{Markup, html};
 pub fn render() -> Markup {
     html! {
         div class="join" .p-2 {
-            button class="btn join-item" hx-get="/grocy" hx-target="#magic" hx-swap="innerHTML" hx-trigger="click, load" {
-                (chat_icon())"Grocy"
+            button class="btn join-item" hx-get="/chat" hx-target="#magic" hx-swap="innerHTML" hx-trigger="click, load" {
+                (chat_icon())"Morganas Help"
             }
             button class="btn join-item" hx-get="/witch" hx-target="#magic" hx-swap="innerHTML" {
-                (spark_icon())"Witch"
+                (spark_icon())"Morganas Wand"
             }
+
         }
         div id="magic" .p-2 {
 
@@ -60,11 +61,11 @@ pub fn witch_result(result: &WitchResult) -> Markup {
 
 pub fn witch(results: &[WitchResult]) -> Markup {
     html! {
-
+        div class="p-4 pb-2 text-lg opacity-60 tracking-wide" {
+              "Talk to Morgana, ask her about recipes, convert recipes to the metric system, make a two person a four person meal"
+          }
         ul id="result-message" class="list h-full bg-base-200 p-4 rounded-lg mb-4 space-y-3 overflow-y-auto" {
-            li class="p-4 pb-2 text-xs opacity-60 tracking-wide" {
-                  "The work of the witch"
-              }
+
            @for result in results {
                (witch_result(result))
            }
@@ -74,15 +75,19 @@ pub fn witch(results: &[WitchResult]) -> Markup {
             input class="input input-bordered flex-1" type="text" name="url" placeholder="Any url to a recipe..." required;
             button class="btn btn-primary" type="submit" hx-indicator="#spinner" {
                 (spark_icon())
-                "Hex Hex"
+                "Extract essence"
             }
             span id="spinner"  class="htmx-indicator loading loading-bars loading-md" {}
         }
     }
 }
 
-pub fn grocy(messages: &[ChatMessage], user: &unsafe_token_decode::User) -> Markup {
+pub fn chat(messages: &[ChatMessage], user: &unsafe_token_decode::User) -> Markup {
     html! {
+        div class="p-4 pb-2 text-lg opacity-60 tracking-wide" {
+             span { "Talk to Morgana" }
+             span { "ask her about recipes, convert recipes to the metric system, make a two person a four person meal"}
+          }
                 div id="chat-messages" class="chat-container h-full bg-base-200 p-4 rounded-lg mb-4 space-y-3 overflow-y-auto" {
                     @for message in messages {
                         (message::render(message, Some(user.clone())))
@@ -96,7 +101,7 @@ pub fn grocy(messages: &[ChatMessage], user: &unsafe_token_decode::User) -> Mark
                             path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 19l9 2-9-18-9 18 9-2zm0 0v-8" {
                             }
                         }
-                        "Send"
+                        "Help"
                     }
                     span id="spinner"  class="htmx-indicator loading loading-bars loading-md" {}
                 }

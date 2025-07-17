@@ -1,6 +1,6 @@
 import 'docker.just'
 
-image_name := "ghcr.io/lunchtimecode/grocy"
+image_name := "ghcr.io/lunchtimecode/morgana-web"
 export NEST_API_KEY := "hello_world"
 export OPEN_BROWSER := "true"
 
@@ -22,7 +22,7 @@ db:
     turso dev &
 
 watch:
-    cargo watch -x run  
+    cargo watch -x run
 
 verify: lint test
 
@@ -31,8 +31,8 @@ test:
 
 lint:
     cargo fmt --all -- --check
-    cargo clippy 
+    cargo clippy
 
 fmt:
     cargo fmt
-    cargo fix --allow-dirty --allow-staged    
+    cargo fix --allow-dirty --allow-staged

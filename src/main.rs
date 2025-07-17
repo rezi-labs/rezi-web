@@ -43,7 +43,7 @@ async fn main() -> std::io::Result<()> {
             .app_data(web::Data::new(c.clone()))
             .wrap(from_fn(user::user_extractor))
             .service(view::index_route)
-            .service(view::grocy_endpoint)
+            .service(view::chat_endpoint)
             .service(view::witch_endpoint)
             .service(view::profile::profile_endpoint)
             .service(todolist::index_route)

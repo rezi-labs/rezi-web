@@ -1124,31 +1124,6 @@ source = "registry+https://github.com/rust-lang/crates.io-index"
 checksum = "a8d1add55171497b4705a648c6b583acafb01d58050a51727785f0b2c8e0a2b2"
 
 [[package]]
-name = "grocy"
-version = "0.8.1"
-dependencies = [
- "actix-files",
- "actix-web",
- "chrono",
- "env_logger",
- "futures-util",
- "jsonwebtoken",
- "lazy_static",
- "libsql-client",
- "log",
- "maud",
- "rand 0.9.1",
- "regex",
- "reqwest 0.12.22",
- "scraper",
- "serde",
- "serde_json",
- "tokio",
- "url",
- "webbrowser",
-]
-
-[[package]]
 name = "h2"
 version = "0.3.26"
 source = "registry+https://github.com/rust-lang/crates.io-index"
@@ -2010,6 +1985,31 @@ dependencies = [
  "log",
  "wasi 0.11.1+wasi-snapshot-preview1",
  "windows-sys 0.59.0",
+]
+
+[[package]]
+name = "morgana"
+version = "0.8.1"
+dependencies = [
+ "actix-files",
+ "actix-web",
+ "chrono",
+ "env_logger",
+ "futures-util",
+ "jsonwebtoken",
+ "lazy_static",
+ "libsql-client",
+ "log",
+ "maud",
+ "rand 0.9.1",
+ "regex",
+ "reqwest 0.12.22",
+ "scraper",
+ "serde",
+ "serde_json",
+ "tokio",
+ "url",
+ "webbrowser",
 ]
 
 [[package]]

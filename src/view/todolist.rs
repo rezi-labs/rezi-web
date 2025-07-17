@@ -25,7 +25,7 @@ pub fn render(items: &[Item]) -> Markup {
                             path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 5H7a2 2 0 00-2 2v10a2 2 0 002 2h8a2 2 0 002-2V7a2 2 0 00-2-2h-2M9 5a2 2 0 002 2h2a2 2 0 002-2M9 5a2 2 0 012-2h2a2 2 0 012 2m-6 9l2 2 4-4" {
                             }
                         }
-                        "List"
+                        "Items"
                     }
                     form class="flex gap-2 mb-4" hx-post="/items/single" hx-target="#todo-list" hx-swap="beforeend" hx-on--after-request="this.reset()" {
                         input class="input input-bordered flex-1" type="text" name="task" placeholder="Add a new task..." required;

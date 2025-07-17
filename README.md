@@ -1,4 +1,4 @@
-## Grocy
+## Morgana
 
 A ai assisted grocery list.
 

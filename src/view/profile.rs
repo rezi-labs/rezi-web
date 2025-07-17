@@ -61,6 +61,13 @@ fn avatar_card(user: &User) -> Markup {
                     }
                 }
 
+                div .join .join-vertical {
+                      input name="theme-buttons" onclick="changeTheme('valentine')" type="radio" class="join-item btn p-2" aria-label="💝 Valentine" {   }
+                      input name="theme-buttons" onclick="changeTheme('cupcake')"   type="radio" class="join-item btn p-2" aria-label="🧁 Cupcake" {   }
+                      input name="theme-buttons" onclick="changeTheme('halloween')" type="radio" class="join-item btn p-2"         aria-label="🎃 Halloween" { }
+                      input name="theme-buttons" onclick="changeTheme('forest')"    type="radio" class="join-item btn p-2"         aria-label="🌲 Forect " {  }
+                }
+
             }
         }
     }
