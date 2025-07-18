@@ -1,5 +1,12 @@
 # Changelog
 
+## [0.10.0](https://github.com/LunchTimeCode/morgana-web/compare/v0.9.0...v0.10.0) (2025-07-18)
+
+
+### Features
+
+* edit todo item (LLM) ([9c4a15c](https://github.com/LunchTimeCode/morgana-web/commit/9c4a15ce8115055dc77f458f1e8be91a9b1553f1))
+
 ## [0.9.0](https://github.com/LunchTimeCode/morgana-web/compare/v0.8.1...v0.9.0) (2025-07-17)
 
 

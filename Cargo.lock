@@ -1989,7 +1989,7 @@ dependencies = [
 
 [[package]]
 name = "morgana"
-version = "0.9.0"
+version = "0.10.0"
 dependencies = [
  "actix-files",
  "actix-web",
