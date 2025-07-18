@@ -48,6 +48,10 @@ pub fn render(items: &[Item]) -> Markup {
 }
 
 pub fn render_item(item: &Item) -> Markup {
+    render_item_display(item)
+}
+
+pub fn render_item_display(item: &Item) -> Markup {
     html! {
         div class="flex items-center gap-3 p-3 bg-base-100 rounded-lg" id=(format!("c-todo-{}", item.id)) {
 
@@ -61,13 +65,71 @@ pub fn render_item(item: &Item) -> Markup {
                 hx-swap="outerHTML";
             span class={
                 @if item.completed {
-                    "flex-1 line-through opacity-60"
+                    "flex-1 line-through opacity-60 cursor-pointer"
                 } @else {
-                    "flex-1"
+                    "flex-1 cursor-pointer"
                 }
-            } {
+            }
+            hx-get=(format!("/items/{}/edit", item.id))
+            hx-target=(format!("#c-todo-{}", item.id))
+            hx-swap="outerHTML"
+            title="Click to edit" {
                 (item.task)
             }
+            button class="btn btn-sm btn-error btn-outline"
+                hx-delete=(format!("/items/{}", item.id))
+                hx-target="closest div"
+                hx-swap="outerHTML"
+                hx-confirm="Are you sure you want to delete this item?" {
+                svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24" {
+                    path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M19 7l-.867 12.142A2 2 0 0116.138 21H7.862a2 2 0 01-1.995-1.858L5 7m5 4v6m4-6v6m1-10V4a1 1 0 00-1-1h-4a1 1 0 00-1 1v3M4 7h16" {
+                    }
+                }
+            }
+        }
+    }
+}
+
+pub fn render_item_edit(item: &Item) -> Markup {
+    html! {
+        div class="flex items-center gap-3 p-3 bg-base-100 rounded-lg" id=(format!("c-todo-{}", item.id)) {
+
+            input class="checkbox checkbox-primary" type="checkbox"
+                id=(format!("todo-{}", item.id))
+                name=(format!("todo-{}", item.id))
+                checked[item.completed]
+
+                hx-patch=(format!("/items/{}/toggle", item.id))
+                hx-target=(format!("#c-todo-{}", item.id))
+                hx-swap="outerHTML";
+
+            form class="flex-1 flex gap-2"
+                hx-patch=(format!("/items/{}", item.id))
+                hx-target=(format!("#c-todo-{}", item.id))
+                hx-swap="outerHTML" {
+                input class="input input-bordered flex-1"
+                    type="text"
+                    name="task"
+                    value=(item.task)
+                    required
+                    autofocus;
+                button class="btn btn-sm btn-primary" type="submit" {
+                    svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24" {
+                        path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M5 13l4 4L19 7" {
+                        }
+                    }
+                }
+                button class="btn btn-sm btn-ghost" type="button"
+                    hx-get=(format!("/items/{}/cancel", item.id))
+                    hx-target=(format!("#c-todo-{}", item.id))
+                    hx-swap="outerHTML" {
+                    svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24" {
+                        path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M6 18L18 6M6 6l12 12" {
+                        }
+                    }
+                }
+            }
+
             button class="btn btn-sm btn-error btn-outline"
                 hx-delete=(format!("/items/{}", item.id))
                 hx-target="closest div"

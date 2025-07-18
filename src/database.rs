@@ -499,3 +499,35 @@ pub fn bool_to_int(b: bool) -> i64 {
 pub fn int_to_bool(i: i64) -> bool {
     i == 1
 }
+
+#[allow(clippy::await_holding_lock)]
+pub async fn update_item(
+    client: &DBClient,
+    item_id: i64,
+    new_task: String,
+    owner_id: String,
+) -> Result<Item, String> {
+    let locked_client = client.lock().unwrap();
+
+    let statement = format!(
+        r#"UPDATE items
+    SET task = '{}'
+    WHERE id = {} AND owner_id = '{}';"#,
+        escape_sql_string(&new_task),
+        item_id,
+        owner_id
+    );
+
+    let st = Statement::new(statement);
+
+    let res = locked_client.execute(st).await;
+    drop(locked_client);
+
+    match res {
+        Ok(_) => get_item(client, item_id, owner_id).await,
+        Err(e) => {
+            error!("Failed to update item: {e}");
+            Err(format!("Failed to update item: {e}"))
+        }
+    }
+}

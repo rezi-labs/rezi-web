@@ -62,6 +62,11 @@ pub struct CreateTodoRequest {
     pub task: String,
 }
 
+#[derive(Deserialize)]
+pub struct UpdateTodoRequest {
+    pub task: String,
+}
+
 #[derive(Debug, Clone, Serialize, Deserialize)]
 pub struct ChatMessage {
     pub id: u32,
@@ -168,6 +173,66 @@ pub async fn delete_item(
 
     database::delete_item(client, id, user.id().to_owned()).await;
     Ok(html! { "" })
+}
+
+#[patch("items/{id}")]
+pub async fn update_item(
+    path: web::Path<i64>,
+    form: web::Form<UpdateTodoRequest>,
+    client: web::Data<DBClient>,
+    req: HttpRequest,
+) -> Result<Markup> {
+    let id = path.into_inner();
+    let user = get_user(req).unwrap();
+    let client: &DBClient = client.get_ref();
+
+    info!("update_item: {id} with task: {}", form.task);
+
+    let item = database::update_item(client, id, form.task.clone(), user.id().to_string()).await;
+
+    if let Ok(item) = item {
+        Ok(render_item(&item))
+    } else {
+        Ok(html! { "" })
+    }
+}
+
+#[get("items/{id}/edit")]
+pub async fn edit_item(
+    path: web::Path<i64>,
+    client: web::Data<DBClient>,
+    req: HttpRequest,
+) -> Result<Markup> {
+    let id = path.into_inner();
+    let user = get_user(req).unwrap();
+    let client: &DBClient = client.get_ref();
+
+    let item = database::get_item(client, id, user.id().to_string()).await;
+
+    if let Ok(item) = item {
+        Ok(view::todolist::render_item_edit(&item))
+    } else {
+        Ok(html! { "" })
+    }
+}
+
+#[get("items/{id}/cancel")]
+pub async fn cancel_edit_item(
+    path: web::Path<i64>,
+    client: web::Data<DBClient>,
+    req: HttpRequest,
+) -> Result<Markup> {
+    let id = path.into_inner();
+    let user = get_user(req).unwrap();
+    let client: &DBClient = client.get_ref();
+
+    let item = database::get_item(client, id, user.id().to_string()).await;
+
+    if let Ok(item) = item {
+        Ok(render_item(&item))
+    } else {
+        Ok(html! { "" })
+    }
 }
 
 pub fn random_id() -> u32 {
