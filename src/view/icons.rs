@@ -169,6 +169,24 @@ pub fn witch_brew_icon() -> Markup {
     }
 }
 
+#[allow(unused)]
+pub fn wand_icon() -> Markup {
+    html! {
+        svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" {
+            line x1="15" y1="15" x2="21" y2="21" {
+            }
+            path d="M9 6L10 8L12 8L10.5 9.5L11 12L9 11L7 12L7.5 9.5L6 8L8 8L9 6z" fill="currentColor" {
+            }
+            path d="M16 8L17 9L16 10L15 9L16 8z" fill="currentColor" {
+            }
+            path d="M18 5L18.5 5.5L18 6L17.5 5.5L18 5z" fill="currentColor" {
+            }
+            path d="M4 17L4.5 17.5L4 18L3.5 17.5L4 17z" fill="currentColor" {
+            }
+        }
+    }
+}
+
 pub fn random_potion_icon() -> Markup {
     let mut rng = rand::rng();
     let icon_index = rng.random_range(0..7);
