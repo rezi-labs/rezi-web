@@ -19,6 +19,7 @@ pub fn chat_icon() -> Markup {
     }
 }
 
+#[allow(unused)]
 pub fn share_icon() -> Markup {
     html! {
         svg class="size-6" xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke-width="1.5" stroke="currentColor" {
@@ -169,10 +170,37 @@ pub fn witch_brew_icon() -> Markup {
     }
 }
 
+pub fn send_icon() -> Markup {
+    html! {
+        svg xmlns="http://www.w3.org/2000/svg" height="24px" viewBox="0 -960 960 960" width="24px" fill="#000000" {
+            path d="M120-160v-640l760 320-760 320Zm80-120 474-200-474-200v140l240 60-240 60v140Zm0 0v-400 400Z" {
+            }
+        }
+    }
+}
+
+pub fn info_icon() -> Markup {
+    html! {
+        svg class="size-6" xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke-width="1.5" stroke="currentColor" {
+            path stroke-linecap="round" stroke-linejoin="round" d="m11.25 11.25.041-.02a.75.75 0 0 1 1.063.852l-.708 2.836a.75.75 0 0 0 1.063.853l.041-.021M21 12a9 9 0 1 1-18 0 9 9 0 0 1 18 0Zm-9-3.75h.008v.008H12V8.25Z" {
+            }
+        }
+    }
+}
+
+pub fn export_icon() -> Markup {
+    html! {
+        svg class="size-6" xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke-width="1.5" stroke="currentColor" {
+            path stroke-linecap="round" stroke-linejoin="round" d="M19.5 14.25v-2.625a3.375 3.375 0 0 0-3.375-3.375h-1.5A1.125 1.125 0 0 1 13.5 7.125v-1.5a3.375 3.375 0 0 0-3.375-3.375H8.25m.75 12 3 3m0 0 3-3m-3 3v-6m-1.5-9H5.625c-.621 0-1.125.504-1.125 1.125v17.25c0 .621.504 1.125 1.125 1.125h12.75c.621 0 1.125-.504 1.125-1.125V11.25a9 9 0 0 0-9-9Z" {
+            }
+        }
+    }
+}
+
 #[allow(unused)]
 pub fn wand_icon() -> Markup {
     html! {
-        svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" {
+        svg class="size-6" xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" {
             line x1="15" y1="15" x2="21" y2="21" {
             }
             path d="M9 6L10 8L12 8L10.5 9.5L11 12L9 11L7 12L7.5 9.5L6 8L8 8L9 6z" fill="currentColor" {

@@ -2,7 +2,7 @@ use maud::{Markup, html};
 
 use crate::{
     message::spark_icon,
-    view::icons::{self, list_icon, user_icon},
+    view::icons::{self, house_icon, info_icon, list_icon, user_icon},
 };
 
 pub fn render() -> Markup {
@@ -21,7 +21,7 @@ fn navbar() -> Markup {
                 li {
                     a href="/" class="flex items-center gap-3 p-3 rounded-lg hover:bg-base-300" {
                         (spark_icon())
-                        span { "Home" }
+                        span { "Grocy" }
                     }
                 }
                 li {
@@ -31,9 +31,21 @@ fn navbar() -> Markup {
                     }
                 }
                 li {
+                    a href="/recipes" class="flex items-center gap-3 p-3 rounded-lg hover:bg-base-300" {
+                        (house_icon())
+                        span { "Recipes" }
+                    }
+                }
+                li {
                     a href="/profile" class="flex items-center gap-3 p-3 rounded-lg hover:bg-base-300" {
                         (user_icon())
                         span { "Profile" }
+                    }
+                }
+                li {
+                    a href="/info" class="flex items-center gap-3 p-3 rounded-lg hover:bg-base-300" {
+                        (info_icon())
+                        span { "Info" }
                     }
                 }
             }
@@ -45,7 +57,7 @@ fn navbar() -> Markup {
                 li {
                     details {
                         summary class="flex items-center gap-3 p-3 rounded-lg hover:bg-base-300" {
-                            (icons::share_icon())
+                            (icons::export_icon())
                             span { "Export" }
                         }
                         ul class="ml-6 mt-2 space-y-1" {

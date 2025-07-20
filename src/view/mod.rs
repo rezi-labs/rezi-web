@@ -4,8 +4,10 @@ use maud::{Markup, html};
 
 pub mod chat;
 mod icons;
+pub mod info;
 mod navbar;
 pub mod profile;
+pub mod recipes;
 pub mod todolist;
 
 pub use todolist::render_item;
@@ -55,7 +57,7 @@ pub fn index(content: Option<Markup>) -> Markup {
             meta charset="UTF-8";
             meta name="viewport" content="width=device-width, initial-scale=1.0";
             title {
-                "Morgana"
+                "Grocy"
             }
             (js("/assets/tw.js"))
             (js("/assets/theme-switcher.js"))
@@ -63,6 +65,7 @@ pub fn index(content: Option<Markup>) -> Markup {
             (css("/assets/daisy.css"))
             (css("/assets/themes.css"))
             (css("/assets/app.css"))
+            link rel="icon" href="/assets/grocy.svg" sizes="any" type="image/svg+xml" {}
 
         }
         body {

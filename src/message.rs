@@ -10,7 +10,7 @@ pub fn render(message: &ChatMessage, user: Option<User>) -> Markup {
 
     let sender = match user {
         Some(s) => s.email().to_string(),
-        None => "Agent".to_string(),
+        None => "Grocy".to_string(),
     };
 
     html! {
@@ -30,7 +30,11 @@ pub fn render(message: &ChatMessage, user: Option<User>) -> Markup {
                             "w-10 h-10 bg-primary rounded-full flex items-center justify-center text-primary-content font-bold"
                         }
                     } {
-                        (initials)
+                        @if message.is_user {
+                            (initials)
+                        } @else {
+                            img class="scale-200" src="assets/grocy_close.svg" alt="Grocy Logo"{}
+                        }
                     }
                 }
             }
@@ -75,7 +79,7 @@ pub fn ai_btn(message: &ChatMessage) -> Markup {
             }
         }
 
-        span id=(spinner_id)  class="htmx-indicator loading loading-bars loading-md" {}
+        span id=(spinner_id)  class="htmx-indicator loading loading-infinity loading-md" {}
     }}
 }
 

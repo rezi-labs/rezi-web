@@ -1,6 +1,6 @@
 services:
-  morgana:
-    image: ghcr.io/lunchtimecode/morgana-web:latest
+  grocy:
+    image: ghcr.io/lunchtimecode/grocy-web:latest
     environment:
       - NEST_API_KEY=your_api_key_here
     ports:

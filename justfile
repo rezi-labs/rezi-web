@@ -1,6 +1,6 @@
 import 'docker.just'
 
-image_name := "ghcr.io/lunchtimecode/morgana-web"
+image_name := "ghcr.io/lunchtimecode/grocy-web"
 export NEST_API_KEY := "hello_world"
 export OPEN_BROWSER := "true"
 
