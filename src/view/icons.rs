@@ -1,5 +1,4 @@
 use maud::{Markup, html};
-use rand::Rng;
 
 pub fn list_icon() -> Markup {
     html! {
@@ -87,89 +86,6 @@ pub fn house_icon() -> Markup {
     }
 }
 
-pub fn potion_bottle_icon() -> Markup {
-    html! {
-        svg class="size-6" xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke-width="1.5" stroke="currentColor" {
-            path stroke-linecap="round" stroke-linejoin="round" d="M8 2v4l-2 2v12c0 1.1.9 2 2 2h8c1.1 0 2-.9 2-2V8l-2-2V2M8 2h8M10 10h4M9 13h6M10 16h4" {
-            }
-        }
-    }
-}
-
-pub fn cauldron_icon() -> Markup {
-    html! {
-        svg class="size-6" xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke-width="1.5" stroke="currentColor" {
-            path stroke-linecap="round" stroke-linejoin="round" d="M4 8h16l-1 10c0 1.1-.9 2-2 2H7c-1.1 0-2-.9-2-2L4 8zM2 8h20M8 4v4M16 4v4M12 2v2M9 11c0 1.5 1.5 3 3 3s3-1.5 3-3" {
-            }
-        }
-    }
-}
-
-pub fn flask_icon() -> Markup {
-    html! {
-        svg class="size-6" xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke-width="1.5" stroke="currentColor" {
-            path stroke-linecap="round" stroke-linejoin="round" d="M9 2v6.5L5 14v5c0 1.1.9 2 2 2h10c1.1 0 2-.9 2-2v-5l-4-5.5V2M9 2h6M8 14h8" {
-            }
-        }
-    }
-}
-
-pub fn magic_potion_icon() -> Markup {
-    html! {
-        svg class="size-6" xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke-width="1.5" stroke="currentColor" {
-            path stroke-linecap="round" stroke-linejoin="round" d="M10 2h4v3l3 3v12c0 1.1-.9 2-2 2H9c-1.1 0-2-.9-2-2V8l3-3V2zM8 10h8M9 13h6M10 16h4" {
-            }
-            circle cx="12" cy="11" r="1" fill="currentColor" {
-            }
-            circle cx="10" cy="14" r="0.5" fill="currentColor" {
-            }
-            circle cx="14" cy="17" r="0.5" fill="currentColor" {
-            }
-        }
-    }
-}
-
-pub fn brew_bubbles_icon() -> Markup {
-    html! {
-        svg class="size-6" xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke-width="1.5" stroke="currentColor" {
-            path stroke-linecap="round" stroke-linejoin="round" d="M6 8h12l-1 12H7L6 8zM5 8h14M9 4v4M15 4v4" {
-            }
-            circle cx="10" cy="12" r="1" fill="none" {
-            }
-            circle cx="14" cy="14" r="1" fill="none" {
-            }
-            circle cx="12" cy="16" r="1" fill="none" {
-            }
-            path stroke-linecap="round" stroke-linejoin="round" d="M8 2c0 1 1 2 2 2s2-1 2-2M12 1c0 1 1 2 2 2s2-1 2-2M16 2c0 1 1 2 2 2s2-1 2-2" {
-            }
-        }
-    }
-}
-
-pub fn elixir_bottle_icon() -> Markup {
-    html! {
-        svg class="size-6" xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke-width="1.5" stroke="currentColor" {
-            path stroke-linecap="round" stroke-linejoin="round" d="M9 2v2c0 1-1 2-2 2v12c0 2 1 4 3 4h4c2 0 3-2 3-4V6c-1 0-2-1-2-2V2M9 2h6M7 10h10M8 14h8" {
-            }
-            path stroke-linecap="round" stroke-linejoin="round" d="M10 6v2M14 6v2" {
-            }
-        }
-    }
-}
-
-pub fn witch_brew_icon() -> Markup {
-    html! {
-        svg class="size-6" xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke-width="1.5" stroke="currentColor" {
-            path stroke-linecap="round" stroke-linejoin="round" d="M3 9h18l-2 11H5L3 9zM2 9h20M7 5v4M17 5v4M12 3v2" {
-            }
-            path stroke-linecap="round" stroke-linejoin="round" d="M9 12c2-1 4-1 6 0M8 15c3-1 5-1 8 0M10 18c2-1 3-1 4 0" {
-            }
-            path stroke-linecap="round" stroke-linejoin="round" d="M6 1l1 2M12 0l1 2M18 1l1 2" {
-            }
-        }
-    }
-}
-
 pub fn send_icon() -> Markup {
     html! {
         svg xmlns="http://www.w3.org/2000/svg" height="24px" viewBox="0 -960 960 960" width="24px" fill="#000000" {
@@ -212,20 +128,5 @@ pub fn wand_icon() -> Markup {
             path d="M4 17L4.5 17.5L4 18L3.5 17.5L4 17z" fill="currentColor" {
             }
         }
-    }
-}
-
-pub fn random_potion_icon() -> Markup {
-    let mut rng = rand::rng();
-    let icon_index = rng.random_range(0..7);
-
-    match icon_index {
-        0 => potion_bottle_icon(),
-        1 => cauldron_icon(),
-        2 => flask_icon(),
-        3 => magic_potion_icon(),
-        4 => brew_bubbles_icon(),
-        5 => elixir_bottle_icon(),
-        _ => witch_brew_icon(),
     }
 }

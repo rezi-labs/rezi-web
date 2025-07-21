@@ -5,16 +5,15 @@ use maud::{Markup, html};
 pub mod chat;
 mod icons;
 pub mod info;
+pub mod items;
 mod navbar;
 pub mod profile;
 pub mod recipes;
-pub mod todolist;
 
-pub use todolist::render_item;
+pub use items::render_item;
 
 use crate::database::{self, DBClient};
 use crate::routes::get_user;
-use crate::view::chat::witch;
 
 #[get("/")]
 pub async fn index_route() -> AwResult<Markup> {
@@ -28,15 +27,6 @@ pub async fn chat_endpoint(client: web::Data<DBClient>, req: HttpRequest) -> AwR
     let messages = database::get_messages(client, user.id()).await;
 
     Ok(chat::chat(&messages, &user))
-}
-
-#[get("/witch")]
-pub async fn witch_endpoint(client: web::Data<DBClient>, req: HttpRequest) -> AwResult<Markup> {
-    let user = get_user(req).unwrap();
-    let client = client.get_ref();
-    let results = database::get_witch_results(client, user.id()).await;
-
-    Ok(witch(results.as_slice()))
 }
 
 pub fn css(path: impl Into<String>) -> Markup {

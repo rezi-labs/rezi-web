@@ -1,9 +1,0 @@
-
-CREATE TABLE IF NOT EXISTS witch_results (
-    id INTEGER PRIMARY KEY AUTOINCREMENT,
-    url TEXT NOT NULL,
-    content TEXT NOT NULL,
-    owner_id TEXT NOT NULL,
-    timestamp DATETIME NOT NULL,
-    created_at DATETIME DEFAULT CURRENT_TIMESTAMP
-);

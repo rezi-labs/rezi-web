@@ -1,13 +1,11 @@
-use crate::database::{self, DBClient, WitchResult};
-use crate::message::{link_icon, spark_icon};
-use crate::routes::get_user;
-use crate::view::{icons, index};
+use crate::database::DBClient;
+use crate::view::index;
 use actix_web::Result as AwResult;
-use actix_web::{HttpRequest, Result, get, web};
+use actix_web::{HttpRequest, get, web};
 use maud::{Markup, html};
 
 #[get("/info")]
-pub async fn info_endpoint(client: web::Data<DBClient>, req: HttpRequest) -> AwResult<Markup> {
+pub async fn info_endpoint(_client: web::Data<DBClient>, _req: HttpRequest) -> AwResult<Markup> {
     Ok(index(Some(info())))
 }
 

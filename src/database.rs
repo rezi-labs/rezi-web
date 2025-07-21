@@ -1,10 +1,6 @@
-use std::{
-    str::FromStr,
-    sync::{Arc, Mutex},
-};
+use std::sync::{Arc, Mutex};
 
-use chrono::{DateTime, Utc};
-use libsql_client::{Row, Statement};
+use libsql_client::Statement;
 use log::{error, info};
 
 use crate::{
@@ -81,32 +77,11 @@ pub async fn migrations(client: &DBClient, config: &Server) {
         .await
         .expect("update_todos_timestamp_trigger migration failed");
 
-    let witch_results_sql = include_str!("../migrations/witch_results.sql");
+    let witch_results_sql = include_str!("../migrations/recipes.sql");
     client
         .execute(witch_results_sql)
         .await
         .expect("with_results migration failed");
-
-    let idx_witch_results_owner_id_sql =
-        include_str!("../migrations/idx_witch_results_owner_id.sql");
-    client
-        .execute(idx_witch_results_owner_id_sql)
-        .await
-        .expect("idx_witch_results_owner_id migration failed");
-
-    let idx_witch_results_timestamp_sql =
-        include_str!("../migrations/idx_witch_results_timestamp.sql");
-    client
-        .execute(idx_witch_results_timestamp_sql)
-        .await
-        .expect("idx_witch_results_timestamp migration failed");
-
-    let idx_witch_results_owner_id_timestamp_sql =
-        include_str!("../migrations/idx_witch_results_owner_id_timestamp.sql");
-    client
-        .execute(idx_witch_results_owner_id_timestamp_sql)
-        .await
-        .expect("idx_witch_results_owner_id_timestamp migration failed");
 
     drop(client);
 
@@ -150,136 +125,77 @@ pub async fn save_message(client: &DBClient, message: ChatMessage) {
 }
 
 #[allow(unused)]
-pub struct WitchResult {
-    pub id: u32,
-    pub url: String,
-    pub content: String,
-    pub owner_id: String,
-    pub timestamp: DateTime<Utc>,
-    pub created_at: DateTime<Utc>,
+pub struct Recipe {
+    id: String,
+    owner_id: String,
+    name: String,
+    url: Option<String>,
+    image_url: Option<String>,
+    extracted: String,
 }
 
 #[allow(unused)]
-impl WitchResult {
+impl Recipe {
     pub fn new(
-        id: u32,
-        url: String,
-        content: String,
+        id: String,
+        name: String,
+        url: Option<String>,
+        image_url: Option<String>,
+        extracted: String,
         owner_id: String,
-        timestamp: DateTime<Utc>,
-        created_at: DateTime<Utc>,
     ) -> Self {
-        WitchResult {
+        Recipe {
             id,
+            name,
             url,
-            content,
+            image_url,
+            extracted,
             owner_id,
-            timestamp,
-            created_at,
         }
     }
 
-    pub fn id(&self) -> &u32 {
-        &self.id
-    }
-
     pub fn url(&self) -> &str {
-        &self.url
+        self.url.as_deref().unwrap_or("https://example.com")
     }
 
-    pub fn content(&self) -> &str {
-        &self.content
+    pub fn image_url(&self) -> &str {
+        self.image_url
+            .as_deref()
+            .unwrap_or("https://example.com/image.jpg")
+    }
+
+    pub fn extracted(&self) -> &str {
+        &self.extracted
     }
 
     pub fn owner_id(&self) -> &str {
         &self.owner_id
     }
 
-    pub fn from_row(row: &Row) -> Result<WitchResult, String> {
-        let id: u32 = row.try_get(0).unwrap();
-        let url: &str = row.try_get(1).unwrap();
-        let content: &str = row.try_get(2).unwrap();
-        let owner_id: &str = row.try_get(3).unwrap();
-        let timestamp: &str = row.try_get(4).unwrap();
-        let timestamp: DateTime<Utc> = DateTime::from_str(timestamp).unwrap();
-
-        Ok(WitchResult::new(
-            id,
-            url.to_string(),
-            content.to_string(),
-            owner_id.to_string(),
-            timestamp,
-            timestamp,
-        ))
+    pub fn id(&self) -> &str {
+        &self.id
     }
-}
-#[allow(clippy::await_holding_lock)]
-pub async fn add_witch_result(
-    client: &DBClient,
-    url: &str,
-    content: &str,
-    owner_id: &str,
-) -> Result<u32, String> {
-    let client = client.lock().unwrap();
 
-    let stmt = libsql_client::Statement::with_args(
-        "
-            INSERT INTO witch_results (url, content, owner_id, timestamp, created_at)
-             VALUES (?, ?, ?, ?, CURRENT_TIMESTAMP) RETURNING id
-            ",
-        &[url, content, owner_id, &Utc::now().to_string()],
-    );
-
-    let res = client.execute(stmt).await.unwrap();
-    let row = res.rows.first().ok_or("No row found")?;
-    let id: u32 = row.try_get(0).unwrap();
-
-    drop(client);
-    Ok(id)
-}
-#[allow(clippy::await_holding_lock)]
-pub async fn get_single_witch_result(client: &DBClient, id: &u32) -> Result<WitchResult, String> {
-    let client = client.lock().unwrap();
-
-    let stmt = libsql_client::Statement::with_args(
-        "
-            SELECT id, url, content, owner_id, timestamp, created_at
-             FROM witch_results
-             WHERE id = ?
-            ",
-        &[id.to_string()],
-    );
-
-    let res = client.execute(stmt).await.unwrap();
-
-    drop(client);
-    let row = res.rows.first().ok_or("No row found")?;
-    WitchResult::from_row(row).map_err(|e| e.to_string())
-}
-
-#[allow(clippy::await_holding_lock)]
-pub async fn get_witch_results(client: &DBClient, user_id: &str) -> Vec<WitchResult> {
-    let client = client.lock().unwrap();
-
-    let stmt = libsql_client::Statement::with_args(
-        "
-            SELECT id, url, content, owner_id, timestamp, created_at
-             FROM witch_results
-             WHERE owner_id = ?
-             ORDER BY timestamp ASC
-            ",
-        &[user_id],
-    );
-
-    let res = client.execute(stmt).await.unwrap();
-
-    drop(client);
-    let rows: Vec<WitchResult> = res
-        .rows
-        .iter()
-        .filter_map(|r| WitchResult::from_row(r).ok())
-        .collect();
-    rows
+    pub fn examples() -> Vec<Recipe> {
+        vec![
+            Recipe::new(
+                "".to_string(),
+                "Pumpkin Soup".to_string(),
+                None,
+                None,
+                "Boil pumpkin and onions".to_string(),
+                "1".to_string(),
+            ),
+            Recipe::new(
+                "".to_string(),
+                "Chocolate Cake".to_string(),
+                None,
+                None,
+                "Mix flour, sugar, eggs, and chocolate".to_string(),
+                "2".to_string(),
+            ),
+        ]
+    }
 }
 
 #[allow(clippy::await_holding_lock)]

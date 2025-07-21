@@ -1,7 +1,5 @@
-use crate::database::WitchResult;
-use crate::message::{link_icon, spark_icon};
 use crate::routes::ChatMessage;
-use crate::view::icons::{chat_icon, info_icon, random_potion_icon, send_icon, wand_icon};
+use crate::view::icons::{chat_icon, send_icon};
 use crate::{message, unsafe_token_decode};
 use maud::{Markup, html};
 
@@ -11,71 +9,9 @@ pub fn render() -> Markup {
             button class="btn join-item" hx-get="/chat" hx-target="#magic" hx-swap="innerHTML" hx-trigger="click, load" {
                 (chat_icon())"Grocy's Help"
             }
-            button class="btn join-item" hx-get="/witch" hx-target="#magic" hx-swap="innerHTML" {
-                (spark_icon())"Grocy's Wand"
-            }
-
         }
         div id="magic" .p-2 {
 
-        }
-    }
-}
-
-pub fn witch_result(result: &WitchResult) -> Markup {
-    let fixed_url = if result.url().contains("https://") {
-        result.url()
-    } else {
-        &format!("https://{}", result.url())
-    };
-    html! {
-        li .list-row {
-        div {
-            (random_potion_icon())
-        }
-        div {
-            div {
-                (result.url())
-            }
-            div class="text-xs font-semibold opacity-60" {
-                (result.content())
-            }
-        }
-
-        a .btn .btn-square .btn-ghost href=(fixed_url)
-        target="_blank"
-        rel="noopener noreferrer" {
-            (link_icon())
-        }
-        form hx-post="/witch" hx-swap="none" {
-
-            input type="hidden" name="witch_id" value=(result.id()){}
-            button class="btn btn-square btn-ghost" type="submit" {
-                (spark_icon())
-            }
-        }
-
-     }
-    }
-}
-
-pub fn witch(results: &[WitchResult]) -> Markup {
-    html! {
-        ul id="result-message" class="list h-full bg-base-200 p-4 min-h-[200px] rounded-lg mb-4 space-y-3 overflow-y-auto" {
-
-           @for result in results {
-               (witch_result(result))
-           }
-        }
-
-        form class="flex gap-2" hx-post="/witch" hx-target="#result-message" hx-swap="beforeend" hx-on--after-request="this.reset()" {
-
-            input class="input input-bordered flex-1" type="text" name="url" placeholder="Any url to a recipe..." required;
-            button class="btn btn-primary" type="submit" hx-indicator="#spinner" {
-                (wand_icon())
-            }
-
-            span id="spinner"  class="htmx-indicator loading loading-infinity loading-md" {}
         }
     }
 }

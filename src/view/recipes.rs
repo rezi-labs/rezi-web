@@ -1,91 +1,9 @@
-use crate::database::{self, DBClient, WitchResult};
+use crate::database::{DBClient, Recipe};
 use crate::message::{link_icon, spark_icon};
 use crate::routes::get_user;
-use crate::view::icons;
 use actix_web::Result as AwResult;
-use actix_web::{HttpRequest, Result, get, web};
+use actix_web::{HttpRequest, get, web};
 use maud::{Markup, html};
-
-pub struct Recipe {
-    id: String,
-    name: String,
-    url: Option<String>,
-    image_url: Option<String>,
-    content: String,
-    description: String,
-    owner_id: String,
-}
-
-impl Recipe {
-    pub fn new(
-        id: String,
-        name: String,
-        url: Option<String>,
-        image_url: Option<String>,
-        content: String,
-        description: String,
-        owner_id: String,
-    ) -> Self {
-        Recipe {
-            id,
-            name,
-            url,
-            image_url,
-            content,
-            description,
-            owner_id,
-        }
-    }
-
-    pub fn url(&self) -> &str {
-        self.url.as_deref().unwrap_or("https://example.com")
-    }
-
-    pub fn image_url(&self) -> &str {
-        self.image_url
-            .as_deref()
-            .unwrap_or("https://example.com/image.jpg")
-    }
-
-    pub fn content(&self) -> &str {
-        &self.content
-    }
-
-    pub fn description(&self) -> &str {
-        &self.description
-    }
-
-    pub fn owner_id(&self) -> &str {
-        &self.owner_id
-    }
-
-    pub fn id(&self) -> &str {
-        &self.id
-    }
-
-    pub fn examples() -> Vec<Recipe> {
-        vec![
-            Recipe::new(
-                "".to_string(),
-                "Pumpkin Soup".to_string(),
-                None,
-                None,
-                "Boil pumpkin and onions".to_string(),
-                "A delicious soup made from pumpkin and onions".to_string(),
-                "1".to_string(),
-            ),
-            Recipe::new(
-                "".to_string(),
-                "Chocolate Cake".to_string(),
-                None,
-                None,
-                "Mix flour, sugar, eggs, and chocolate".to_string(),
-                "A rich and decadent chocolate cake".to_string(),
-                "2".to_string(),
-            ),
-        ]
-    }
-}
 
 pub fn recipes(recipes: Vec<Recipe>) -> Markup {
     html! {
@@ -131,7 +49,7 @@ pub fn recipe_row(result: &Recipe) -> Markup {
                 (result.url())
             }
             div class="text-xs font-semibold opacity-60" {
-                (result.content())
+                (result.extracted())
             }
         }
 

@@ -5,7 +5,7 @@ use std::{
     sync::{Arc, Mutex},
 };
 
-use crate::{routes::health, view::todolist};
+use crate::{routes::health, view::items};
 
 mod assets;
 mod config;
@@ -44,14 +44,12 @@ async fn main() -> std::io::Result<()> {
             .wrap(from_fn(user::user_extractor))
             .service(view::index_route)
             .service(view::chat_endpoint)
-            .service(view::witch_endpoint)
             .service(view::profile::profile_endpoint)
             .service(view::recipes::recipe_endpoint)
             .service(view::info::info_endpoint)
-            .service(todolist::index_route)
+            .service(items::index_route)
             .service(routes::send_message)
             .service(routes::create_item_with_ai)
-            .service(routes::add_witch_items)
             .service(routes::create_item)
             .service(routes::toggle_item)
             .service(routes::delete_item)
