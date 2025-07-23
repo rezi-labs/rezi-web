@@ -1,6 +1,6 @@
 use maud::{Markup, html};
 
-use crate::{routes::ChatMessage, unsafe_token_decode::User, view::icons::spark_icon};
+use crate::{database::messages::ChatMessage, unsafe_token_decode::User, view::icons::spark_icon};
 
 pub fn render(message: &ChatMessage, user: Option<User>) -> Markup {
     let initials = match user.clone() {

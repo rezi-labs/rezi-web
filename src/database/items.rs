@@ -1,10 +1,53 @@
-use libsql_client::Statement;
+use libsql_client::{Row, Statement};
 use log::{error, info};
+use serde::{Deserialize, Serialize};
 
 use crate::{
     database::{DBClient, escape_sql_string},
-    routes::Item,
+    routes::random_id,
 };
+
+#[derive(Debug, Clone, Serialize, Deserialize)]
+pub struct Item {
+    pub id: u32,
+    pub task: String,
+    pub completed: bool,
+}
+
+impl Item {
+    pub fn random_item() -> Item {
+        Item {
+            id: random_id(),
+            task: String::from("Random Task"),
+            completed: false,
+        }
+    }
+
+    pub fn from_row(row: &Row) -> Result<Item, String> {
+        let Ok(id) = row.try_get::<u32>(0) else {
+            let err = format!("Item::from_row {row:?}");
+            return Err(err);
+        };
+
+        let Ok(task) = row.try_get::<&str>(1) else {
+            let err = format!("Item::from_row {row:?}");
+            return Err(err);
+        };
+
+        let Ok(completed) = row.try_get::<i64>(2) else {
+            let err = format!("Item::from_row {row:?}");
+            return Err(err);
+        };
+
+        let completed: bool = int_to_bool(completed);
+
+        Ok(Item {
+            id,
+            task: task.to_string(),
+            completed,
+        })
+    }
+}
 
 #[allow(clippy::await_holding_lock)]
 pub async fn get_items(client: &DBClient, owner_id: String) -> Vec<Item> {

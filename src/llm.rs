@@ -3,8 +3,9 @@ use reqwest::Client;
 use serde::{Deserialize, Serialize};
 
 use crate::{
+    database::items::Item,
     database::{self, DBClient},
-    routes::{Item, random_id},
+    routes::random_id,
 };
 
 #[derive(Debug)]

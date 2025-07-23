@@ -1,4 +1,4 @@
-use crate::routes::ChatMessage;
+use crate::database::messages::ChatMessage;
 use crate::unsafe_token_decode;
 use crate::view::icons::{chat_icon, send_icon};
 use crate::view::message;

@@ -1,7 +1,9 @@
 use crate::{
     config::Server,
-    database::{DBClient, items},
-    routes::Item,
+    database::{
+        DBClient,
+        items::{self, Item},
+    },
 };
 
 #[allow(clippy::await_holding_lock)]

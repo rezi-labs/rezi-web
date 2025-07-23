@@ -1,5 +1,6 @@
+use crate::database::items::Item;
 use crate::database::{self, DBClient};
-use crate::routes::{self, Item};
+use crate::routes::{self};
 use crate::view::icons;
 use actix_web::{HttpRequest, Result as AwResult};
 use actix_web::{get, web};

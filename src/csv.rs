@@ -1,6 +1,6 @@
 use chrono::{DateTime, Utc};
 
-use crate::routes::Item;
+use crate::database::items::Item;
 
 pub fn items_to_events(items: &[Item]) -> String {
     let start_date = now().to_string();

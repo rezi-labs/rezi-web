@@ -5,13 +5,12 @@ use std::{
     sync::{Arc, Mutex},
 };
 
-use crate::{routes::health, view::items};
+use crate::view::items;
 
 mod assets;
 mod config;
 mod csv;
 mod database;
-mod ical;
 mod llm;
 mod routes;
 mod scrapy;
@@ -47,18 +46,17 @@ async fn main() -> std::io::Result<()> {
             .service(view::recipes::recipe_endpoint)
             .service(view::info::info_endpoint)
             .service(items::index_route)
-            .service(routes::send_message)
-            .service(routes::create_item_with_ai)
-            .service(routes::create_item)
-            .service(routes::toggle_item)
-            .service(routes::delete_item)
-            .service(routes::update_item)
-            .service(routes::edit_item)
-            .service(routes::cancel_edit_item)
-            .service(routes::items_ical)
-            .service(routes::items_csv)
+            .service(routes::messages::send_message)
+            .service(routes::items::create_item_with_ai)
+            .service(routes::items::create_item)
+            .service(routes::items::toggle_item)
+            .service(routes::items::delete_item)
+            .service(routes::items::update_item)
+            .service(routes::items::edit_item)
+            .service(routes::items::cancel_edit_item)
+            .service(routes::items::items_csv)
             .service(assets::scope())
-            .service(health)
+            .service(routes::technical::health)
     });
 
     if env::var("OPEN_BROWSER").is_ok() {
