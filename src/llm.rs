@@ -78,7 +78,7 @@ pub async fn simple_item_response(
         })
         .collect();
 
-    database::create_items(db_client, items, user_id).await;
+    database::items::create_items(db_client, items, user_id).await;
 
     let tasks_string = task_list.list.join("\n");
 

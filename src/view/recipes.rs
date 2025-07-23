@@ -1,4 +1,5 @@
-use crate::database::{DBClient, Recipe};
+use crate::database::DBClient;
+use crate::database::recipes::Recipe;
 use crate::message::{link_icon, spark_icon};
 use crate::routes::get_user;
 use actix_web::Result as AwResult;

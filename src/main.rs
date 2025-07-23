@@ -31,7 +31,7 @@ async fn main() -> std::io::Result<()> {
     let db = database::create_client(c.db_url(), c.db_token()).await;
 
     let shared_db = Arc::new(Mutex::new(db));
-    database::migrations(&shared_db, &c).await;
+    database::migrations::run(&shared_db, &c).await;
 
     let url = format!("http://{}:{}", c.host(), c.port());
 

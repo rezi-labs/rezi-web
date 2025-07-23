@@ -24,7 +24,7 @@ pub async fn index_route() -> AwResult<Markup> {
 pub async fn chat_endpoint(client: web::Data<DBClient>, req: HttpRequest) -> AwResult<Markup> {
     let user = get_user(req).unwrap();
     let client = client.get_ref();
-    let messages = database::get_messages(client, user.id()).await;
+    let messages = database::messages::get_messages(client, user.id()).await;
 
     Ok(chat::chat(&messages, &user))
 }

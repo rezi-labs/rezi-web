@@ -9,7 +9,7 @@ use maud::{Markup, html};
 pub async fn index_route(client: web::Data<DBClient>, req: HttpRequest) -> AwResult<Markup> {
     let client = client.get_ref();
     let user = routes::get_user(req).unwrap();
-    let items: Vec<Item> = database::get_items(client, user.id().to_string()).await;
+    let items: Vec<Item> = database::items::get_items(client, user.id().to_string()).await;
 
     Ok(super::index(Some(render(&items))))
 }

@@ -13,7 +13,8 @@ use std::str::FromStr;
 use url::Url;
 
 use crate::config::Server;
-use crate::database::{self, DBClient, int_to_bool};
+use crate::database::items::int_to_bool;
+use crate::database::{self, DBClient};
 use crate::view::{self, render_item};
 use crate::{csv, ical, llm, message, unsafe_token_decode, witch};
 
@@ -137,7 +138,7 @@ pub async fn create_item(
         task: form.task.clone(),
         completed: false,
     };
-    database::create_item(client, item.clone(), user.id().to_string()).await;
+    database::items::create_item(client, item.clone(), user.id().to_string()).await;
 
     Ok(render_item(&item))
 }
@@ -153,7 +154,7 @@ pub async fn toggle_item(
 
     info!("toggle_item: {id}");
     let client: &DBClient = client.get_ref();
-    let item = database::toggle_item(client, id, user.id().to_string()).await;
+    let item = database::items::toggle_item(client, id, user.id().to_string()).await;
 
     if let Ok(item) = item {
         Ok(render_item(&item))
@@ -172,7 +173,7 @@ pub async fn delete_item(
     let client: &DBClient = client.get_ref();
     let user = get_user(req).unwrap();
 
-    database::delete_item(client, id, user.id().to_owned()).await;
+    database::items::delete_item(client, id, user.id().to_owned()).await;
     Ok(html! { "" })
 }
 
@@ -189,7 +190,8 @@ pub async fn update_item(
 
     info!("update_item: {id} with task: {}", form.task);
 
-    let item = database::update_item(client, id, form.task.clone(), user.id().to_string()).await;
+    let item =
+        database::items::update_item(client, id, form.task.clone(), user.id().to_string()).await;
 
     if let Ok(item) = item {
         Ok(render_item(&item))
@@ -208,7 +210,7 @@ pub async fn edit_item(
     let user = get_user(req).unwrap();
     let client: &DBClient = client.get_ref();
 
-    let item = database::get_item(client, id, user.id().to_string()).await;
+    let item = database::items::get_item(client, id, user.id().to_string()).await;
 
     if let Ok(item) = item {
         Ok(view::items::render_item_edit(&item))
@@ -227,7 +229,7 @@ pub async fn cancel_edit_item(
     let user = get_user(req).unwrap();
     let client: &DBClient = client.get_ref();
 
-    let item = database::get_item(client, id, user.id().to_string()).await;
+    let item = database::items::get_item(client, id, user.id().to_string()).await;
 
     if let Ok(item) = item {
         Ok(render_item(&item))
@@ -277,7 +279,7 @@ pub async fn create_item_with_ai(
         timestamp: Utc::now(),
         is_user: true,
     };
-    database::save_message(db_client, user_message.clone()).await;
+    database::messages::save_message(db_client, user_message.clone()).await;
 
     // do not save ai message
     let ai_message = ChatMessage {
@@ -326,22 +328,17 @@ pub async fn send_message(
                 ));
             };
 
-            let ai_response = generate_task_response(
+            generate_task_response(
                 &hex,
                 &config.nest_api(),
                 &config.nest_api_key(),
                 db_client,
                 user.id().to_string(),
             )
-            .await;
-            ai_response
+            .await
         }
         Err(_) => {
-            // Generate AI response
-            let ai_response =
-                generate_ai_response(&form.message, &config.nest_api(), &config.nest_api_key())
-                    .await;
-            ai_response
+            generate_ai_response(&form.message, &config.nest_api(), &config.nest_api_key()).await
         }
     };
 
@@ -355,7 +352,7 @@ pub async fn send_message(
         timestamp: Utc::now(),
         is_user: true,
     };
-    database::save_message(db_client, user_message.clone()).await;
+    database::messages::save_message(db_client, user_message.clone()).await;
 
     // do not save ai message
     let ai_message = ChatMessage {
@@ -416,7 +413,7 @@ pub async fn items_ical(client: web::Data<DBClient>, req: HttpRequest) -> Result
     let user = get_user(req).unwrap();
     let owner_id = user.id().to_string();
     let db_client: &DBClient = client.get_ref();
-    let items = database::get_items(db_client, owner_id).await;
+    let items = database::items::get_items(db_client, owner_id).await;
     let ical_file = ical::items_to_events(items.as_slice());
 
     let response = HttpResponse::Ok()
@@ -432,7 +429,7 @@ pub async fn items_csv(client: web::Data<DBClient>, req: HttpRequest) -> Result<
     let user = get_user(req).unwrap();
     let owner_id = user.id().to_string();
     let db_client: &DBClient = client.get_ref();
-    let items = database::get_items(db_client, owner_id).await;
+    let items = database::items::get_items(db_client, owner_id).await;
     let csv_file = csv::items_to_events(items.as_slice());
 
     let response = HttpResponse::Ok()
