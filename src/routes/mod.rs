@@ -6,6 +6,7 @@ use rand::Rng;
 use crate::database::DBClient;
 use crate::{llm, unsafe_token_decode};
 
+pub mod assets;
 pub mod items;
 pub mod messages;
 pub mod recipes;

@@ -7,7 +7,6 @@ use std::{
 
 use crate::view::items;
 
-mod assets;
 mod config;
 mod csv;
 mod database;
@@ -55,7 +54,7 @@ async fn main() -> std::io::Result<()> {
             .service(routes::items::edit_item)
             .service(routes::items::cancel_edit_item)
             .service(routes::items::items_csv)
-            .service(assets::scope())
+            .service(routes::assets::scope())
             .service(routes::technical::health)
     });
 
