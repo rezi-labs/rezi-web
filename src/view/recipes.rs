@@ -1,7 +1,7 @@
 use crate::database::DBClient;
 use crate::database::recipes::Recipe;
-use crate::message::{link_icon, spark_icon};
 use crate::routes::get_user;
+use crate::view::icons::{link_icon, spark_icon};
 use actix_web::Result as AwResult;
 use actix_web::{HttpRequest, get, web};
 use maud::{Markup, html};

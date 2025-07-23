@@ -15,8 +15,8 @@ use url::Url;
 use crate::config::Server;
 use crate::database::items::int_to_bool;
 use crate::database::{self, DBClient};
-use crate::view::{self, render_item};
-use crate::{csv, ical, llm, message, unsafe_token_decode, witch};
+use crate::view::{self, message, render_item};
+use crate::{csv, ical, llm, unsafe_token_decode, witch};
 
 #[derive(Debug, Clone, Serialize, Deserialize)]
 pub struct Item {
@@ -292,7 +292,7 @@ pub async fn create_item_with_ai(
     };
 
     Ok(html! {
-        (message::render(&user_message, Some(user.to_owned())))
+        (view::message::render(&user_message, Some(user.to_owned())))
         (message::render(&ai_message, None))
     })
 }

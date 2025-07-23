@@ -13,7 +13,6 @@ mod csv;
 mod database;
 mod ical;
 mod llm;
-mod message;
 mod routes;
 mod scrapy;
 mod unsafe_token_decode;

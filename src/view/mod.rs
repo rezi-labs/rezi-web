@@ -6,6 +6,7 @@ pub mod chat;
 mod icons;
 pub mod info;
 pub mod items;
+pub mod message;
 mod navbar;
 pub mod profile;
 pub mod recipes;

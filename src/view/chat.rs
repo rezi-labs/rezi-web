@@ -1,6 +1,7 @@
 use crate::routes::ChatMessage;
+use crate::unsafe_token_decode;
 use crate::view::icons::{chat_icon, send_icon};
-use crate::{message, unsafe_token_decode};
+use crate::view::message;
 use maud::{Markup, html};
 
 pub fn render() -> Markup {

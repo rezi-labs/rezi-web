@@ -1,9 +1,6 @@
 use maud::{Markup, html};
 
-use crate::{
-    message::spark_icon,
-    view::icons::{self, house_icon, info_icon, list_icon, user_icon},
-};
+use crate::view::icons::{self, house_icon, info_icon, list_icon, spark_icon, user_icon};
 
 pub fn render() -> Markup {
     html! {
