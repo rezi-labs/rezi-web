@@ -1,14 +1,12 @@
 use std::sync::{Arc, Mutex};
 
-pub type DBClient = Arc<Mutex<libsql_client::Client>>;
+use libsql_orm::Database;
 
-pub async fn create_client(url: String, token: Option<String>) -> libsql_client::Client {
-    libsql_client::Client::from_config(libsql_client::Config {
-        url: url::Url::parse(&url).unwrap(),
-        auth_token: token,
-    })
-    .await
-    .unwrap()
+pub type DBClient2 = Arc<Mutex<libsql_orm::Database>>;
+
+pub async fn create_orm_client(url: String, token: Option<String>) -> libsql_orm::Database {
+    let token = token.unwrap_or_default();
+    Database::new_connect(&url, &token).await.unwrap()
 }
 
 fn escape_sql_string(s: &str) -> String {

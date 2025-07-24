@@ -1,5 +1,5 @@
 use crate::database::items::Item;
-use crate::database::{self, DBClient};
+use crate::database::{self, DBClient2};
 use crate::routes::{self};
 use crate::view::icons;
 use actix_web::{HttpRequest, Result as AwResult};
@@ -7,7 +7,7 @@ use actix_web::{get, web};
 use maud::{Markup, html};
 
 #[get("items")]
-pub async fn index_route(client: web::Data<DBClient>, req: HttpRequest) -> AwResult<Markup> {
+pub async fn index_route(client: web::Data<DBClient2>, req: HttpRequest) -> AwResult<Markup> {
     let client = client.get_ref();
     let user = routes::get_user(req).unwrap();
     let items: Vec<Item> = database::items::get_items(client, user.id().to_string()).await;
@@ -54,15 +54,15 @@ pub fn render_item(item: &Item) -> Markup {
 
 pub fn render_item_display(item: &Item) -> Markup {
     html! {
-        div class="flex items-center gap-3 p-3 bg-base-100 rounded-lg" id=(format!("c-todo-{}", item.id)) {
+        div class="flex items-center gap-3 p-3 bg-base-100 rounded-lg" id=(format!("c-todo-{}", item.id())) {
 
             input class="checkbox checkbox-primary" type="checkbox"
-                id=(format!("todo-{}", item.id))
-                name=(format!("todo-{}", item.id))
+                id=(format!("todo-{}", item.id()))
+                name=(format!("todo-{}", item.id()))
                 checked[item.completed]
 
-                hx-patch=(format!("/items/{}/toggle", item.id))
-                hx-target=(format!("#c-todo-{}", item.id))
+                hx-patch=(format!("/items/{}/toggle", item.id()))
+                hx-target=(format!("#c-todo-{}", item.id()))
                 hx-swap="outerHTML";
             span class={
                 @if item.completed {
@@ -71,14 +71,14 @@ pub fn render_item_display(item: &Item) -> Markup {
                     "flex-1 cursor-pointer"
                 }
             }
-            hx-get=(format!("/items/{}/edit", item.id))
-            hx-target=(format!("#c-todo-{}", item.id))
+            hx-get=(format!("/items/{}/edit", item.id()))
+            hx-target=(format!("#c-todo-{}", item.id()))
             hx-swap="outerHTML"
             title="Click to edit" {
                 (item.task)
             }
             button class="btn btn-sm btn-error btn-outline"
-                hx-delete=(format!("/items/{}", item.id))
+                hx-delete=(format!("/items/{}", item.id()))
                 hx-target="closest div"
                 hx-swap="outerHTML"
                 hx-confirm="Are you sure you want to delete this item?" {
@@ -93,20 +93,20 @@ pub fn render_item_display(item: &Item) -> Markup {
 
 pub fn render_item_edit(item: &Item) -> Markup {
     html! {
-        div class="flex items-center gap-3 p-3 bg-base-100 rounded-lg" id=(format!("c-todo-{}", item.id)) {
+        div class="flex items-center gap-3 p-3 bg-base-100 rounded-lg" id=(format!("c-todo-{}", item.id())) {
 
             input class="checkbox checkbox-primary" type="checkbox"
-                id=(format!("todo-{}", item.id))
-                name=(format!("todo-{}", item.id))
+                id=(format!("todo-{}", item.id()))
+                name=(format!("todo-{}", item.id()))
                 checked[item.completed]
 
-                hx-patch=(format!("/items/{}/toggle", item.id))
-                hx-target=(format!("#c-todo-{}", item.id))
+                hx-patch=(format!("/items/{}/toggle", item.id()))
+                hx-target=(format!("#c-todo-{}", item.id()))
                 hx-swap="outerHTML";
 
             form class="flex-1 flex gap-2"
-                hx-patch=(format!("/items/{}", item.id))
-                hx-target=(format!("#c-todo-{}", item.id))
+                hx-patch=(format!("/items/{}", item.id()))
+                hx-target=(format!("#c-todo-{}", item.id()))
                 hx-swap="outerHTML" {
                 input class="input input-bordered flex-1"
                     type="text"
@@ -121,8 +121,8 @@ pub fn render_item_edit(item: &Item) -> Markup {
                     }
                 }
                 button class="btn btn-sm btn-ghost" type="button"
-                    hx-get=(format!("/items/{}/cancel", item.id))
-                    hx-target=(format!("#c-todo-{}", item.id))
+                    hx-get=(format!("/items/{}/cancel", item.id()))
+                    hx-target=(format!("#c-todo-{}", item.id()))
                     hx-swap="outerHTML" {
                     svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24" {
                         path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M6 18L18 6M6 6l12 12" {
@@ -132,7 +132,7 @@ pub fn render_item_edit(item: &Item) -> Markup {
             }
 
             button class="btn btn-sm btn-error btn-outline"
-                hx-delete=(format!("/items/{}", item.id))
+                hx-delete=(format!("/items/{}", item.id()))
                 hx-target="closest div"
                 hx-swap="outerHTML"
                 hx-confirm="Are you sure you want to delete this item?" {

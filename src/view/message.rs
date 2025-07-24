@@ -41,7 +41,7 @@ pub fn render(message: &ChatMessage, user: Option<User>) -> Markup {
             div class="chat-header" {
                 (sender)
                 time class="text-xs opacity-50" {
-                    (message.timestamp.format("%H:%M"))
+                    (message.created_at.format("%H:%M"))
                 }
             }
             div class={
@@ -65,8 +65,8 @@ pub fn render(message: &ChatMessage, user: Option<User>) -> Markup {
 }
 
 pub fn ai_btn(message: &ChatMessage) -> Markup {
-    let id = format!("ai-btn-{}", message.id);
-    let spinner_id = format!("ai-btn-spinner-{}-{}", message.id, message.is_user);
+    let id = format!("ai-btn-{}", message.id());
+    let spinner_id = format!("ai-btn-spinner-{}-{}", message.id(), message.is_user());
     html! {
         span {
 

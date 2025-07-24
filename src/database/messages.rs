@@ -1,108 +1,74 @@
-use libsql_client::Statement;
-use log::{error, info};
+use libsql_orm::Filter;
+use libsql_orm::FilterOperator;
+use libsql_orm::Model;
 
-use actix_web::Result;
 use chrono::{DateTime, Utc};
-use libsql_client::Row;
 use serde::{Deserialize, Serialize};
-use std::str::FromStr;
 
-use crate::database::DBClient;
+use crate::database::DBClient2;
+use crate::routes::random_id;
 
-use crate::database::escape_sql_string;
-
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Model, Debug, Clone, Serialize, Deserialize)]
+#[table_name("messages")]
 pub struct ChatMessage {
-    pub id: u32,
+    pub id: std::option::Option<i64>,
     pub content: String,
     pub ai_response: String,
-    pub sender: String,
-    pub timestamp: DateTime<Utc>,
+    pub owner_id: String,
+    pub created_at: DateTime<Utc>,
     pub is_user: bool,
 }
 
 impl ChatMessage {
     pub fn ai_message(&self) -> Self {
         ChatMessage {
-            id: self.id,
+            id: Some(self.id.unwrap_or(random_id())),
             content: self.ai_response.clone(),
             ai_response: self.ai_response.clone(),
-            sender: self.sender.clone(),
-            timestamp: self.timestamp,
+            owner_id: self.owner_id.clone(),
+            created_at: self.created_at,
             is_user: false,
         }
     }
 
-    pub fn from_row(row: &Row) -> Result<ChatMessage, String> {
-        let id: u32 = row.try_get(0).unwrap();
-        let content: &str = row.try_get(1).unwrap();
-        let ai_response: &str = row.try_get(2).unwrap();
-        let sender: &str = row.try_get(3).unwrap();
-        let timestamp: &str = row.try_get(4).unwrap();
-        let timestamp: DateTime<Utc> = DateTime::from_str(timestamp).unwrap();
-        let is_user: &str = row.try_get(5).unwrap();
-        let is_user = is_user == "true";
+    pub fn id(&self) -> String {
+        let Some(id) = self.id else {
+            log::error!("no id: {:?}", self);
+            return "none".to_string();
+        };
+        id.to_string()
+    }
 
-        Ok(ChatMessage {
-            id,
-            content: content.to_string(),
-            ai_response: ai_response.to_string(),
-            sender: sender.to_string(),
-            timestamp,
-            is_user,
-        })
+    pub fn is_user(&self) -> bool {
+        self.is_user
     }
 }
 
 #[allow(clippy::await_holding_lock)]
-pub async fn save_message(client: &DBClient, message: ChatMessage) {
-    let client = client.lock().unwrap();
+pub async fn save_message(client: &DBClient2, message: ChatMessage) -> Result<ChatMessage, String> {
+    let db = client.lock().unwrap();
 
-    info!("{message:?}");
-
-    let statement = format!(
-        r#"INSERT INTO chat_messages
-    (id, content, ai_response, sender, "timestamp", is_user, created_at)
-    VALUES({}, '{}', '{}', '{}', '{}', '{}', CURRENT_TIMESTAMP);"#,
-        message.id,
-        escape_sql_string(&message.content),
-        escape_sql_string(&message.ai_response),
-        message.sender,
-        message.timestamp,
-        message.is_user
-    );
-
-    let st = Statement::new(statement);
-
-    let res = client.execute(st).await;
-    drop(client);
+    let res = message.create(&db).await;
     match res {
-        Ok(s) => info!("{s:?}"),
-        Err(e) => error!("{e}"),
+        Ok(m) => {
+            log::info!("{m:?}");
+            return Ok(m);
+        }
+        Err(err) => {
+            log::error!("{err}");
+            Err(err.to_string())
+        }
     }
 }
 
 #[allow(clippy::await_holding_lock)]
-pub async fn get_messages(client: &DBClient, user_id: &str) -> Vec<ChatMessage> {
-    let client = client.lock().unwrap();
+pub async fn get_messages(client: &DBClient2, owner_id: &str) -> Vec<ChatMessage> {
+    let db = client.lock().unwrap();
 
-    let stmt = libsql_client::Statement::with_args(
-        "
-            SELECT id, content, ai_response, sender, timestamp, is_user, created_at
-             FROM chat_messages
-             WHERE sender = ?
-             ORDER BY timestamp ASC
-            ",
-        &[user_id],
-    );
-
-    let res = client.execute(stmt).await.unwrap();
-
-    drop(client);
-    let rows: Vec<ChatMessage> = res
-        .rows
-        .iter()
-        .filter_map(|r| ChatMessage::from_row(r).ok())
-        .collect();
-    rows
+    ChatMessage::find_where(
+        FilterOperator::Single(Filter::eq("owner_id".to_string(), owner_id)),
+        &db,
+    )
+    .await
+    .unwrap()
 }

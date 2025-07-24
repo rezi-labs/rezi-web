@@ -4,6 +4,7 @@ version = "0.10.0"
 edition = "2024"
 
 [dependencies]
+libsql-orm = { path = "libsql-orm" }
 actix-files = "0.6.6"
 actix-web = { version = "4.11.0", default-features = false, features = [
     "rustls",
@@ -16,7 +17,6 @@ env_logger = "0.11.8"
 futures-util = "0.3"
 jsonwebtoken = "9.3.0"
 lazy_static = "1.4.0"
-libsql-client = "0.33.4"
 
 log = "0.4.27"
 maud = { version = "0.27.0", features = ["actix-web"] }

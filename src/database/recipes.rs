@@ -1,6 +1,12 @@
+use libsql_orm::Model;
+use serde::{Deserialize, Serialize};
+
+
 #[allow(unused)]
+#[derive(Model, Debug, Clone, Serialize, Deserialize)]
+#[table_name("recipes")]
 pub struct Recipe {
-    id: String,
+    id: std::option::Option<i64>,
     owner_id: String,
     name: String,
     url: Option<String>,
@@ -11,7 +17,7 @@ pub struct Recipe {
 #[allow(unused)]
 impl Recipe {
     pub fn new(
-        id: String,
+        id: Option<i64>,
         name: String,
         url: Option<String>,
         image_url: Option<String>,
@@ -46,14 +52,14 @@ impl Recipe {
         &self.owner_id
     }
 
-    pub fn id(&self) -> &str {
-        &self.id
+    pub fn id(&self) -> i64 {
+        self.id.unwrap_or(0)
     }
 
     pub fn examples() -> Vec<Recipe> {
         vec![
             Recipe::new(
-                "".to_string(),
+                None,
                 "Pumpkin Soup".to_string(),
                 None,
                 None,
@@ -61,7 +67,7 @@ impl Recipe {
                 "1".to_string(),
             ),
             Recipe::new(
-                "".to_string(),
+                None,
                 "Chocolate Cake".to_string(),
                 None,
                 None,

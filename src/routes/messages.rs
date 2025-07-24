@@ -1,3 +1,4 @@
+use actix_web::error::ParseError;
 use actix_web::{HttpRequest, Result, post, web};
 use chrono::Utc;
 use maud::{Markup, html};
@@ -5,7 +6,7 @@ use serde::Deserialize;
 use url::Url;
 
 use crate::config::Server;
-use crate::database::{self, DBClient};
+use crate::database::{self, DBClient2};
 use crate::view::message;
 use crate::witch;
 
@@ -17,14 +18,14 @@ pub struct SendMessageRequest {
 #[post("chat")]
 pub async fn send_message(
     form: web::Form<SendMessageRequest>,
-    client: web::Data<DBClient>,
+    client: web::Data<DBClient2>,
     config: web::Data<Server>,
     req: HttpRequest,
 ) -> Result<Markup> {
     let user = super::get_user(req).unwrap();
 
     log::info!("Received chat message: {}", form.message);
-    let db_client: &DBClient = client.get_ref();
+    let db_client: &DBClient2 = client.get_ref();
     // delay if delay is on
     if config.delay() {
         tokio::time::sleep(std::time::Duration::from_millis(2000)).await;
@@ -60,31 +61,22 @@ pub async fn send_message(
         }
     };
 
-    let chat_id = super::random_id();
-
     let user_message = database::messages::ChatMessage {
-        id: chat_id,
+        id: None,
         content: form.message.clone(),
         ai_response: ai_response.clone(),
-        sender: user.id().to_string(),
-        timestamp: Utc::now(),
+        owner_id: user.id().to_string(),
+        created_at: Utc::now(),
         is_user: true,
     };
-    database::messages::save_message(db_client, user_message.clone()).await;
-
-    // do not save ai message
-    let ai_message = database::messages::ChatMessage {
-        id: chat_id,
-        content: ai_response.clone(),
-        ai_response: ai_response.clone(),
-        sender: "Agent".to_string(),
-        timestamp: Utc::now(),
-        is_user: false,
+    let Ok(user_message) = database::messages::save_message(db_client, user_message.clone()).await
+    else {
+        return Err(ParseError::Incomplete.into());
     };
 
     // Return both messages as HTML
     Ok(html! {
         (message::render(&user_message, Some(user.to_owned())))
-        (message::render(&ai_message, None))
+        (message::render(&user_message.ai_message(), None))
     })
 }

@@ -5,7 +5,7 @@ use std::{
     sync::{Arc, Mutex},
 };
 
-use crate::view::items;
+use crate::{database::DBClient2, view::items};
 
 mod config;
 mod csv;
@@ -25,10 +25,10 @@ async fn main() -> std::io::Result<()> {
     let c = config::from_env();
     let bind = c.clone();
 
-    let db = database::create_client(c.db_url(), c.db_token()).await;
+    let orm_db = database::create_orm_client(c.db_url(), c.db_token()).await;
 
-    let shared_db = Arc::new(Mutex::new(db));
-    database::migrations::run(&shared_db, &c).await;
+    let shared_orm_db: DBClient2 = Arc::new(Mutex::new(orm_db));
+    database::migrations::run(&shared_orm_db, &c).await;
 
     let url = format!("http://{}:{}", c.host(), c.port());
 
@@ -36,7 +36,7 @@ async fn main() -> std::io::Result<()> {
         App::new()
             .wrap(Logger::default())
             .wrap(Logger::new("%a %{User-Agent}i"))
-            .app_data(web::Data::new(shared_db.clone()))
+            .app_data(web::Data::new(shared_orm_db.clone()))
             .app_data(web::Data::new(c.clone()))
             .wrap(from_fn(user::user_extractor))
             .service(view::index_route)

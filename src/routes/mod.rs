@@ -3,7 +3,7 @@ use actix_web::{HttpMessage, HttpRequest};
 use log::error;
 use rand::Rng;
 
-use crate::database::DBClient;
+use crate::database::DBClient2;
 use crate::{llm, unsafe_token_decode};
 
 pub mod assets;
@@ -18,9 +18,9 @@ pub fn get_user(req: HttpRequest) -> Option<unsafe_token_decode::User> {
         .map(|u| u.as_ref().clone())
 }
 
-pub fn random_id() -> u32 {
+pub fn random_id() -> i64 {
     let mut rng = rand::rng();
-    rng.random::<u32>()
+    rng.random::<i64>()
 }
 
 async fn generate_ai_response(user_message: &str, nest_api: &str, nest_api_key: &str) -> String {
@@ -42,7 +42,7 @@ async fn generate_task_response(
     user_message: &str,
     nest_api: &str,
     nest_api_key: &str,
-    db_client: &DBClient,
+    db_client: &DBClient2,
     user_id: String,
 ) -> String {
     match llm::simple_item_response(nest_api, nest_api_key, user_message, user_id, db_client).await

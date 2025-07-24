@@ -2,11 +2,7 @@ use log::info;
 use reqwest::Client;
 use serde::{Deserialize, Serialize};
 
-use crate::{
-    database::items::Item,
-    database::{self, DBClient},
-    routes::random_id,
-};
+use crate::database::{self, DBClient2, items::Item};
 
 #[derive(Debug)]
 pub enum LlmError {
@@ -30,7 +26,7 @@ pub async fn simple_item_response(
     nest_api_key: &str,
     user_message: &str,
     user_id: String,
-    db_client: &DBClient,
+    db_client: &DBClient2,
 ) -> Result<String, LlmError> {
     let client = Client::new();
 
@@ -73,13 +69,16 @@ pub async fn simple_item_response(
         .list
         .iter()
         .map(|t| Item {
-            id: random_id(),
+            owner_id: user_id.clone(),
+            id: None,
             task: t.clone(),
             completed: false,
+            created_at: chrono::Utc::now(),
+            updated_at: chrono::Utc::now(),
         })
         .collect();
 
-    database::items::create_items(db_client, items, user_id).await;
+    database::items::create_items(db_client, items).await;
 
     let tasks_string = task_list.list.join("\n");
 

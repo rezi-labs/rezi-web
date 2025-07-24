@@ -1,275 +1,154 @@
-use libsql_client::{Row, Statement};
-use log::{error, info};
+use libsql_orm::{Filter, FilterOperator, Model};
 use serde::{Deserialize, Serialize};
 
-use crate::{
-    database::{DBClient, escape_sql_string},
-    routes::random_id,
-};
+use crate::database::DBClient2;
 
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Model, Debug, Clone, Serialize, Deserialize)]
+#[table_name("items")]
 pub struct Item {
-    pub id: u32,
+    pub id: std::option::Option<i64>,
+    pub owner_id: String,
     pub task: String,
     pub completed: bool,
+    pub created_at: chrono::DateTime<chrono::Utc>,
+    pub updated_at: chrono::DateTime<chrono::Utc>,
 }
 
 impl Item {
     pub fn random_item() -> Item {
         Item {
-            id: random_id(),
+            id: None,
+            owner_id: String::from("user1"),
             task: String::from("Random Task"),
             completed: false,
+            created_at: chrono::Utc::now(),
+            updated_at: chrono::Utc::now(),
         }
     }
 
-    pub fn from_row(row: &Row) -> Result<Item, String> {
-        let Ok(id) = row.try_get::<u32>(0) else {
-            let err = format!("Item::from_row {row:?}");
-            return Err(err);
-        };
+    pub fn id(&self) -> i64 {
+        self.id.unwrap()
+    }
 
-        let Ok(task) = row.try_get::<&str>(1) else {
-            let err = format!("Item::from_row {row:?}");
-            return Err(err);
-        };
-
-        let Ok(completed) = row.try_get::<i64>(2) else {
-            let err = format!("Item::from_row {row:?}");
-            return Err(err);
-        };
-
-        let completed: bool = int_to_bool(completed);
-
-        Ok(Item {
-            id,
-            task: task.to_string(),
-            completed,
-        })
+    pub fn update_task(&mut self, task: &str) {
+        self.task = task.to_string()
+    }
+    pub fn toggle(&mut self) {
+        self.completed = !self.completed
     }
 }
 
 #[allow(clippy::await_holding_lock)]
-pub async fn get_items(client: &DBClient, owner_id: String) -> Vec<Item> {
-    let client = client.lock().unwrap();
+pub async fn get_items(client: &DBClient2, owner_id: String) -> Vec<Item> {
+    let db = client.lock().unwrap();
 
-    let stmt = libsql_client::Statement::with_args(
-        "
-                 SELECT id, task, completed
-                 FROM items
-                 WHERE owner_id = ?
-                 ",
-        &[owner_id],
-    );
-
-    let res = client.execute(stmt).await.unwrap();
-
-    drop(client);
-
-    let rows: Vec<Item> = res
-        .rows
-        .iter()
-        .filter_map(|r| Item::from_row(r).ok())
-        .collect();
-    rows
+    Item::find_where(
+        FilterOperator::Single(Filter::eq("owner_id".to_string(), owner_id)),
+        &db,
+    )
+    .await
+    .unwrap_or_default()
 }
 
 #[allow(clippy::await_holding_lock)]
-pub async fn create_items(client: &DBClient, items: Vec<Item>, user_id: String) {
+pub async fn create_items(client: &DBClient2, items: Vec<Item>) {
     if items.is_empty() {
         return;
     }
 
     let client = client.lock().unwrap();
-
-    // Build bulk insert SQL with multiple VALUES clauses
-    let mut values_clauses = Vec::new();
-    for item in &items {
-        let completed = bool_to_int(item.completed);
-        let escaped_task = escape_sql_string(&item.task);
-        let value_clause = format!(
-            "({}, '{}', '{}', '{}')",
-            item.id, user_id, escaped_task, completed
-        );
-        values_clauses.push(value_clause);
-    }
-
-    let statement = format!(
-        r#"INSERT INTO items (id, owner_id, task, completed) VALUES {};"#,
-        values_clauses.join(", ")
-    );
-
-    info!("Bulk inserting {} items", items.len());
-
-    let st = Statement::new(statement);
-    let res = client.execute(st).await;
+    Item::bulk_create(items.as_slice(), &client).await;
 
     drop(client);
-
-    match res {
-        Ok(s) => info!("Successfully inserted {} items: {:?}", items.len(), s),
-        Err(e) => error!("Failed to bulk insert items: {e}"),
-    }
 }
 
 #[allow(clippy::await_holding_lock)]
-pub async fn create_item(client: &DBClient, item: Item, owner_id: String) {
+pub async fn create_item(client: &DBClient2, item: Item) {
     let client = client.lock().unwrap();
 
-    info!("{item:?}");
-
-    let completed = bool_to_int(item.completed);
-
-    let statement = format!(
-        r#"INSERT INTO items
-         (id, owner_id, task, completed)
-         VALUES({}, '{}', '{}', '{completed}');"#,
-        item.id,
-        owner_id,
-        escape_sql_string(&item.task),
-    );
-
-    let st = Statement::new(statement);
-
-    let res = client.execute(st).await;
-    drop(client);
+    let res = item.create(&client).await;
     match res {
-        Ok(s) => info!("{s:?}"),
-        Err(e) => error!("{e}"),
+        Ok(item) => log::info!("created item {}", item.id()),
+        Err(err) => log::error!("{err:?}"),
     }
 }
 #[allow(clippy::await_holding_lock)]
-pub async fn delete_item(client: &DBClient, item_id: i64, owner_id: String) {
-    let client = client.lock().unwrap();
+pub async fn delete_item(client: &DBClient2, item_id: i64, owner_id: String) {
+    let db = client.lock().unwrap();
 
-    let statement = format!(
-        r#"DELETE FROM items
-         WHERE id = {item_id} AND owner_id = {owner_id};"#,
-    );
-
-    let st = Statement::new(statement);
-
-    let res = client.execute(st).await;
-    drop(client);
+    let res = Item::find_by_id(item_id, &db)
+        .await
+        .unwrap()
+        .unwrap()
+        .delete(&db)
+        .await;
     match res {
-        Ok(s) => info!("{s:?}"),
-        Err(e) => error!("{e}"),
+        Ok(_) => todo!(),
+        Err(err) => log::error!("{err:?}"),
     }
 }
 
 #[allow(clippy::await_holding_lock)]
 pub async fn toggle_item(
-    client: &DBClient,
+    client: &DBClient2,
     item_id: i64,
     owner_id: String,
 ) -> Result<Item, String> {
-    let locked_client = client.lock().unwrap();
-    info!("db toggle: {item_id}");
+    let db = client.lock().unwrap();
 
-    let statement = format!(
-        r#"SELECT id, task, completed
-         FROM items
-         WHERE id = {item_id} AND owner_id = {owner_id};"#,
-    );
+    let mut item = Item::find_by_id(item_id, &db).await.unwrap().unwrap();
 
-    let st = Statement::new(statement);
+    if item.owner_id != owner_id {
+        return Err("Nope".to_string());
+    }
 
-    let res = locked_client.execute(st).await.unwrap();
-    drop(locked_client);
+    item.toggle();
 
-    let rows: Vec<Item> = res
-        .rows
-        .iter()
-        .filter_map(|r| Item::from_row(r).ok())
-        .collect();
+    let _ = item.upsert(&["completed"], &db).await;
 
-    let old = rows
-        .first()
-        .cloned()
-        .ok_or_else(|| "Item not found".to_string())
-        .unwrap();
-
-    info!("old: {old:?}");
-
-    let locked_client = client.lock().unwrap();
-
-    let completed = bool_to_int(!old.completed);
-    let statement = format!(
-        r#"UPDATE items
-         SET completed = {completed}
-         WHERE id = {item_id};"#,
-    );
-
-    let st = Statement::new(statement);
-
-    let _res = locked_client.execute(st).await;
-
-    drop(locked_client);
     get_item(client, item_id, owner_id).await
 }
 
 #[allow(clippy::await_holding_lock)]
-pub async fn get_item(client: &DBClient, item_id: i64, owner_id: String) -> Result<Item, String> {
-    let client = client.lock().unwrap();
+pub async fn get_item(client: &DBClient2, item_id: i64, owner_id: String) -> Result<Item, String> {
+    let db = client.lock().unwrap();
 
-    let statement = format!(
-        r#"SELECT id, task, completed
-         FROM items
-         WHERE id = {item_id} AND owner_id = {owner_id};"#,
-    );
+    let item = Item::find_by_id(item_id, &db)
+        .await
+        .map_err(|e| e.to_string());
 
-    let st = Statement::new(statement);
+    let Ok(item) = item else {
+        return Err("Nope not working".to_string());
+    };
 
-    let res = client.execute(st).await.unwrap();
-    drop(client);
+    let Some(item) = item else {
+        log::error!("can not find item: {item_id}");
+        return Err("Nope not found".to_string());
+    };
 
-    let rows: Vec<Item> = res
-        .rows
-        .iter()
-        .filter_map(|r| Item::from_row(r).ok())
-        .collect();
+    if item.owner_id != owner_id {
+        return Err("Nope".to_string());
+    }
 
-    rows.first()
-        .cloned()
-        .ok_or_else(|| "Item not found".to_string())
-}
-
-pub fn bool_to_int(b: bool) -> i64 {
-    if b { 1 } else { 0 }
-}
-
-pub fn int_to_bool(i: i64) -> bool {
-    i == 1
+    Ok(item)
 }
 
 #[allow(clippy::await_holding_lock)]
 pub async fn update_item(
-    client: &DBClient,
+    client: &DBClient2,
     item_id: i64,
     new_task: String,
     owner_id: String,
 ) -> Result<Item, String> {
-    let locked_client = client.lock().unwrap();
+    let db = client.lock().unwrap();
 
-    let statement = format!(
-        r#"UPDATE items
-         SET task = '{}'
-         WHERE id = {} AND owner_id = '{}';"#,
-        escape_sql_string(&new_task),
-        item_id,
-        owner_id
-    );
+    let mut item = Item::find_by_id(item_id, &db).await.unwrap().unwrap();
 
-    let st = Statement::new(statement);
+    if item.owner_id != owner_id {
+        return Err("Nope".to_string());
+    };
 
-    let res = locked_client.execute(st).await;
-    drop(locked_client);
+    item.update_task(&new_task);
 
-    match res {
-        Ok(_) => get_item(client, item_id, owner_id).await,
-        Err(e) => {
-            error!("Failed to update item: {e}");
-            Err(format!("Failed to update item: {e}"))
-        }
-    }
+    item.upsert(&["task"], &db).await.map_err(|e| e.to_string())
 }
