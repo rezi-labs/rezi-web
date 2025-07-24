@@ -1,7 +1,6 @@
 use libsql_orm::Model;
 use serde::{Deserialize, Serialize};
 
-
 #[allow(unused)]
 #[derive(Model, Debug, Clone, Serialize, Deserialize)]
 #[table_name("recipes")]

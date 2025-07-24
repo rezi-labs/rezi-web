@@ -1,0 +1,7 @@
+[target.wasm32-unknown-unknown]
+rustflags = [
+    "-C", "target-feature=+bulk-memory"
+]
+
+# Note: Default target is removed to allow tests to run on native target
+# Use --target wasm32-unknown-unknown explicitly when needed for WASM builds 
