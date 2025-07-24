@@ -9,23 +9,12 @@ pub struct Item {
     pub id: std::option::Option<i64>,
     pub owner_id: String,
     pub task: String,
-    pub completed: bool,
+    pub completed: u16,
     pub created_at: chrono::DateTime<chrono::Utc>,
     pub updated_at: chrono::DateTime<chrono::Utc>,
 }
 
 impl Item {
-    pub fn random_item() -> Item {
-        Item {
-            id: None,
-            owner_id: String::from("user1"),
-            task: String::from("Random Task"),
-            completed: false,
-            created_at: chrono::Utc::now(),
-            updated_at: chrono::Utc::now(),
-        }
-    }
-
     pub fn id(&self) -> i64 {
         self.id.unwrap()
     }
@@ -34,106 +23,172 @@ impl Item {
         self.task = task.to_string()
     }
     pub fn toggle(&mut self) {
-        self.completed = !self.completed
+        if self.completed == 0 {
+            self.completed = 1
+        } else {
+            self.completed = 0
+        }
+    }
+
+    pub fn completed(&self) -> bool {
+        self.completed == 1
+    }
+
+    pub fn owner_id(&self) -> String {
+        self.owner_id.to_string()
     }
 }
 
-#[allow(clippy::await_holding_lock)]
-pub async fn get_items(client: &DBClient2, owner_id: String) -> Vec<Item> {
-    let db = client.lock().unwrap();
+pub async fn get_items(client: &DBClient2, owner_id: String) -> Result<Vec<Item>, String> {
+    log::info!("getting items for owner: {}", owner_id);
 
-    Item::find_where(
-        FilterOperator::Single(Filter::eq("owner_id".to_string(), owner_id)),
+    let db = client.lock().unwrap();
+    let items = Item::find_where(
+        FilterOperator::Single(Filter::eq("owner_id".to_string(), owner_id.clone())),
         &db,
     )
-    .await
-    .unwrap_or_default()
+    .await;
+    drop(db);
+
+    match items {
+        Ok(items) => {
+            log::info!("found {} items for owner: {}", items.len(), owner_id);
+            Ok(items)
+        }
+        Err(err) => {
+            log::error!("Error getting items: {err}");
+            Err("Could not get items".to_string())
+        }
+    }
 }
 
-#[allow(clippy::await_holding_lock)]
 pub async fn create_items(client: &DBClient2, items: Vec<Item>) {
     if items.is_empty() {
         return;
     }
 
     let client = client.lock().unwrap();
-    Item::bulk_create(items.as_slice(), &client).await;
-
-    drop(client);
-}
-
-#[allow(clippy::await_holding_lock)]
-pub async fn create_item(client: &DBClient2, item: Item) {
-    let client = client.lock().unwrap();
-
-    let res = item.create(&client).await;
-    match res {
-        Ok(item) => log::info!("created item {}", item.id()),
-        Err(err) => log::error!("{err:?}"),
+    let result = Item::bulk_create(items.as_slice(), &client).await;
+    match result {
+        Ok(_) => log::info!("created items"),
+        Err(err) => log::error!("could not create items: {err}"),
     }
 }
-#[allow(clippy::await_holding_lock)]
+
+pub async fn create_item(client: &DBClient2, item: Item) -> Result<Item, String> {
+    let db = client.lock().unwrap();
+    let res = item.create(&db).await;
+    drop(db);
+
+    match res {
+        Ok(item) => {
+            log::info!("created item {}", item.id());
+            Ok(item)
+        }
+        Err(err) => {
+            log::error!("{err:?}");
+            Err("Could not create item".to_string())
+        }
+    }
+}
 pub async fn delete_item(client: &DBClient2, item_id: i64, owner_id: String) {
     let db = client.lock().unwrap();
+    let item_result = Item::find_by_id(item_id, &db).await;
 
-    let res = Item::find_by_id(item_id, &db)
-        .await
-        .unwrap()
-        .unwrap()
-        .delete(&db)
-        .await;
-    match res {
-        Ok(_) => todo!(),
-        Err(err) => log::error!("{err:?}"),
+    match item_result {
+        Ok(Some(item)) => {
+            if item.owner_id() != owner_id {
+                log::error!("Unauthorized delete attempt for item {}", item_id);
+                drop(db);
+                return;
+            }
+
+            let delete_result = item.delete(&db).await;
+            drop(db);
+
+            match delete_result {
+                Ok(_) => log::info!("Successfully deleted item {}", item_id),
+                Err(err) => log::error!("Failed to delete item {}: {err:?}", item_id),
+            }
+        }
+        Ok(None) => {
+            log::error!("Item {} not found", item_id);
+            drop(db);
+        }
+        Err(err) => {
+            log::error!("Error finding item {}: {err:?}", item_id);
+            drop(db);
+        }
     }
 }
 
-#[allow(clippy::await_holding_lock)]
 pub async fn toggle_item(
     client: &DBClient2,
     item_id: i64,
     owner_id: String,
 ) -> Result<Item, String> {
     let db = client.lock().unwrap();
+    let item_result = Item::find_by_id(item_id, &db).await;
 
-    let mut item = Item::find_by_id(item_id, &db).await.unwrap().unwrap();
+    let mut item = match item_result {
+        Ok(Some(item)) => item,
+        Ok(None) => {
+            drop(db);
+            return Err("Item not found".to_string());
+        }
+        Err(err) => {
+            drop(db);
+            log::error!("Error finding item: {err:?}");
+            return Err("Database error".to_string());
+        }
+    };
 
-    if item.owner_id != owner_id {
-        return Err("Nope".to_string());
+    if item.owner_id() != owner_id {
+        drop(db);
+        return Err("Unauthorized".to_string());
     }
 
     item.toggle();
 
-    let _ = item.upsert(&["completed"], &db).await;
+    let update_result = item.update(&db).await;
+    drop(db);
 
-    get_item(client, item_id, owner_id).await
+    match update_result {
+        Ok(updated_item) => {
+            log::info!("toggled item {}", updated_item.id());
+            Ok(updated_item)
+        }
+        Err(err) => {
+            log::error!("could not toggle item: {err}");
+            Err("Failed to update item".to_string())
+        }
+    }
 }
 
-#[allow(clippy::await_holding_lock)]
 pub async fn get_item(client: &DBClient2, item_id: i64, owner_id: String) -> Result<Item, String> {
     let db = client.lock().unwrap();
+    let item_result = Item::find_by_id(item_id, &db).await;
+    drop(db);
 
-    let item = Item::find_by_id(item_id, &db)
-        .await
-        .map_err(|e| e.to_string());
-
-    let Ok(item) = item else {
-        return Err("Nope not working".to_string());
-    };
-
-    let Some(item) = item else {
-        log::error!("can not find item: {item_id}");
-        return Err("Nope not found".to_string());
-    };
-
-    if item.owner_id != owner_id {
-        return Err("Nope".to_string());
+    match item_result {
+        Ok(Some(item)) => {
+            if item.owner_id() != owner_id {
+                return Err("Unauthorized".to_string());
+            }
+            log::info!("found item {}", item.id());
+            Ok(item)
+        }
+        Ok(None) => {
+            log::error!("item not found: {item_id}");
+            Err("Item not found".to_string())
+        }
+        Err(err) => {
+            log::error!("database error finding item {item_id}: {err}");
+            Err("Database error".to_string())
+        }
     }
-
-    Ok(item)
 }
 
-#[allow(clippy::await_holding_lock)]
 pub async fn update_item(
     client: &DBClient2,
     item_id: i64,
@@ -141,14 +196,31 @@ pub async fn update_item(
     owner_id: String,
 ) -> Result<Item, String> {
     let db = client.lock().unwrap();
+    let item_result = Item::find_by_id(item_id, &db).await;
 
-    let mut item = Item::find_by_id(item_id, &db).await.unwrap().unwrap();
-
-    if item.owner_id != owner_id {
-        return Err("Nope".to_string());
+    let mut item = match item_result {
+        Ok(Some(item)) => item,
+        Ok(None) => {
+            drop(db);
+            return Err("Item not found".to_string());
+        }
+        Err(err) => {
+            drop(db);
+            log::error!("Error finding item: {err:?}");
+            return Err("Database error".to_string());
+        }
     };
 
-    item.update_task(&new_task);
+    if item.owner_id() != owner_id {
+        drop(db);
+        return Err("Unauthorized".to_string());
+    }
 
-    item.upsert(&["task"], &db).await.map_err(|e| e.to_string())
+    item.update_task(&new_task);
+    item.updated_at = chrono::Utc::now();
+
+    let update_result = item.update(&db).await;
+    drop(db);
+
+    update_result.map_err(|e| e.to_string())
 }

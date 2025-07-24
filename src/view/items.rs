@@ -2,6 +2,7 @@ use crate::database::items::Item;
 use crate::database::{self, DBClient2};
 use crate::routes::{self};
 use crate::view::icons;
+use actix_web::error::ParseError;
 use actix_web::{HttpRequest, Result as AwResult};
 use actix_web::{get, web};
 use maud::{Markup, html};
@@ -10,7 +11,12 @@ use maud::{Markup, html};
 pub async fn index_route(client: web::Data<DBClient2>, req: HttpRequest) -> AwResult<Markup> {
     let client = client.get_ref();
     let user = routes::get_user(req).unwrap();
-    let items: Vec<Item> = database::items::get_items(client, user.id().to_string()).await;
+
+    log::info!("getting items endpoint");
+
+    let Ok(items) = database::items::get_items(client, user.id().to_string()).await else {
+        return Err(ParseError::Incomplete.into());
+    };
 
     Ok(super::index(Some(render(&items))))
 }
@@ -59,13 +65,13 @@ pub fn render_item_display(item: &Item) -> Markup {
             input class="checkbox checkbox-primary" type="checkbox"
                 id=(format!("todo-{}", item.id()))
                 name=(format!("todo-{}", item.id()))
-                checked[item.completed]
+                checked[item.completed()]
 
                 hx-patch=(format!("/items/{}/toggle", item.id()))
                 hx-target=(format!("#c-todo-{}", item.id()))
                 hx-swap="outerHTML";
             span class={
-                @if item.completed {
+                @if item.completed() {
                     "flex-1 line-through opacity-60 cursor-pointer"
                 } @else {
                     "flex-1 cursor-pointer"
@@ -98,7 +104,7 @@ pub fn render_item_edit(item: &Item) -> Markup {
             input class="checkbox checkbox-primary" type="checkbox"
                 id=(format!("todo-{}", item.id()))
                 name=(format!("todo-{}", item.id()))
-                checked[item.completed]
+                checked[item.completed()]
 
                 hx-patch=(format!("/items/{}/toggle", item.id()))
                 hx-target=(format!("#c-todo-{}", item.id()))

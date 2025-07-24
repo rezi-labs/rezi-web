@@ -5,46 +5,45 @@ use serde::{Deserialize, Serialize};
 #[derive(Model, Debug, Clone, Serialize, Deserialize)]
 #[table_name("recipes")]
 pub struct Recipe {
-    id: std::option::Option<i64>,
-    owner_id: String,
-    name: String,
-    url: Option<String>,
-    image_url: Option<String>,
-    extracted: String,
+    pub id: std::option::Option<i64>,
+    pub owner_id: String,
+    pub title: Option<String>,
+    pub url: Option<String>,
+    pub content: String,
+    pub created_at: chrono::DateTime<chrono::Utc>,
+    pub updated_at: chrono::DateTime<chrono::Utc>,
 }
 
 #[allow(unused)]
 impl Recipe {
     pub fn new(
         id: Option<i64>,
-        name: String,
-        url: Option<String>,
-        image_url: Option<String>,
-        extracted: String,
         owner_id: String,
+        title: Option<String>,
+        url: Option<String>,
+        content: String,
     ) -> Self {
         Recipe {
             id,
-            name,
-            url,
-            image_url,
-            extracted,
             owner_id,
+            title,
+            url,
+            content,
+            created_at: chrono::Utc::now(),
+            updated_at: chrono::Utc::now(),
         }
     }
 
-    pub fn url(&self) -> &str {
-        self.url.as_deref().unwrap_or("https://example.com")
+    pub fn title(&self) -> Option<&str> {
+        self.title.as_deref()
     }
 
-    pub fn image_url(&self) -> &str {
-        self.image_url
-            .as_deref()
-            .unwrap_or("https://example.com/image.jpg")
+    pub fn url(&self) -> Option<&str> {
+        self.url.as_deref()
     }
 
-    pub fn extracted(&self) -> &str {
-        &self.extracted
+    pub fn content(&self) -> &str {
+        &self.content
     }
 
     pub fn owner_id(&self) -> &str {
@@ -59,19 +58,17 @@ impl Recipe {
         vec![
             Recipe::new(
                 None,
-                "Pumpkin Soup".to_string(),
-                None,
+                "1".to_string(),
+                Some("Pumpkin Soup".to_string()),
                 None,
                 "Boil pumpkin and onions".to_string(),
-                "1".to_string(),
             ),
             Recipe::new(
                 None,
-                "Chocolate Cake".to_string(),
-                None,
+                "2".to_string(),
+                Some("Chocolate Cake".to_string()),
                 None,
                 "Mix flour, sugar, eggs, and chocolate".to_string(),
-                "2".to_string(),
             ),
         ]
     }

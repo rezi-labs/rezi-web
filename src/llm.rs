@@ -72,7 +72,7 @@ pub async fn simple_item_response(
             owner_id: user_id.clone(),
             id: None,
             task: t.clone(),
-            completed: false,
+            completed: 0,
             created_at: chrono::Utc::now(),
             updated_at: chrono::Utc::now(),
         })

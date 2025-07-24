@@ -44,31 +44,40 @@ impl ChatMessage {
     }
 }
 
-#[allow(clippy::await_holding_lock)]
 pub async fn save_message(client: &DBClient2, message: ChatMessage) -> Result<ChatMessage, String> {
     let db = client.lock().unwrap();
-
     let res = message.create(&db).await;
+    drop(db);
+
     match res {
         Ok(m) => {
-            log::info!("{m:?}");
-            return Ok(m);
+            log::info!("Created message: {}", m.id());
+            Ok(m)
         }
         Err(err) => {
-            log::error!("{err}");
+            log::error!("Failed to save message: {err}");
             Err(err.to_string())
         }
     }
 }
 
-#[allow(clippy::await_holding_lock)]
 pub async fn get_messages(client: &DBClient2, owner_id: &str) -> Vec<ChatMessage> {
     let db = client.lock().unwrap();
-
-    ChatMessage::find_where(
+    let result = ChatMessage::find_where(
         FilterOperator::Single(Filter::eq("owner_id".to_string(), owner_id)),
         &db,
     )
-    .await
-    .unwrap()
+    .await;
+    drop(db);
+
+    match result {
+        Ok(messages) => {
+            log::info!("Found {} messages for owner: {}", messages.len(), owner_id);
+            messages
+        }
+        Err(err) => {
+            log::error!("Failed to get messages for {}: {err}", owner_id);
+            Vec::new()
+        }
+    }
 }

@@ -35,10 +35,10 @@ pub async fn recipe_endpoint(client: web::Data<DBClient2>, req: HttpRequest) -> 
 }
 
 pub fn recipe_row(result: &Recipe) -> Markup {
-    let fixed_url = if result.url().contains("https://") {
-        result.url()
+    let fixed_url = if result.url().unwrap_or_default().contains("https://") {
+        result.url().unwrap_or_default().to_string()
     } else {
-        &format!("https://{}", result.url())
+        format!("https://{}", result.url().unwrap_or_default())
     };
     html! {
         li .list-row {
@@ -47,10 +47,10 @@ pub fn recipe_row(result: &Recipe) -> Markup {
         }
         div {
             div {
-                (result.url())
+                (result.url().unwrap_or_default())
             }
             div class="text-xs font-semibold opacity-60" {
-                (result.extracted())
+                (result.content())
             }
         }
 

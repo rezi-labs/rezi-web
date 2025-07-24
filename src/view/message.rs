@@ -1,6 +1,9 @@
 use maud::{Markup, html};
 
-use crate::{database::messages::ChatMessage, unsafe_token_decode::User, view::icons::spark_icon};
+use crate::{
+    database::messages::ChatMessage, routes::random_id, unsafe_token_decode::User,
+    view::icons::spark_icon,
+};
 
 pub fn render(message: &ChatMessage, user: Option<User>) -> Markup {
     let initials = match user.clone() {
@@ -66,7 +69,12 @@ pub fn render(message: &ChatMessage, user: Option<User>) -> Markup {
 
 pub fn ai_btn(message: &ChatMessage) -> Markup {
     let id = format!("ai-btn-{}", message.id());
-    let spinner_id = format!("ai-btn-spinner-{}-{}", message.id(), message.is_user());
+    let spinner_id = format!(
+        "ai-btn-spinner-{}-{}-{}",
+        message.id(),
+        message.is_user(),
+        random_id()
+    );
     html! {
         span {
 

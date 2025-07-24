@@ -31,14 +31,16 @@ pub async fn create_item(
     let user = super::get_user(req).unwrap();
 
     let item = database::items::Item {
-        owner_id: user.id().to_string(),
         id: None,
+        owner_id: user.id().to_string(),
         task: form.task.clone(),
-        completed: false,
+        completed: 0,
         created_at: chrono::Utc::now(),
         updated_at: chrono::Utc::now(),
     };
-    database::items::create_item(client, item.clone()).await;
+    let res = database::items::create_item(client, item.clone()).await;
+
+    let Ok(item) = res else { return Ok(html!()) };
 
     Ok(render_item(&item))
 }
@@ -93,10 +95,12 @@ pub async fn update_item(
     let item =
         database::items::update_item(client, id, form.task.clone(), user.id().to_string()).await;
 
-    if let Ok(item) = item {
-        Ok(render_item(&item))
-    } else {
-        Ok(html! { "" })
+    match item {
+        Ok(item) => Ok(render_item(&item)),
+        Err(err) => {
+            log::error!("{err}");
+            Err(ParseError::Incomplete.into())
+        }
     }
 }
 
@@ -198,7 +202,9 @@ pub async fn items_csv(client: web::Data<DBClient2>, req: HttpRequest) -> Result
     let user = super::get_user(req).unwrap();
     let owner_id = user.id().to_string();
     let db_client: &DBClient2 = client.get_ref();
-    let items = database::items::get_items(db_client, owner_id).await;
+    let items = database::items::get_items(db_client, owner_id)
+        .await
+        .unwrap_or_default();
     let csv_file = csv::items_to_events(items.as_slice());
 
     let response = HttpResponse::Ok()

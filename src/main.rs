@@ -28,7 +28,7 @@ async fn main() -> std::io::Result<()> {
     let orm_db = database::create_orm_client(c.db_url(), c.db_token()).await;
 
     let shared_orm_db: DBClient2 = Arc::new(Mutex::new(orm_db));
-    database::migrations::run(&shared_orm_db, &c).await;
+    database::migrations::run(&shared_orm_db).await;
 
     let url = format!("http://{}:{}", c.host(), c.port());
 
