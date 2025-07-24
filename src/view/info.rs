@@ -11,7 +11,7 @@ pub async fn info_endpoint(_client: web::Data<DBClient>, _req: HttpRequest) -> A
 
 pub fn info() -> Markup {
     html! {
-        div "mx-4" {
+        div class="mx-4" {
             (info_card(
                 "Chat",
                 "Use the Grocy chat to talk about recipes",
@@ -24,7 +24,7 @@ pub fn info() -> Markup {
 
 pub fn info_card(title: &str, description: &str, link_title: &str, link: &str) -> Markup {
     html! {
-        div class="card w-96 bg-base-200 card-xs shadow-sm" {
+        div class="card w-96 bg-base-100 card-xs shadow-sm" {
             div class="card-body" {
                 h2 class="card-title" {
                     (title)

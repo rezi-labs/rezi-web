@@ -59,7 +59,7 @@ pub fn index(content: Option<Markup>) -> Markup {
             link rel="icon" href="/assets/grocy.svg" sizes="any" type="image/svg+xml" {}
 
         }
-        body {
+        body hx-boost="true" {
             (js("/assets/htmxListener.js"))
 
 

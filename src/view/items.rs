@@ -24,7 +24,7 @@ pub async fn index_route(client: web::Data<DBClient>, req: HttpRequest) -> AwRes
 pub fn render(items: &[Item]) -> Markup {
     html! {
         div .p-2 {
-            div class="card bg-base-200 shadow-xl" {
+            div class="card bg-base-100 shadow-xl" {
                 div class="card-body" {
 
                     h2 class="card-title text-2xl mb-4" {

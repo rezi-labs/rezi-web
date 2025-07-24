@@ -1,5 +1,6 @@
 use crate::routes::{self};
 use crate::unsafe_token_decode::User;
+use crate::view::icons;
 use actix_web::get;
 use actix_web::{HttpRequest, Result as AwResult};
 use maud::{Markup, html};
@@ -62,10 +63,10 @@ fn avatar_card(user: &User) -> Markup {
                 }
 
                 div .join .join-vertical {
-                      input name="theme-buttons" onclick="changeTheme('valentine')" type="radio" class="join-item btn p-2" aria-label="💝 Valentine" {   }
-                      input name="theme-buttons" onclick="changeTheme('cupcake')"   type="radio" class="join-item btn p-2" aria-label="🧁 Cupcake" {   }
-                      input name="theme-buttons" onclick="changeTheme('halloween')" type="radio" class="join-item btn p-2"         aria-label="🎃 Halloween" { }
-                      input name="theme-buttons" onclick="changeTheme('forest')"    type="radio" class="join-item btn p-2"         aria-label="🌲 Forect " {  }
+                      button name="theme-buttons" onclick="changeTheme('valentine')" class="join-item btn p-2"  { "Valentine"(icons::valentine_icon())  }
+                      button name="theme-buttons" onclick="changeTheme('cupcake')"   class="join-item btn p-2"{ "Cupcake"(icons::cupcake_icon())  }
+                      button name="theme-buttons" onclick="changeTheme('halloween')" class="join-item btn p-2"  { "Wizard"(icons::wizard_icon()) }
+                      button name="theme-buttons" onclick="changeTheme('forest')"    class="join-item btn p-2" { "Forest" (icons::tree_icon()) }
                 }
 
             }

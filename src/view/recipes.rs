@@ -8,6 +8,7 @@ use maud::{Markup, html};
 
 pub fn recipes(recipes: Vec<Recipe>) -> Markup {
     html! {
+        div class="mx-4" {
         ul class="list bg-base-100 rounded-box shadow-md" {
 
             li class="p-4 pb-2 text-xs opacity-60 tracking-wide" {
@@ -20,7 +21,7 @@ pub fn recipes(recipes: Vec<Recipe>) -> Markup {
                 (recipe_row(&recipe))
             }
 
-    }
+    }}
     }
 }
 
@@ -41,7 +42,7 @@ pub fn recipe_row(result: &Recipe) -> Markup {
         format!("https://{}", result.url().unwrap_or_default())
     };
     html! {
-        li .list-row {
+        li .list-row  {
         div {
             ("")
         }
