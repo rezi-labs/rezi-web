@@ -2,7 +2,7 @@ use log::info;
 use reqwest::Client;
 use serde::{Deserialize, Serialize};
 
-use crate::database::{self, DBClient2, items::Item};
+use crate::database::{self, DBClient, items::Item};
 
 #[derive(Debug)]
 pub enum LlmError {
@@ -26,7 +26,7 @@ pub async fn simple_item_response(
     nest_api_key: &str,
     user_message: &str,
     user_id: String,
-    db_client: &DBClient2,
+    db_client: &DBClient,
 ) -> Result<String, LlmError> {
     let client = Client::new();
 

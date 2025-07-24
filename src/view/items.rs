@@ -1,5 +1,5 @@
 use crate::database::items::Item;
-use crate::database::{self, DBClient2};
+use crate::database::{self, DBClient};
 use crate::routes::{self};
 use crate::view::icons;
 use actix_web::error::ParseError;
@@ -8,7 +8,7 @@ use actix_web::{get, web};
 use maud::{Markup, html};
 
 #[get("items")]
-pub async fn index_route(client: web::Data<DBClient2>, req: HttpRequest) -> AwResult<Markup> {
+pub async fn index_route(client: web::Data<DBClient>, req: HttpRequest) -> AwResult<Markup> {
     let client = client.get_ref();
     let user = routes::get_user(req).unwrap();
 
@@ -59,6 +59,7 @@ pub fn render_item(item: &Item) -> Markup {
 }
 
 pub fn render_item_display(item: &Item) -> Markup {
+    log::info!("Item: {}", item.id());
     html! {
         div class="flex items-center gap-3 p-3 bg-base-100 rounded-lg" id=(format!("c-todo-{}", item.id())) {
 

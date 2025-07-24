@@ -5,7 +5,7 @@ use libsql_orm::Model;
 use chrono::{DateTime, Utc};
 use serde::{Deserialize, Serialize};
 
-use crate::database::DBClient2;
+use crate::database::DBClient;
 use crate::routes::random_id;
 
 #[derive(Model, Debug, Clone, Serialize, Deserialize)]
@@ -44,8 +44,8 @@ impl ChatMessage {
     }
 }
 
-pub async fn save_message(client: &DBClient2, message: ChatMessage) -> Result<ChatMessage, String> {
-    let db = client.lock().unwrap();
+pub async fn save_message(client: &DBClient, message: ChatMessage) -> Result<ChatMessage, String> {
+    let db = super::unlock_client(client).await;
     let res = message.create(&db).await;
     drop(db);
 
@@ -61,8 +61,8 @@ pub async fn save_message(client: &DBClient2, message: ChatMessage) -> Result<Ch
     }
 }
 
-pub async fn get_messages(client: &DBClient2, owner_id: &str) -> Vec<ChatMessage> {
-    let db = client.lock().unwrap();
+pub async fn get_messages(client: &DBClient, owner_id: &str) -> Vec<ChatMessage> {
+    let db = super::unlock_client(client).await;
     let result = ChatMessage::find_where(
         FilterOperator::Single(Filter::eq("owner_id".to_string(), owner_id)),
         &db,

@@ -1,12 +1,12 @@
-use crate::database::DBClient2;
+use crate::database::DBClient;
 
-pub async fn run(client: &DBClient2) {
+pub async fn run(client: &DBClient) {
     log::info!("Starting database migrations...");
 
     // Run base table migrations first
     let items_sql = include_str!("../../migrations/items.sql");
     {
-        let client = client.lock().unwrap();
+        let client = super::unlock_client(client).await;
         client
             .get_connection()
             .execute_batch(items_sql)
@@ -17,7 +17,7 @@ pub async fn run(client: &DBClient2) {
 
     let messages_sql = include_str!("../../migrations/messages.sql");
     {
-        let client = client.lock().unwrap();
+        let client = super::unlock_client(client).await;
         client
             .get_connection()
             .execute_batch(messages_sql)
@@ -28,7 +28,7 @@ pub async fn run(client: &DBClient2) {
 
     let recipes_sql = include_str!("../../migrations/recipes.sql");
     {
-        let client = client.lock().unwrap();
+        let client = super::unlock_client(client).await;
         client
             .get_connection()
             .execute_batch(recipes_sql)
@@ -40,7 +40,7 @@ pub async fn run(client: &DBClient2) {
     // Run index migrations
     let items_indexes_sql = include_str!("../../migrations/items_indexes.sql");
     {
-        let client = client.lock().unwrap();
+        let client = super::unlock_client(client).await;
         client
             .get_connection()
             .execute_batch(items_indexes_sql)
@@ -51,7 +51,7 @@ pub async fn run(client: &DBClient2) {
 
     let messages_indexes_sql = include_str!("../../migrations/messages_indexes.sql");
     {
-        let client = client.lock().unwrap();
+        let client = super::unlock_client(client).await;
         client
             .get_connection()
             .execute_batch(messages_indexes_sql)
@@ -62,7 +62,7 @@ pub async fn run(client: &DBClient2) {
 
     let recipes_indexes_sql = include_str!("../../migrations/recipes_indexes.sql");
     {
-        let client = client.lock().unwrap();
+        let client = super::unlock_client(client).await;
         client
             .get_connection()
             .execute_batch(recipes_indexes_sql)

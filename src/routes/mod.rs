@@ -3,7 +3,7 @@ use actix_web::{HttpMessage, HttpRequest};
 use log::error;
 use rand::Rng;
 
-use crate::database::DBClient2;
+use crate::database::DBClient;
 use crate::{llm, unsafe_token_decode};
 
 pub mod assets;
@@ -42,7 +42,7 @@ async fn generate_task_response(
     user_message: &str,
     nest_api: &str,
     nest_api_key: &str,
-    db_client: &DBClient2,
+    db_client: &DBClient,
     user_id: String,
 ) -> String {
     match llm::simple_item_response(nest_api, nest_api_key, user_message, user_id, db_client).await

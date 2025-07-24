@@ -1,4 +1,4 @@
-use crate::database::DBClient2;
+use crate::database::DBClient;
 use crate::database::recipes::Recipe;
 use crate::routes::get_user;
 use crate::view::icons::{link_icon, spark_icon};
@@ -25,7 +25,7 @@ pub fn recipes(recipes: Vec<Recipe>) -> Markup {
 }
 
 #[get("/recipes")]
-pub async fn recipe_endpoint(client: web::Data<DBClient2>, req: HttpRequest) -> AwResult<Markup> {
+pub async fn recipe_endpoint(client: web::Data<DBClient>, req: HttpRequest) -> AwResult<Markup> {
     let _user = get_user(req).unwrap();
     let _client = client.get_ref();
 

@@ -24,7 +24,7 @@ all-features = true
 rustdoc-args = ["--cfg", "docsrs"]
 
 [dependencies]
-libsql = { version = "0.9.14", default-features = false, features = [
+libsql = { version = "0.9.19", default-features = false, features = [
     "remote",
     "core",
     "tls",

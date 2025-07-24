@@ -6,7 +6,7 @@ use serde::Deserialize;
 use url::Url;
 
 use crate::config::Server;
-use crate::database::{self, DBClient2};
+use crate::database::{self, DBClient};
 use crate::view::message;
 use crate::witch;
 
@@ -18,14 +18,14 @@ pub struct SendMessageRequest {
 #[post("chat")]
 pub async fn send_message(
     form: web::Form<SendMessageRequest>,
-    client: web::Data<DBClient2>,
+    client: web::Data<DBClient>,
     config: web::Data<Server>,
     req: HttpRequest,
 ) -> Result<Markup> {
     let user = super::get_user(req).unwrap();
 
     log::info!("Received chat message: {}", form.message);
-    let db_client: &DBClient2 = client.get_ref();
+    let db_client: &DBClient = client.get_ref();
     // delay if delay is on
     if config.delay() {
         tokio::time::sleep(std::time::Duration::from_millis(2000)).await;

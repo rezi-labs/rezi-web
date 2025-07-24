@@ -1,7 +1,7 @@
 use libsql_orm::{Filter, FilterOperator, Model};
 use serde::{Deserialize, Serialize};
 
-use crate::database::DBClient2;
+use crate::database::DBClient;
 
 #[derive(Model, Debug, Clone, Serialize, Deserialize)]
 #[table_name("items")]
@@ -39,10 +39,10 @@ impl Item {
     }
 }
 
-pub async fn get_items(client: &DBClient2, owner_id: String) -> Result<Vec<Item>, String> {
+pub async fn get_items(client: &DBClient, owner_id: String) -> Result<Vec<Item>, String> {
     log::info!("getting items for owner: {}", owner_id);
 
-    let db = client.lock().unwrap();
+    let db = super::unlock_client(client).await;
     let items = Item::find_where(
         FilterOperator::Single(Filter::eq("owner_id".to_string(), owner_id.clone())),
         &db,
@@ -62,12 +62,12 @@ pub async fn get_items(client: &DBClient2, owner_id: String) -> Result<Vec<Item>
     }
 }
 
-pub async fn create_items(client: &DBClient2, items: Vec<Item>) {
+pub async fn create_items(client: &DBClient, items: Vec<Item>) {
     if items.is_empty() {
         return;
     }
 
-    let client = client.lock().unwrap();
+    let client = super::unlock_client(client).await;
     let result = Item::bulk_create(items.as_slice(), &client).await;
     match result {
         Ok(_) => log::info!("created items"),
@@ -75,15 +75,16 @@ pub async fn create_items(client: &DBClient2, items: Vec<Item>) {
     }
 }
 
-pub async fn create_item(client: &DBClient2, item: Item) -> Result<Item, String> {
-    let db = client.lock().unwrap();
-    let res = item.create(&db).await;
+pub async fn create_item(client: &DBClient, item: Item) -> Result<Item, String> {
+    let db = super::unlock_client(client).await;
+
+    let res = Item::create(&item, &db).await;
     drop(db);
 
     match res {
-        Ok(item) => {
-            log::info!("created item {}", item.id());
-            Ok(item)
+        Ok(created_item) => {
+            log::info!("created item {}", created_item.id());
+            Ok(created_item)
         }
         Err(err) => {
             log::error!("{err:?}");
@@ -91,8 +92,8 @@ pub async fn create_item(client: &DBClient2, item: Item) -> Result<Item, String>
         }
     }
 }
-pub async fn delete_item(client: &DBClient2, item_id: i64, owner_id: String) {
-    let db = client.lock().unwrap();
+pub async fn delete_item(client: &DBClient, item_id: i64, owner_id: String) {
+    let db = super::unlock_client(client).await;
     let item_result = Item::find_by_id(item_id, &db).await;
 
     match item_result {
@@ -123,11 +124,11 @@ pub async fn delete_item(client: &DBClient2, item_id: i64, owner_id: String) {
 }
 
 pub async fn toggle_item(
-    client: &DBClient2,
+    client: &DBClient,
     item_id: i64,
     owner_id: String,
 ) -> Result<Item, String> {
-    let db = client.lock().unwrap();
+    let db = super::unlock_client(client).await;
     let item_result = Item::find_by_id(item_id, &db).await;
 
     let mut item = match item_result {
@@ -165,8 +166,8 @@ pub async fn toggle_item(
     }
 }
 
-pub async fn get_item(client: &DBClient2, item_id: i64, owner_id: String) -> Result<Item, String> {
-    let db = client.lock().unwrap();
+pub async fn get_item(client: &DBClient, item_id: i64, owner_id: String) -> Result<Item, String> {
+    let db = super::unlock_client(client).await;
     let item_result = Item::find_by_id(item_id, &db).await;
     drop(db);
 
@@ -190,12 +191,12 @@ pub async fn get_item(client: &DBClient2, item_id: i64, owner_id: String) -> Res
 }
 
 pub async fn update_item(
-    client: &DBClient2,
+    client: &DBClient,
     item_id: i64,
     new_task: String,
     owner_id: String,
 ) -> Result<Item, String> {
-    let db = client.lock().unwrap();
+    let db = super::unlock_client(client).await;
     let item_result = Item::find_by_id(item_id, &db).await;
 
     let mut item = match item_result {

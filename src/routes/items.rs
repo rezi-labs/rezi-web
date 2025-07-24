@@ -8,7 +8,7 @@ use serde::Deserialize;
 
 use crate::config::Server;
 use crate::csv;
-use crate::database::{self, DBClient2};
+use crate::database::{self, DBClient};
 use crate::view::{self, message, render_item};
 
 #[derive(Deserialize)]
@@ -24,10 +24,10 @@ pub struct UpdateTodoRequest {
 #[post("/items/single")]
 pub async fn create_item(
     form: web::Form<CreateTodoRequest>,
-    client: web::Data<DBClient2>,
+    client: web::Data<DBClient>,
     req: HttpRequest,
 ) -> Result<Markup> {
-    let client: &DBClient2 = client.get_ref();
+    let client: &DBClient = client.get_ref();
     let user = super::get_user(req).unwrap();
 
     let item = database::items::Item {
@@ -48,14 +48,14 @@ pub async fn create_item(
 #[patch("items/{id}/toggle")]
 pub async fn toggle_item(
     path: web::Path<i64>,
-    client: web::Data<DBClient2>,
+    client: web::Data<DBClient>,
     req: HttpRequest,
 ) -> Result<Markup> {
     let id = path.into_inner();
     let user = super::get_user(req).unwrap();
 
     info!("toggle_item: {id}");
-    let client: &DBClient2 = client.get_ref();
+    let client: &DBClient = client.get_ref();
     let item = database::items::toggle_item(client, id, user.id().to_string()).await;
 
     if let Ok(item) = item {
@@ -68,11 +68,11 @@ pub async fn toggle_item(
 #[delete("items/{id}")]
 pub async fn delete_item(
     path: web::Path<i64>,
-    client: web::Data<DBClient2>,
+    client: web::Data<DBClient>,
     req: HttpRequest,
 ) -> Result<Markup> {
     let id = path.into_inner();
-    let client: &DBClient2 = client.get_ref();
+    let client: &DBClient = client.get_ref();
     let user = super::get_user(req).unwrap();
 
     database::items::delete_item(client, id, user.id().to_owned()).await;
@@ -83,12 +83,12 @@ pub async fn delete_item(
 pub async fn update_item(
     path: web::Path<i64>,
     form: web::Form<UpdateTodoRequest>,
-    client: web::Data<DBClient2>,
+    client: web::Data<DBClient>,
     req: HttpRequest,
 ) -> Result<Markup> {
     let id = path.into_inner();
     let user = super::get_user(req).unwrap();
-    let client: &DBClient2 = client.get_ref();
+    let client: &DBClient = client.get_ref();
 
     info!("update_item: {id} with task: {}", form.task);
 
@@ -107,12 +107,12 @@ pub async fn update_item(
 #[get("items/{id}/edit")]
 pub async fn edit_item(
     path: web::Path<i64>,
-    client: web::Data<DBClient2>,
+    client: web::Data<DBClient>,
     req: HttpRequest,
 ) -> Result<Markup> {
     let id = path.into_inner();
     let user = super::get_user(req).unwrap();
-    let client: &DBClient2 = client.get_ref();
+    let client: &DBClient = client.get_ref();
 
     let item = database::items::get_item(client, id, user.id().to_string()).await;
 
@@ -126,12 +126,12 @@ pub async fn edit_item(
 #[get("items/{id}/cancel")]
 pub async fn cancel_edit_item(
     path: web::Path<i64>,
-    client: web::Data<DBClient2>,
+    client: web::Data<DBClient>,
     req: HttpRequest,
 ) -> Result<Markup> {
     let id = path.into_inner();
     let user = super::get_user(req).unwrap();
-    let client: &DBClient2 = client.get_ref();
+    let client: &DBClient = client.get_ref();
 
     let item = database::items::get_item(client, id, user.id().to_string()).await;
 
@@ -145,7 +145,7 @@ pub async fn cancel_edit_item(
 #[post("/ai/items")]
 pub async fn create_item_with_ai(
     form: web::Form<super::messages::SendMessageRequest>,
-    client: web::Data<DBClient2>,
+    client: web::Data<DBClient>,
     config: web::Data<Server>,
     req: HttpRequest,
 ) -> Result<Markup> {
@@ -156,7 +156,7 @@ pub async fn create_item_with_ai(
     }
 
     log::info!("Received task message: {}", form.message);
-    let db_client: &DBClient2 = client.get_ref();
+    let db_client: &DBClient = client.get_ref();
 
     // Generate AI response
     let ai_response = super::generate_task_response(
@@ -198,10 +198,10 @@ pub async fn create_item_with_ai(
 }
 
 #[get("/items/csv")]
-pub async fn items_csv(client: web::Data<DBClient2>, req: HttpRequest) -> Result<HttpResponse> {
+pub async fn items_csv(client: web::Data<DBClient>, req: HttpRequest) -> Result<HttpResponse> {
     let user = super::get_user(req).unwrap();
     let owner_id = user.id().to_string();
-    let db_client: &DBClient2 = client.get_ref();
+    let db_client: &DBClient = client.get_ref();
     let items = database::items::get_items(db_client, owner_id)
         .await
         .unwrap_or_default();

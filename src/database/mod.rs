@@ -1,11 +1,30 @@
 use libsql_orm::Database;
 use std::sync::{Arc, Mutex};
 
-pub type DBClient2 = Arc<Mutex<libsql_orm::Database>>;
+pub type DBClient = Arc<Mutex<DB>>;
 
-pub async fn create_orm_client(url: String, token: Option<String>) -> libsql_orm::Database {
-    let token = token.unwrap_or_default();
-    Database::new_connect(&url, &token).await.unwrap()
+pub struct DB {
+    url: String,
+    token: Option<String>,
+}
+
+impl DB {
+    pub fn new(url: String, token: Option<String>) -> Self {
+        DB { url, token }
+    }
+
+    pub async fn connect(&self) -> libsql_orm::Database {
+        let token = self.token.clone().unwrap_or_default();
+        Database::new_connect(&self.url, &token).await.unwrap()
+    }
+}
+
+pub async fn unlock_client(client: &DBClient) -> libsql_orm::Database {
+    client.lock().unwrap().connect().await
+}
+
+pub async fn create_orm_client(url: String, token: Option<String>) -> DB {
+    DB::new(url, token)
 }
 
 pub mod migrations;

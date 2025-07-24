@@ -13,7 +13,7 @@ pub mod recipes;
 
 pub use items::render_item;
 
-use crate::database::{self, DBClient2};
+use crate::database::{self, DBClient};
 use crate::routes::get_user;
 
 #[get("/")]
@@ -22,7 +22,7 @@ pub async fn index_route() -> AwResult<Markup> {
 }
 
 #[get("/chat")]
-pub async fn chat_endpoint(client: web::Data<DBClient2>, req: HttpRequest) -> AwResult<Markup> {
+pub async fn chat_endpoint(client: web::Data<DBClient>, req: HttpRequest) -> AwResult<Markup> {
     let user = get_user(req).unwrap();
     let client = client.get_ref();
     let messages = database::messages::get_messages(client, user.id()).await;

@@ -94,7 +94,7 @@ pub trait Model: Serialize + DeserializeOwned + Send + Sync + Clone {
             .collect();
 
         db.inner.execute(&sql, params).await?;
-        let id = 1i64; // Placeholder - libsql WASM doesn't support last_insert_rowid
+        let id = db.inner.last_insert_rowid();
 
         let mut result = self.clone();
         result.set_primary_key(id);
@@ -227,7 +227,7 @@ pub trait Model: Serialize + DeserializeOwned + Send + Sync + Clone {
                 .collect();
 
             db.inner.execute(&sql, params).await?;
-            let id = 1i64; // Placeholder - libsql WASM doesn't support last_insert_rowid
+            let id = db.inner.last_insert_rowid();
 
             let mut result = model.clone();
             result.set_primary_key(id);
