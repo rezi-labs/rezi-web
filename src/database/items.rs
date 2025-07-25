@@ -40,7 +40,7 @@ impl Item {
 }
 
 pub async fn get_items(client: &DBClient, owner_id: String) -> Result<Vec<Item>, String> {
-    log::info!("getting items for owner: {}", owner_id);
+    log::info!("getting items for owner: {owner_id}");
 
     let db = super::unlock_client(client).await;
     let items = Item::find_where(
@@ -99,7 +99,7 @@ pub async fn delete_item(client: &DBClient, item_id: i64, owner_id: String) {
     match item_result {
         Ok(Some(item)) => {
             if item.owner_id() != owner_id {
-                log::error!("Unauthorized delete attempt for item {}", item_id);
+                log::error!("Unauthorized delete attempt for item {item_id}");
                 drop(db);
                 return;
             }
@@ -108,16 +108,16 @@ pub async fn delete_item(client: &DBClient, item_id: i64, owner_id: String) {
             drop(db);
 
             match delete_result {
-                Ok(_) => log::info!("Successfully deleted item {}", item_id),
-                Err(err) => log::error!("Failed to delete item {}: {err:?}", item_id),
+                Ok(_) => log::info!("Successfully deleted item {item_id}"),
+                Err(err) => log::error!("Failed to delete item {item_id}: {err:?}"),
             }
         }
         Ok(None) => {
-            log::error!("Item {} not found", item_id);
+            log::error!("Item {item_id} not found");
             drop(db);
         }
         Err(err) => {
-            log::error!("Error finding item {}: {err:?}", item_id);
+            log::error!("Error finding item {item_id}: {err:?}");
             drop(db);
         }
     }

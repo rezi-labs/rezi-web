@@ -19,6 +19,7 @@ impl DB {
     }
 }
 
+#[allow(clippy::await_holding_lock)]
 pub async fn unlock_client(client: &DBClient) -> libsql_orm::Database {
     client.lock().unwrap().connect().await
 }

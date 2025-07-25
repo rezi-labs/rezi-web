@@ -31,6 +31,12 @@ impl Reload {
     }
 }
 
+impl Default for Reload {
+    fn default() -> Self {
+        Reload::new()
+    }
+}
+
 pub type ReloadArc = Arc<Mutex<Reload>>;
 
 #[actix_web::main]
@@ -45,13 +51,13 @@ async fn main() -> std::io::Result<()> {
     let shared_orm_db: DBClient = Arc::new(Mutex::new(orm_db));
     database::migrations::run(&shared_orm_db).await;
 
-    let reload: ReloadArc = Arc::new(Mutex::new(Reload::new()));
+    let reload: ReloadArc = Arc::new(Mutex::new(Reload::default()));
 
     let url = format!("http://{}:{}", c.host(), c.port());
 
     println!("{}", rezi_asci_art());
 
-    log::info!("Server started at {}", url);
+    log::info!("Server started at {url}");
 
     let server = HttpServer::new(move || {
         App::new()

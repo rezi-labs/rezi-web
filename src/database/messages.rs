@@ -33,7 +33,7 @@ impl ChatMessage {
 
     pub fn id(&self) -> String {
         let Some(id) = self.id else {
-            log::error!("no id: {:?}", self);
+            log::error!("no id: {self:?}");
             return "none".to_string();
         };
         id.to_string()
@@ -72,11 +72,11 @@ pub async fn get_messages(client: &DBClient, owner_id: &str) -> Vec<ChatMessage>
 
     match result {
         Ok(messages) => {
-            log::info!("Found {} messages for owner: {}", messages.len(), owner_id);
+            log::info!("Found {} messages for owner: {owner_id}", messages.len());
             messages
         }
         Err(err) => {
-            log::error!("Failed to get messages for {}: {err}", owner_id);
+            log::error!("Failed to get messages for {owner_id}: {err}");
             Vec::new()
         }
     }
