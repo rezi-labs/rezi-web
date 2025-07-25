@@ -13,12 +13,14 @@ pub mod recipes;
 
 pub use items::render_item;
 
+use crate::config::Server;
 use crate::database::{self, DBClient};
 use crate::routes::get_user;
 
 #[get("/")]
-pub async fn index_route() -> AwResult<Markup> {
-    Ok(index(None))
+pub async fn index_route(server: web::Data<Server>) -> AwResult<Markup> {
+    let should_poll_reload = server.db_token().is_none();
+    Ok(index(None, should_poll_reload))
 }
 
 #[get("/chat")]
@@ -40,7 +42,7 @@ pub fn js(path: impl Into<String>) -> Markup {
     html! {script src=(path) {}}
 }
 
-pub fn index(content: Option<Markup>) -> Markup {
+pub fn index(content: Option<Markup>, reload_polling_active: bool) -> Markup {
     let content = content.unwrap_or_else(chat::render);
     html! {
         (maud::DOCTYPE)
@@ -48,7 +50,7 @@ pub fn index(content: Option<Markup>) -> Markup {
             meta charset="UTF-8";
             meta name="viewport" content="width=device-width, initial-scale=1.0";
             title {
-                "Grocy"
+                "Rezi"
             }
             (js("/assets/tw.js"))
             (js("/assets/theme-switcher.js"))
@@ -61,6 +63,10 @@ pub fn index(content: Option<Markup>) -> Markup {
         }
         body hx-boost="true" {
             (js("/assets/htmxListener.js"))
+            (js("/assets/htmx-reload.js"))
+
+
+            (reload_component(reload_polling_active))
 
 
             div class="flex h-screen" {
@@ -73,5 +79,15 @@ pub fn index(content: Option<Markup>) -> Markup {
 
             }
         }
+    }
+}
+
+pub fn reload_component(reload_polling_active: bool) -> Markup {
+    if reload_polling_active {
+        html! {
+            div hx-get="/reload" hx-trigger="every 1s" hx-swap="none" {}
+        }
+    } else {
+        html! {}
     }
 }

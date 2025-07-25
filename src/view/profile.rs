@@ -1,15 +1,16 @@
+use crate::config::Server;
 use crate::routes::{self};
 use crate::unsafe_token_decode::User;
 use crate::view::icons;
-use actix_web::get;
 use actix_web::{HttpRequest, Result as AwResult};
+use actix_web::{get, web};
 use maud::{Markup, html};
 
 #[get("profile")]
-pub async fn profile_endpoint(req: HttpRequest) -> AwResult<Markup> {
+pub async fn profile_endpoint(server: web::Data<Server>, req: HttpRequest) -> AwResult<Markup> {
     let user = routes::get_user(req).unwrap();
-
-    Ok(super::index(Some(render(&user))))
+    let should_poll_reload = server.db_token().is_none();
+    Ok(super::index(Some(render(&user)), should_poll_reload))
 }
 
 pub fn render(user: &User) -> Markup {

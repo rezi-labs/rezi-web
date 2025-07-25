@@ -8,7 +8,7 @@ pub fn render() -> Markup {
     html! {
         div class="join" .p-2 {
             button class="btn join-item" hx-get="/chat" hx-target="#magic" hx-swap="innerHTML" hx-trigger="click, load" {
-                (chat_icon())"Grocy's Help"
+                (chat_icon())"Rezi's Help"
             }
         }
         div id="magic" .p-2 {

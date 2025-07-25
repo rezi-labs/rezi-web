@@ -1,3 +1,4 @@
+use crate::config::Server;
 use crate::database::DBClient;
 use crate::database::recipes::Recipe;
 use crate::routes::get_user;
@@ -26,13 +27,21 @@ pub fn recipes(recipes: Vec<Recipe>) -> Markup {
 }
 
 #[get("/recipes")]
-pub async fn recipe_endpoint(client: web::Data<DBClient>, req: HttpRequest) -> AwResult<Markup> {
+pub async fn recipe_endpoint(
+    server: web::Data<Server>,
+    client: web::Data<DBClient>,
+    req: HttpRequest,
+) -> AwResult<Markup> {
     let _user = get_user(req).unwrap();
     let _client = client.get_ref();
 
     // todo: implement recipe retrieval logic
+    let should_poll_reload = server.db_token().is_none();
 
-    Ok(super::index(Some(recipes(Recipe::examples()))))
+    Ok(super::index(
+        Some(recipes(Recipe::examples())),
+        should_poll_reload,
+    ))
 }
 
 pub fn recipe_row(result: &Recipe) -> Markup {

@@ -2,7 +2,6 @@ import 'docker.just'
 
 image_name := "ghcr.io/lunchtimecode/grocy-web"
 export NEST_API_KEY := "hello_world"
-export OPEN_BROWSER := "true"
 
 docker: db
     docker compose up

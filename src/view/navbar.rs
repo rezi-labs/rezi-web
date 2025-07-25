@@ -18,7 +18,7 @@ fn navbar() -> Markup {
                 li {
                     a href="/" class="flex items-center gap-3 p-3 rounded-lg hover:bg-base-300" {
                         (spark_icon())
-                        span { "Grocy" }
+                        span { "Rezi" }
                     }
                 }
                 li {

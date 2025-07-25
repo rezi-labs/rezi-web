@@ -1,12 +1,13 @@
-use crate::database::DBClient;
+use crate::config::Server;
 use crate::view::index;
 use actix_web::Result as AwResult;
 use actix_web::{HttpRequest, get, web};
 use maud::{Markup, html};
 
 #[get("/info")]
-pub async fn info_endpoint(_client: web::Data<DBClient>, _req: HttpRequest) -> AwResult<Markup> {
-    Ok(index(Some(info())))
+pub async fn info_endpoint(server: web::Data<Server>, _req: HttpRequest) -> AwResult<Markup> {
+    let should_poll_reload = server.db_token().is_none();
+    Ok(index(Some(info()), should_poll_reload))
 }
 
 pub fn info() -> Markup {
@@ -14,7 +15,7 @@ pub fn info() -> Markup {
         div class="mx-4" {
             (info_card(
                 "Chat",
-                "Use the Grocy chat to talk about recipes",
+                "Use the Rezi chat to talk about recipes",
                 "Chat",
                 ""
             ))

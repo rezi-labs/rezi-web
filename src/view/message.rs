@@ -13,7 +13,7 @@ pub fn render(message: &ChatMessage, user: Option<User>) -> Markup {
 
     let sender = match user {
         Some(s) => s.email().to_string(),
-        None => "Grocy".to_string(),
+        None => "Rezi".to_string(),
     };
 
     html! {

@@ -1,3 +1,4 @@
+use crate::config::Server;
 use crate::database::items::Item;
 use crate::database::{self, DBClient};
 use crate::routes::{self};
@@ -8,7 +9,11 @@ use actix_web::{get, web};
 use maud::{Markup, html};
 
 #[get("items")]
-pub async fn index_route(client: web::Data<DBClient>, req: HttpRequest) -> AwResult<Markup> {
+pub async fn index_route(
+    client: web::Data<DBClient>,
+    req: HttpRequest,
+    server: web::Data<Server>,
+) -> AwResult<Markup> {
     let client = client.get_ref();
     let user = routes::get_user(req).unwrap();
 
@@ -17,8 +22,8 @@ pub async fn index_route(client: web::Data<DBClient>, req: HttpRequest) -> AwRes
     let Ok(items) = database::items::get_items(client, user.id().to_string()).await else {
         return Err(ParseError::Incomplete.into());
     };
-
-    Ok(super::index(Some(render(&items))))
+    let should_poll_reload = server.db_token().is_none();
+    Ok(super::index(Some(render(&items)), should_poll_reload))
 }
 
 pub fn render(items: &[Item]) -> Markup {
