@@ -176,7 +176,6 @@ pub fn cupcake_icon() -> Markup {
     }
 }
 
-
 pub fn valentine_icon() -> Markup {
     html! {
         div hx-get="assets/valentine.svg" hx-trigger="load" {
