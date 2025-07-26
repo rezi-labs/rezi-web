@@ -19,7 +19,7 @@ pub fn render() -> Markup {
 
 pub fn chat(messages: &[ChatMessage], user: &unsafe_token_decode::User) -> Markup {
     html! {
-                div id="chat-messages" class="chat-container h-full bg-base-200 p-4 min-h-[200px] rounded-lg mb-4 space-y-3 overflow-y-auto" {
+                div id="chat-messages" class="chat-container h-full bg-base-200 p-4 min-h-[200px] max-h-[600px] rounded-lg mb-4 space-y-3 overflow-y-auto" {
 
                     @for message in messages {
                         (message::render(message, Some(user.clone())))
