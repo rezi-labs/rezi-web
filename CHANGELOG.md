@@ -1,5 +1,13 @@
 # Changelog
 
+## [0.12.1](https://github.com/LunchTimeCode/rezi-web/compare/v0.12.0...v0.12.1) (2025-07-26)
+
+
+### Bug Fixes
+
+* message render ([d517296](https://github.com/LunchTimeCode/rezi-web/commit/d51729687331f184955924ede5ac3c52b5b4b0c1))
+* recipes ([2b0c3b3](https://github.com/LunchTimeCode/rezi-web/commit/2b0c3b35cdba8d4cbac475169bba7189b9efa410))
+
 ## [0.12.0](https://github.com/LunchTimeCode/rezi-web/compare/v0.11.1...v0.12.0) (2025-07-26)
 
 
