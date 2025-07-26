@@ -25,9 +25,9 @@ RUN apt-get update && apt-get install -y ca-certificates && rm -rf /var/lib/apt/
 
 COPY --from=builder /usr/src/app/assets /
 # Copy the build artifact from the build stage
-COPY --from=builder /usr/src/app/target/release/grocy /usr/local/bin/
+COPY --from=builder /usr/src/app/target/release/rezi /usr/local/bin/
 
-LABEL org.opencontainers.image.source=https://github.com/LunchTimeCode/grocy-web
+LABEL org.opencontainers.image.source=https://github.com/LunchTimeCode/rezi-web
 
 # Set the startup command
-CMD ["grocy"]
+CMD ["rezi"]

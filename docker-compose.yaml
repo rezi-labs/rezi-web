@@ -1,6 +1,6 @@
 services:
-  grocy:
-    image: ghcr.io/lunchtimecode/grocy-web:latest
+  rezi:
+    image: ghcr.io/lunchtimecode/rezi-web:latest
     environment:
       - NEST_API_KEY=your_api_key_here
     ports:
