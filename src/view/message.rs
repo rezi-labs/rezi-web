@@ -1,4 +1,4 @@
-use maud::{Markup, html};
+use maud::{Markup, PreEscaped, html};
 
 use crate::{
     database::messages::ChatMessage, routes::random_id, unsafe_token_decode::User,
@@ -54,8 +54,8 @@ pub fn render(message: &ChatMessage, user: Option<User>) -> Markup {
                     "chat-bubble"
                 }
             } {
-                div {
-                            (message.content)
+                div class="gap-2" {
+                            (rendered_message(message))
                 }
 
             }
@@ -64,6 +64,17 @@ pub fn render(message: &ChatMessage, user: Option<User>) -> Markup {
             }
 
         }
+    }
+}
+
+pub fn rendered_message(message: &ChatMessage) -> Markup {
+    let parser = pulldown_cmark::Parser::new(&message.content);
+
+    // Write to a new String buffer.
+    let mut html_output = String::new();
+    pulldown_cmark::html::push_html(&mut html_output, parser);
+    html! {
+     (PreEscaped(html_output))
     }
 }
 

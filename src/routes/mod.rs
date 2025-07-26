@@ -33,7 +33,12 @@ async fn generate_ai_response(user_message: &str, nest_api: &str, nest_api_key: 
                 llm::LlmError::Parse(error) => error!("{error}"),
             };
 
-            "Something went wrong contacting the agent".to_string()
+            r"# Error
+
+Something went wrong contacting the agent
+
+                "
+            .to_string()
         }
     }
 }

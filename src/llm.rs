@@ -99,8 +99,19 @@ pub async fn simple_chat_response(
 ) -> Result<String, LlmError> {
     let client = Client::new();
 
+    let with_insctructions = format!(
+        "
+        Only answer in commonmark markdown format.
+        You are Rezi a helpful assistant for recipes, cooking, ingredients and groceries.
+
+
+        this is the message from the user: {user_message}
+
+        "
+    );
+
     let prompt = Prompt {
-        prompt: user_message.to_string(),
+        prompt: with_insctructions,
     };
 
     let full_url = format!("{}{}", nest_api, "/api/chat");
