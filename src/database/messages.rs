@@ -16,7 +16,7 @@ pub struct ChatMessage {
     pub ai_response: String,
     pub owner_id: String,
     pub created_at: DateTime<Utc>,
-    pub is_user: bool,
+    pub is_user: u16,
 }
 
 impl ChatMessage {
@@ -27,7 +27,7 @@ impl ChatMessage {
             ai_response: self.ai_response.clone(),
             owner_id: self.owner_id.clone(),
             created_at: self.created_at,
-            is_user: false,
+            is_user: 0,
         }
     }
 
@@ -40,7 +40,7 @@ impl ChatMessage {
     }
 
     pub fn is_user(&self) -> bool {
-        self.is_user
+        self.is_user == 1
     }
 }
 

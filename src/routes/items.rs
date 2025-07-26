@@ -174,7 +174,7 @@ pub async fn create_item_with_ai(
         ai_response: ai_response.clone(),
         owner_id: user.id().to_string(),
         created_at: Utc::now(),
-        is_user: true,
+        is_user: 1,
     };
     let Ok(message) = database::messages::save_message(db_client, user_message.clone()).await
     else {
@@ -188,7 +188,7 @@ pub async fn create_item_with_ai(
         ai_response: ai_response.clone(),
         owner_id: "Agent".to_string(),
         created_at: Utc::now(),
-        is_user: false,
+        is_user: 0,
     };
 
     Ok(html! {

@@ -18,6 +18,11 @@ pub fn get_user(req: HttpRequest) -> Option<unsafe_token_decode::User> {
         .map(|u| u.as_ref().clone())
 }
 
+pub fn random_html_safe_id() -> u64 {
+    let mut rng = rand::rng();
+    rng.random::<u64>()
+}
+
 pub fn random_id() -> i64 {
     let mut rng = rand::rng();
     rng.random::<i64>()

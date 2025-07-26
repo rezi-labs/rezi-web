@@ -6,6 +6,9 @@ use crate::{
 };
 
 pub fn render(message: &ChatMessage, user: Option<User>) -> Markup {
+    if message.content.is_empty() {
+        return html!();
+    }
     let initials = match user.clone() {
         Some(u) => u.initials(),
         None => "GY".to_string(),
@@ -18,7 +21,7 @@ pub fn render(message: &ChatMessage, user: Option<User>) -> Markup {
 
     html! {
         div class={
-            @if message.is_user {
+            @if message.is_user() {
                 "chat chat-end"
             } @else {
                 "chat chat-start"
@@ -27,13 +30,13 @@ pub fn render(message: &ChatMessage, user: Option<User>) -> Markup {
             div class="chat-image avatar" {
                 div class="w-10 rounded-full" {
                     div class={
-                        @if message.is_user {
+                        @if message.is_user() {
                             "w-10 h-10 bg-secondary rounded-full flex items-center justify-center text-secondary-content font-bold"
                         } @else {
                             "w-10 h-10 bg-primary rounded-full flex items-center justify-center text-primary-content font-bold"
                         }
                     } {
-                        @if message.is_user {
+                        @if message.is_user() {
                             (initials)
                         } @else {
                             img class="scale-200" src="assets/grocy_close.svg" alt="Grocy Logo"{}
@@ -48,7 +51,7 @@ pub fn render(message: &ChatMessage, user: Option<User>) -> Markup {
                 }
             }
             div class={
-                @if message.is_user {
+                @if message.is_user() {
                     "chat-bubble chat-bubble-primary"
                 } @else {
                     "chat-bubble"

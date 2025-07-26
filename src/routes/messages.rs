@@ -6,6 +6,7 @@ use serde::Deserialize;
 use url::Url;
 
 use crate::config::Server;
+use crate::database::recipes::Recipe;
 use crate::database::{self, DBClient};
 use crate::view::message;
 use crate::witch;
@@ -13,6 +14,8 @@ use crate::witch;
 #[derive(Deserialize)]
 pub struct SendMessageRequest {
     pub message: String,
+    pub is_content: Option<bool>,
+    pub is_url: Option<bool>,
 }
 
 #[post("chat")]
@@ -38,7 +41,7 @@ pub async fn send_message(
         Ok(url) => {
             let url = url.as_str().to_string();
 
-            let hex = witch::hex(url).await;
+            let hex = witch::hex(url.clone()).await;
 
             let Ok(hex) = hex else {
                 return Err(actix_web::error::ErrorBadRequest(
@@ -46,28 +49,70 @@ pub async fn send_message(
                 ));
             };
 
-            super::generate_task_response(
+            let tasks = super::generate_task_response(
                 &hex,
                 &config.nest_api(),
                 &config.nest_api_key(),
                 db_client,
                 user.id().to_string(),
             )
-            .await
+            .await;
+
+            if !form.is_url.unwrap_or_default() {
+                let recipe = Recipe::new(
+                    None,
+                    user.id().to_string(),
+                    Some("Generated".to_string()),
+                    Some(url),
+                    tasks.clone(),
+                );
+
+                let res = database::recipes::create_recipe(db_client, recipe).await;
+
+                if res.is_err() {
+                    return Err(actix_web::error::ErrorBadRequest(
+                        "Could not create recipe".to_string(),
+                    ));
+                }
+            }
+
+            tasks
         }
         Err(_) => {
-            super::generate_ai_response(&form.message, &config.nest_api(), &config.nest_api_key())
+            if form.is_content.unwrap_or_default() {
+                // If content of a recipe is being sent, extract items from the content
+                super::generate_task_response(
+                    &message,
+                    &config.nest_api(),
+                    &config.nest_api_key(),
+                    db_client,
+                    user.id().to_string(),
+                )
                 .await
+            } else {
+                super::generate_ai_response(
+                    &form.message,
+                    &config.nest_api(),
+                    &config.nest_api_key(),
+                )
+                .await
+            }
         }
+    };
+
+    let checked_user_response = if form.is_url.unwrap_or_default() {
+        "".to_string()
+    } else {
+        form.message.clone()
     };
 
     let user_message = database::messages::ChatMessage {
         id: None,
-        content: form.message.clone(),
+        content: checked_user_response.clone(),
         ai_response: ai_response.clone(),
         owner_id: user.id().to_string(),
         created_at: Utc::now(),
-        is_user: true,
+        is_user: 1,
     };
     let Ok(user_message) = database::messages::save_message(db_client, user_message.clone()).await
     else {
@@ -76,7 +121,7 @@ pub async fn send_message(
 
     // Return both messages as HTML
     Ok(html! {
-        (message::render(&user_message, Some(user.to_owned())))
-        (message::render(&user_message.ai_message(), None))
+            (message::render(&user_message, Some(user.to_owned())))
+            (message::render(&user_message.ai_message(), None))
     })
 }

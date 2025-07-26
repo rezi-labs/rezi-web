@@ -28,7 +28,6 @@ pub async fn chat_endpoint(client: web::Data<DBClient>, req: HttpRequest) -> AwR
     let user = get_user(req).unwrap();
     let client = client.get_ref();
     let messages = database::messages::get_messages(client, user.id()).await;
-
     Ok(chat::chat(&messages, &user))
 }
 
