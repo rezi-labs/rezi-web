@@ -1,4 +1,4 @@
-## Grocy
+## Rezi
 
 A ai assisted grocery list.
 
