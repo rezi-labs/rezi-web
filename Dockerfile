@@ -21,6 +21,8 @@ RUN cargo build --release
 # Runtime stage
 FROM debian:bookworm-slim
 
+RUN apt-get update && apt-get install -y ca-certificates && rm -rf /var/lib/apt/lists/*
+
 COPY --from=builder /usr/src/app/assets /
 # Copy the build artifact from the build stage
 COPY --from=builder /usr/src/app/target/release/grocy /usr/local/bin/
