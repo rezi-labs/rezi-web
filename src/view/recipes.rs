@@ -34,8 +34,8 @@ pub fn recipes(recipes: Vec<Recipe>) -> Markup {
 
 pub fn recipe_row(recipe: &Recipe) -> Markup {
     let recipe_id = recipe.id();
-    let recipe_id_spinner = format!("indicator-{}", recipe_id);
-    let recipe_spinner_target = format!("#indicator-{}", recipe_id);
+    let recipe_id_spinner = format!("indicator-{recipe_id}");
+    let recipe_spinner_target = format!("#indicator-{recipe_id}");
     html! {
         div id=(format!("recipe-{}", recipe.id())) class="w-full" {
             div class="card bg-base-100 border border-base-300 shadow-lg hover:shadow-xl transition-shadow duration-200 h-full" {
