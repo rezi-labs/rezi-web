@@ -1,5 +1,12 @@
 # Changelog
 
+## [0.11.1](https://github.com/LunchTimeCode/grocy-web/compare/v0.11.0...v0.11.1) (2025-07-26)
+
+
+### Bug Fixes
+
+* docker build ([e4bc313](https://github.com/LunchTimeCode/grocy-web/commit/e4bc313452439a8ccd7897e55d4fd04cf18279b7))
+
 ## [0.11.0](https://github.com/LunchTimeCode/grocy-web/compare/v0.10.0...v0.11.0) (2025-07-25)
 
 
