@@ -1,5 +1,21 @@
 # Changelog
 
+## [0.11.0](https://github.com/LunchTimeCode/grocy-web/compare/v0.10.0...v0.11.0) (2025-07-25)
+
+
+### Features
+
+* yay ([ee52b95](https://github.com/LunchTimeCode/grocy-web/commit/ee52b9553b1906d417007bf23351917fc95e1226))
+
+
+### Bug Fixes
+
+* big refactor ([2f6140b](https://github.com/LunchTimeCode/grocy-web/commit/2f6140b6804781a4c0f69f1863b26bcc17894392))
+* db ([8e8e876](https://github.com/LunchTimeCode/grocy-web/commit/8e8e876dd94298b6e3fccca9d71c7fb2a98bb40b))
+* dev reload ([257dfdd](https://github.com/LunchTimeCode/grocy-web/commit/257dfdd32055dc8c8b82f639438d4a2568a41592))
+* format ([5fc6726](https://github.com/LunchTimeCode/grocy-web/commit/5fc6726a56379654175aec7c0855ad30c292701d))
+* warnings ([1eff045](https://github.com/LunchTimeCode/grocy-web/commit/1eff045619faa5c6246e13c3beab51c9b904d512))
+
 ## [0.10.0](https://github.com/LunchTimeCode/morgana-web/compare/v0.9.0...v0.10.0) (2025-07-21)
 
 
