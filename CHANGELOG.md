@@ -1,5 +1,12 @@
 # Changelog
 
+## [0.12.2](https://github.com/LunchTimeCode/rezi-web/compare/v0.12.1...v0.12.2) (2025-07-26)
+
+
+### Bug Fixes
+
+* chat height ([d2aa206](https://github.com/LunchTimeCode/rezi-web/commit/d2aa206a8b88db6fd7991a9d822bd7c2b3086c27))
+
 ## [0.12.1](https://github.com/LunchTimeCode/rezi-web/compare/v0.12.0...v0.12.1) (2025-07-26)
 
 
