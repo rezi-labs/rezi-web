@@ -11,6 +11,7 @@ RUN cargo chef prepare --recipe-path recipe.json
 # Builder stage - build dependencies and application
 FROM chef AS builder
 COPY --from=planner /usr/src/app/recipe.json recipe.json
+COPY --from=planner /usr/src/app/libsql-orm ./libsql-orm
 # Build dependencies - this is the caching Docker layer!
 RUN cargo chef cook --release --recipe-path recipe.json
 # Now copy source code and build application
