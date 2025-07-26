@@ -1,5 +1,18 @@
 # Changelog
 
+## [0.12.0](https://github.com/LunchTimeCode/rezi-web/compare/v0.11.1...v0.12.0) (2025-07-26)
+
+
+### Features
+
+* rezi ([07295ee](https://github.com/LunchTimeCode/rezi-web/commit/07295ee29a70e4e5a28f7f3f8db0a46bc1f83269))
+
+
+### Bug Fixes
+
+* docker certs ([90ba84f](https://github.com/LunchTimeCode/rezi-web/commit/90ba84fbcd6fef6d00d96d931bceddff7fcf7a59))
+* lockfile ([2129f84](https://github.com/LunchTimeCode/rezi-web/commit/2129f84acf530075a8157e84fb9b3cdf2c16e47b))
+
 ## [0.11.1](https://github.com/LunchTimeCode/rezi-web/compare/v0.11.0...v0.11.1) (2025-07-26)
 
 
