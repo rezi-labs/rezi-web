@@ -1,5 +1,12 @@
 # Changelog
 
+## [0.12.3](https://github.com/rezi-labs/rezi-web/compare/v0.12.2...v0.12.3) (2025-07-30)
+
+
+### Bug Fixes
+
+* **deps:** update rust crate tokio to v1.47.0 ([#45](https://github.com/rezi-labs/rezi-web/issues/45)) ([61f6bab](https://github.com/rezi-labs/rezi-web/commit/61f6bab1db5ff77aa9fd1c3b8901d971854420f0))
+
 ## [0.12.2](https://github.com/LunchTimeCode/rezi-web/compare/v0.12.1...v0.12.2) (2025-07-26)
 
 
