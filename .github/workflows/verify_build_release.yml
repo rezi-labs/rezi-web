@@ -23,9 +23,11 @@ jobs:
       - uses: dtolnay/rust-toolchain@stable
       - uses: Swatinem/rust-cache@v2
 
-      - uses: taiki-e/install-action@v2
-        with:
-          tool: just@1,hurl@4
+      - name: install hurl
+        uses: rezi/install-hurl@main
+        
+      - name: install just
+        uses: rezi/install-just@main
           
       - run: just verify
 
@@ -60,9 +62,13 @@ jobs:
         id-token: write
     steps:
       - uses: actions/checkout@v4
-      - uses: taiki-e/install-action@v2
-        with:
-          tool: just@1,hurl@4
+      
+      - name: install hurl
+        uses: rezi/install-hurl@main
+        
+      - name: install just
+        uses: rezi/install-just@main
+        
       - uses: docker/login-action@v3
         with:
           registry: ghcr.io
