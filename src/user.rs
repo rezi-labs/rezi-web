@@ -18,7 +18,6 @@ pub async fn user_extractor(
     let config = req.app_data::<Data<Server>>().unwrap();
 
     if config.get_user_from_headers() {
-        // Extract user from headers instead of token
         let user = match from_headers::get_user_from_headers(&req) {
             Ok(user) => user,
             Err(e) => {
@@ -28,21 +27,11 @@ pub async fn user_extractor(
                 ));
             }
         };
-
-        // insert user into app data
         req.extensions_mut().insert(Data::new(user));
     } else {
-        // Try to get user from headers in dev mode
-        if let Ok(user) = from_headers::get_user_from_headers(&req) {
-            log::info!("got user from headers: {user:?}");
-            req.extensions_mut().insert(Data::new(user));
-        } else {
-            log::info!("no user headers found, using guest user");
-            let user = from_headers::User::new("0".to_string(), "guest@gmx.com".to_string());
-            req.extensions_mut().insert(Data::new(user));
-        }
+        let user = from_headers::User::new("0".to_string(), "guest@gmx.com".to_string());
+        req.extensions_mut().insert(Data::new(user));
     }
 
     next.call(req).await
-    // post-processing
 }

@@ -61,8 +61,8 @@ async fn main() -> std::io::Result<()> {
 
     let server = HttpServer::new(move || {
         App::new()
-            .wrap(Logger::default())
-            .wrap(Logger::new("%a %{User-Agent}i"))
+            .wrap(Logger::default().exclude("/reload"))
+            .wrap(Logger::new("%a %{User-Agent}i").exclude("/reload"))
             .app_data(web::Data::new(shared_orm_db.clone()))
             .app_data(web::Data::new(c.clone()))
             .app_data(web::Data::new(reload.clone()))
