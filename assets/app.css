@@ -17,3 +17,160 @@
 .bg-blacks {
     background-color: #000;
 }
+
+/* Enhanced contrast for cards and UI elements */
+[data-theme="light"] .card {
+    background-color: oklch(98% 0 0);
+    border: 1px solid oklch(85% 0.01 343.231);
+    box-shadow: 0 4px 6px -1px oklch(0% 0 0 / 0.1), 0 2px 4px -2px oklch(0% 0 0 / 0.1);
+}
+
+[data-theme="dark"] .card {
+    background-color: oklch(15% 0.005 17.911);
+    border: 1px solid oklch(25% 0.01 17.911);
+    box-shadow: 0 4px 6px -1px oklch(0% 0 0 / 0.3), 0 2px 4px -2px oklch(0% 0 0 / 0.2);
+}
+
+/* Enhanced button contrast using primary colors */
+[data-theme="light"] .btn {
+    background-color: var(--color-primary);
+    border: 1px solid var(--color-primary);
+    color: var(--color-primary-content);
+}
+
+[data-theme="light"] .btn:hover {
+    background-color: oklch(60% 0.241 354.308);
+    border-color: oklch(60% 0.241 354.308);
+}
+
+[data-theme="dark"] .btn {
+    background-color: var(--color-primary);
+    border: 1px solid var(--color-primary);
+    color: var(--color-primary-content);
+}
+
+[data-theme="dark"] .btn:hover {
+    background-color: oklch(73% 0.185 148.958);
+    border-color: oklch(73% 0.185 148.958);
+}
+
+/* Enhanced text contrast for better readability */
+[data-theme="light"] {
+    --tw-prose-body: oklch(10% 0.05 3.958);
+    --tw-prose-headings: oklch(5% 0.05 3.958);
+}
+
+[data-theme="dark"] {
+    --tw-prose-body: oklch(95% 0.001 17.911);
+    --tw-prose-headings: oklch(98% 0.001 17.911);
+}
+
+/* Beautiful grocery button styling */
+.grocery-btn {
+    position: relative;
+    overflow: hidden;
+    font-weight: 600;
+    border-radius: 1rem;
+    transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1);
+    box-shadow: 0 4px 6px -1px rgba(0, 0, 0, 0.1), 0 2px 4px -1px rgba(0, 0, 0, 0.06);
+    border: none !important;
+    text-transform: none;
+}
+
+/* Light theme grocery button */
+[data-theme="light"] .grocery-btn {
+    background: linear-gradient(135deg, var(--color-primary), oklch(70% 0.241 354.308));
+}
+
+[data-theme="light"] .grocery-btn:hover {
+    background: linear-gradient(135deg, oklch(70% 0.241 354.308), oklch(60% 0.241 354.308));
+    transform: translateY(-2px);
+    box-shadow: 0 10px 15px -3px rgba(0, 0, 0, 0.1), 0 4px 6px -2px rgba(0, 0, 0, 0.05);
+}
+
+/* Dark theme grocery button */
+[data-theme="dark"] .grocery-btn {
+    background: linear-gradient(135deg, var(--color-primary), oklch(73% 0.185 148.958));
+}
+
+[data-theme="dark"] .grocery-btn:hover {
+    background: linear-gradient(135deg, oklch(73% 0.185 148.958), oklch(63% 0.185 148.958));
+    transform: translateY(-2px);
+    box-shadow: 0 10px 15px -3px rgba(0, 0, 0, 0.1), 0 4px 6px -2px rgba(0, 0, 0, 0.05);
+}
+
+.grocery-btn:active {
+    transform: translateY(0);
+    box-shadow: 0 4px 6px -1px rgba(0, 0, 0, 0.1), 0 2px 4px -1px rgba(0, 0, 0, 0.06);
+}
+
+/* Grocery button icon animation */
+.grocery-btn-icon {
+    display: inline-flex;
+    align-items: center;
+    margin-right: 0.5rem;
+    transition: transform 0.3s ease;
+}
+
+.grocery-btn:hover .grocery-btn-icon {
+    transform: rotate(180deg) scale(1.1);
+}
+
+.grocery-btn-icon svg {
+    width: 1.25rem;
+    height: 1.25rem;
+}
+
+/* Grocery button text */
+.grocery-btn-text {
+    font-size: 0.875rem;
+    letter-spacing: 0.025em;
+    font-weight: 600;
+}
+
+/* Add a subtle glow effect */
+.grocery-btn::before {
+    content: '';
+    position: absolute;
+    top: 0;
+    left: 0;
+    right: 0;
+    bottom: 0;
+    background: linear-gradient(135deg, transparent, rgba(255, 255, 255, 0.1), transparent);
+    opacity: 0;
+    transition: opacity 0.3s ease;
+    pointer-events: none;
+    border-radius: inherit;
+}
+
+.grocery-btn:hover::before {
+    opacity: 1;
+}
+
+/* Responsive sizing */
+@media (max-width: 640px) {
+    .grocery-btn-text {
+        display: none;
+    }
+    
+    .grocery-btn-icon {
+        margin-right: 0;
+    }
+    
+    .grocery-btn {
+        min-width: 2.5rem;
+        aspect-ratio: 1;
+        border-radius: 50%;
+    }
+}
+
+/* Avatar enhanced contrast */
+[data-theme="light"] .avatar .bg-neutral {
+    background-color: oklch(15% 0.153 2.432) !important;
+    color: oklch(95% 0.005 343.231) !important;
+}
+
+[data-theme="dark"] .avatar .bg-neutral {
+    background-color: oklch(85% 0.02 171.364) !important;
+    color: oklch(5% 0.039 171.364) !important;
+}

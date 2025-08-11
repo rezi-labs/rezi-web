@@ -94,9 +94,13 @@ pub fn ai_btn(message: &ChatMessage) -> Markup {
         form id=(id) {
             input type="hidden" name="message" value=(message.content)  {}
 
-            button class="btn btn-xs btn-accent" type="submit" hx-post="ai/items" hx-target="#chat-messages"  hx-indicator={"#"(spinner_id)} hx-swap="beforeend" hx-on--after-request="this.reset()" {
-                (spark_icon())
-                "grocery"
+            button class="btn btn-sm btn-primary grocery-btn" type="submit" hx-post="ai/items" hx-target="#chat-messages"  hx-indicator={"#"(spinner_id)} hx-swap="beforeend" hx-on--after-request="this.reset()" {
+                span class="grocery-btn-icon" {
+                    (spark_icon())
+                }
+                span class="grocery-btn-text" {
+                    "Add to Grocery"
+                }
             }
         }
 
