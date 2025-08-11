@@ -68,15 +68,15 @@ pub fn render_with_reply_context(
                 }
             } {
                 @if let Some(reply_msg) = reply_to {
-                    div class="reply-context bg-base-300 p-2 rounded mb-2 border-l-4 border-primary text-sm opacity-75" {
-                        div class="font-semibold" {
+                    div class="reply-context bg-base-300 p-2 rounded mb-2 border-l-4 border-primary text-sm" {
+                        div class="font-semibold text-base-content" {
                             @if reply_msg.is_user() {
                                 "You"
                             } @else {
                                 "Rezi"
                             }
                         }
-                        div {
+                        div class="text-base-content opacity-80" {
                             (truncated_content(&reply_msg.content, 100))
                         }
                     }
@@ -87,8 +87,8 @@ pub fn render_with_reply_context(
 
             }
             div class="chat-footer opacity-50 flex gap-2"{
-                  (reply_btn(&message))
                   (ai_btn(&message))
+                  (reply_btn(&message))
             }
 
         }
@@ -144,24 +144,19 @@ pub fn truncated_content(content: &str, max_length: usize) -> String {
 
 pub fn reply_btn(message: &ChatMessage) -> Markup {
     let message_id = message.id();
-    // Properly escape content for JavaScript
-    let escaped_content = message
-        .content
-        .replace("\\", "\\\\")
-        .replace("'", "\\'")
-        .replace("\"", "\\\"")
-        .replace("\n", "\\n")
-        .replace("\r", "\\r")
-        .replace("\t", "\\t");
 
     html! {
-        button class="btn btn-xs btn-ghost reply-btn" id=(format!("reply-btn-{}", message_id))
-               onclick=(format!("setActiveReply('{}', '{}', '{}')",
-                       message_id,
-                       escaped_content,
-                       escaped_content)) {
-            (reply_icon())
-            "Reply"
+        button class="btn btn-sm btn-secondary reply-btn"
+               hx-post="/chat/reply"
+               hx-target="#reply-context"
+               hx-swap="innerHTML"
+               hx-vals=(format!(r#"{{"message_id": "{}", "content": {}}}"#, message_id, serde_json::to_string(&message.content).unwrap_or_default())) {
+            span class="reply-btn-icon" {
+                (reply_icon())
+            }
+            span class="reply-btn-text" {
+                "Reply"
+            }
         }
     }
 }

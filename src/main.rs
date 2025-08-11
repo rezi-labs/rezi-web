@@ -80,6 +80,8 @@ async fn main() -> std::io::Result<()> {
             .service(view::info::info_endpoint)
             .service(items::index_route)
             .service(routes::messages::send_message)
+            .service(routes::messages::set_reply)
+            .service(routes::messages::clear_reply)
             .service(routes::items::create_item_with_ai)
             .service(routes::items::create_item)
             .service(routes::items::toggle_item)

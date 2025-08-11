@@ -19,6 +19,12 @@ pub struct SendMessageRequest {
     pub reply_to_id: Option<String>,
 }
 
+#[derive(Deserialize)]
+pub struct ReplyRequest {
+    pub message_id: String,
+    pub content: String,
+}
+
 #[post("chat")]
 pub async fn send_message(
     form: web::Form<SendMessageRequest>,
@@ -162,9 +168,88 @@ pub async fn send_message(
         return Err(ParseError::Incomplete.into());
     };
 
+    // Save the AI response as a separate message
+    let ai_message = database::messages::ChatMessage {
+        id: None,
+        content: ai_response.clone(),
+        ai_response: ai_response.clone(),
+        owner_id: user.id().to_string(),
+        created_at: Utc::now(),
+        is_user: 0,
+        reply_to_id: None,
+    };
+    let Ok(ai_message) = database::messages::save_message(db_client, ai_message).await else {
+        return Err(ParseError::Incomplete.into());
+    };
+
     // Return both messages as HTML
     Ok(html! {
             (message::render_with_reply_context(&user_message, Some(user.to_owned()), reply_context.as_ref()))
-            (message::render(&user_message.ai_message(), None))
+            (message::render(&ai_message, None))
+            script {
+                "document.getElementById('reply-context').innerHTML = '<div class=\"hidden\"></div>';"
+                "document.getElementById('reply-to-id').value = '';"
+            }
+    })
+}
+
+#[post("chat/reply")]
+pub async fn set_reply(
+    form: web::Form<ReplyRequest>,
+    client: web::Data<DBClient>,
+    req: HttpRequest,
+) -> Result<Markup> {
+    let user = super::get_user(req).unwrap();
+    let db_client: &DBClient = client.get_ref();
+
+    let message_id = match form.message_id.parse::<i64>() {
+        Ok(id) => id,
+        Err(_) => return Err(actix_web::error::ErrorBadRequest("Invalid message ID")),
+    };
+
+    let message = database::messages::get_message_by_id(db_client, message_id).await;
+
+    match message {
+        Some(msg) => {
+            let truncated_content = if form.content.len() > 50 {
+                format!("{}...", &form.content[..50])
+            } else {
+                form.content.clone()
+            };
+
+            Ok(html! {
+                div class="bg-base-300 p-2 rounded mb-2 border-l-4 border-primary text-sm" {
+                    div class="flex justify-between items-center" {
+                        div {
+                            span class="font-semibold text-base-content" { "Replying to: " }
+                            span class="text-base-content opacity-80" { (truncated_content) }
+                        }
+                        button type="button" class="btn btn-xs btn-ghost"
+                               hx-post="/chat/clear-reply"
+                               hx-target="#reply-context"
+                               hx-swap="innerHTML" { "×" }
+                    }
+                }
+                script {
+                    "document.getElementById('reply-to-id').value = '" (message_id) "';"
+                    "document.getElementById('reply-input').focus();"
+                }
+            })
+        }
+        None => Err(actix_web::error::ErrorNotFound("Message not found")),
+    }
+}
+
+#[post("chat/clear-reply")]
+pub async fn clear_reply(req: HttpRequest) -> Result<Markup> {
+    let _user = super::get_user(req).unwrap();
+
+    Ok(html! {
+        div class="hidden" {
+            // Empty reply context
+        }
+        script {
+            "document.getElementById('reply-to-id').value = '';"
+        }
     })
 }

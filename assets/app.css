@@ -174,3 +174,105 @@
     background-color: oklch(85% 0.02 171.364) !important;
     color: oklch(5% 0.039 171.364) !important;
 }
+
+/* Reply button styling */
+.reply-btn {
+    position: relative;
+    overflow: hidden;
+    font-weight: 600;
+    border-radius: 1rem;
+    transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1);
+    box-shadow: 0 4px 6px -1px rgba(0, 0, 0, 0.1), 0 2px 4px -1px rgba(0, 0, 0, 0.06);
+    border: none !important;
+    text-transform: none;
+}
+
+/* Light theme reply button */
+[data-theme="light"] .reply-btn {
+    background: linear-gradient(135deg, var(--color-secondary), oklch(70% 0.15 264));
+}
+
+[data-theme="light"] .reply-btn:hover {
+    background: linear-gradient(135deg, oklch(70% 0.15 264), oklch(60% 0.15 264));
+    transform: translateY(-2px);
+    box-shadow: 0 10px 15px -3px rgba(0, 0, 0, 0.1), 0 4px 6px -2px rgba(0, 0, 0, 0.05);
+}
+
+[data-theme="light"] .reply-btn.active {
+    background: linear-gradient(135deg, var(--color-primary), oklch(70% 0.241 354.308));
+}
+
+/* Dark theme reply button */
+[data-theme="dark"] .reply-btn {
+    background: linear-gradient(135deg, var(--color-secondary), oklch(73% 0.1 264));
+}
+
+[data-theme="dark"] .reply-btn:hover {
+    background: linear-gradient(135deg, oklch(73% 0.1 264), oklch(63% 0.1 264));
+    transform: translateY(-2px);
+    box-shadow: 0 10px 15px -3px rgba(0, 0, 0, 0.1), 0 4px 6px -2px rgba(0, 0, 0, 0.05);
+}
+
+[data-theme="dark"] .reply-btn.active {
+    background: linear-gradient(135deg, var(--color-primary), oklch(73% 0.185 148.958));
+}
+
+.reply-btn:active {
+    transform: translateY(0);
+    box-shadow: 0 4px 6px -1px rgba(0, 0, 0, 0.1), 0 2px 4px -1px rgba(0, 0, 0, 0.06);
+}
+
+/* Reply button icon and text styling */
+.reply-btn-icon {
+    display: inline-flex;
+    align-items: center;
+    margin-right: 0.5rem;
+    transition: transform 0.3s ease;
+}
+
+.reply-btn:hover .reply-btn-icon {
+    transform: translateX(-2px);
+}
+
+.reply-btn-icon svg {
+    width: 1rem;
+    height: 1rem;
+}
+
+.reply-btn-text {
+    font-size: 0.875rem;
+    letter-spacing: 0.025em;
+    font-weight: 600;
+}
+
+/* Message visual indicator when replying */
+.chat.replying-to {
+    position: relative;
+}
+
+.chat.replying-to::before {
+    content: '';
+    position: absolute;
+    inset: -2px;
+    border: 2px solid var(--color-primary);
+    border-radius: 1rem;
+    opacity: 0.5;
+    pointer-events: none;
+}
+
+/* Responsive sizing for reply button */
+@media (max-width: 640px) {
+    .reply-btn-text {
+        display: none;
+    }
+    
+    .reply-btn-icon {
+        margin-right: 0;
+    }
+    
+    .reply-btn {
+        min-width: 2.5rem;
+        aspect-ratio: 1;
+        border-radius: 50%;
+    }
+}
