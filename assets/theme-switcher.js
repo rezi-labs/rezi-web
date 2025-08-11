@@ -5,7 +5,7 @@
 
 // Available Daisy UI themes
 const AVAILABLE_THEMES = [
-   'cupcake', 'valentine', 'halloween', 'forest', 
+   'light', 'dark', 
 ];
 
 /**
@@ -104,6 +104,35 @@ function initializeTheme() {
     } else {
         changeTheme(defaultTheme, true);
     }
+    
+    // Initialize toggle state after theme is set
+    setTimeout(initializeThemeToggle, 100);
+}
+
+/**
+ * Toggles between light and dark themes
+ */
+function toggleTheme() {
+    const currentTheme = getCurrentTheme();
+    const newTheme = currentTheme === 'dark' ? 'light' : 'dark';
+    changeTheme(newTheme);
+    
+    // Update the checkbox state to match the theme
+    const themeToggle = document.getElementById('theme-toggle');
+    if (themeToggle) {
+        themeToggle.checked = (newTheme === 'light');
+    }
+}
+
+/**
+ * Initializes the theme toggle checkbox state
+ */
+function initializeThemeToggle() {
+    const currentTheme = getCurrentTheme();
+    const themeToggle = document.getElementById('theme-toggle');
+    if (themeToggle) {
+        themeToggle.checked = (currentTheme === 'light');
+    }
 }
 
 /**
@@ -142,9 +171,17 @@ function getAvailableThemes() {
 
 // Auto-initialize when DOM is ready
 if (document.readyState === 'loading') {
-    document.addEventListener('DOMContentLoaded', initializeTheme);
+    document.addEventListener('DOMContentLoaded', function() {
+        initializeTheme();
+        // Ensure functions are available globally
+        window.toggleTheme = toggleTheme;
+        window.initializeThemeToggle = initializeThemeToggle;
+    });
 } else {
     initializeTheme();
+    // Ensure functions are available globally
+    window.toggleTheme = toggleTheme;
+    window.initializeThemeToggle = initializeThemeToggle;
 }
 
 // Export functions for module usage (if using modules)
@@ -155,6 +192,8 @@ if (typeof module !== 'undefined' && module.exports) {
         getSavedTheme,
         initializeTheme,
         toggleDarkMode,
+        toggleTheme,
+        initializeThemeToggle,
         applyRandomTheme,
         getRandomTheme,
         getAvailableThemes,
@@ -162,12 +201,16 @@ if (typeof module !== 'undefined' && module.exports) {
     };
 }
 
-// Also make available globally
+// Also make available globally (declared early to ensure availability)
 window.changeTheme = changeTheme;
 window.getCurrentTheme = getCurrentTheme;
 window.getSavedTheme = getSavedTheme;
 window.initializeTheme = initializeTheme;
 window.toggleDarkMode = toggleDarkMode;
+window.toggleTheme = toggleTheme;
+window.initializeThemeToggle = initializeThemeToggle;
 window.applyRandomTheme = applyRandomTheme;
 window.getRandomTheme = getRandomTheme;
 window.getAvailableThemes = getAvailableThemes;
+
+console.log('Theme switcher loaded, toggleTheme available:', typeof window.toggleTheme);
