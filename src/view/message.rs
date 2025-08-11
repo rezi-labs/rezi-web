@@ -1,10 +1,21 @@
 use maud::{Markup, PreEscaped, html};
 
 use crate::{
-    database::messages::ChatMessage, from_headers::User, routes::random_id, view::icons::spark_icon,
+    database::messages::ChatMessage,
+    from_headers::User,
+    routes::random_id,
+    view::icons::{reply_icon, spark_icon},
 };
 
 pub fn render(message: &ChatMessage, user: Option<User>) -> Markup {
+    render_with_reply_context(message, user, None)
+}
+
+pub fn render_with_reply_context(
+    message: &ChatMessage,
+    user: Option<User>,
+    reply_to: Option<&ChatMessage>,
+) -> Markup {
     if message.content.is_empty() {
         return html!();
     }
@@ -56,12 +67,27 @@ pub fn render(message: &ChatMessage, user: Option<User>) -> Markup {
                     "chat-bubble"
                 }
             } {
+                @if let Some(reply_msg) = reply_to {
+                    div class="reply-context bg-base-300 p-2 rounded mb-2 border-l-4 border-primary text-sm opacity-75" {
+                        div class="font-semibold" {
+                            @if reply_msg.is_user() {
+                                "You"
+                            } @else {
+                                "Rezi"
+                            }
+                        }
+                        div {
+                            (truncated_content(&reply_msg.content, 100))
+                        }
+                    }
+                }
                 div class="gap-2" {
                             (rendered_message(message))
                 }
 
             }
-            div class="chat-footer opacity-50"{
+            div class="chat-footer opacity-50 flex gap-2"{
+                  (reply_btn(&message))
                   (ai_btn(&message))
             }
 
@@ -106,4 +132,36 @@ pub fn ai_btn(message: &ChatMessage) -> Markup {
 
         span id=(spinner_id)  class="htmx-indicator loading loading-infinity loading-md" {}
     }}
+}
+
+pub fn truncated_content(content: &str, max_length: usize) -> String {
+    if content.len() <= max_length {
+        content.to_string()
+    } else {
+        format!("{}...", &content[..max_length])
+    }
+}
+
+pub fn reply_btn(message: &ChatMessage) -> Markup {
+    let message_id = message.id();
+    // Properly escape content for JavaScript
+    let escaped_content = message
+        .content
+        .replace("\\", "\\\\")
+        .replace("'", "\\'")
+        .replace("\"", "\\\"")
+        .replace("\n", "\\n")
+        .replace("\r", "\\r")
+        .replace("\t", "\\t");
+
+    html! {
+        button class="btn btn-xs btn-ghost reply-btn" id=(format!("reply-btn-{}", message_id))
+               onclick=(format!("setActiveReply('{}', '{}', '{}')",
+                       message_id,
+                       escaped_content,
+                       escaped_content)) {
+            (reply_icon())
+            "Reply"
+        }
+    }
 }

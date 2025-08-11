@@ -17,6 +17,7 @@ pub struct ChatMessage {
     pub owner_id: String,
     pub created_at: DateTime<Utc>,
     pub is_user: u16,
+    pub reply_to_id: std::option::Option<i64>,
 }
 
 impl ChatMessage {
@@ -28,6 +29,7 @@ impl ChatMessage {
             owner_id: self.owner_id.clone(),
             created_at: self.created_at,
             is_user: 0,
+            reply_to_id: None,
         }
     }
 
@@ -57,6 +59,23 @@ pub async fn save_message(client: &DBClient, message: ChatMessage) -> Result<Cha
         Err(err) => {
             log::error!("Failed to save message: {err}");
             Err(err.to_string())
+        }
+    }
+}
+
+pub async fn get_message_by_id(client: &DBClient, id: i64) -> Option<ChatMessage> {
+    let db = super::unlock_client(client).await;
+    let result = ChatMessage::find_by_id(id, &db).await;
+    drop(db);
+
+    match result {
+        Ok(message) => {
+            log::info!("Found message with id: {id}");
+            message
+        }
+        Err(err) => {
+            log::error!("Failed to get message by id {id}: {err}");
+            None
         }
     }
 }

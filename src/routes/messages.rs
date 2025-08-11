@@ -16,6 +16,7 @@ pub struct SendMessageRequest {
     pub message: String,
     pub is_content: Option<bool>,
     pub is_url: Option<bool>,
+    pub reply_to_id: Option<String>,
 }
 
 #[post("chat")]
@@ -36,7 +37,38 @@ pub async fn send_message(
 
     let message = form.message.clone();
 
-    let url = Url::parse(&message);
+    // Handle reply context
+    let reply_context = if let Some(reply_id_str) = &form.reply_to_id {
+        if !reply_id_str.is_empty() {
+            if let Ok(reply_id) = reply_id_str.parse::<i64>() {
+                database::messages::get_message_by_id(db_client, reply_id).await
+            } else {
+                None
+            }
+        } else {
+            None
+        }
+    } else {
+        None
+    };
+
+    // Build the message content with reply context for the AI
+    let ai_message_content = if let Some(ref reply_msg) = reply_context {
+        format!(
+            "REPLY TO: [{}]: \"{}\"\n\nUSER MESSAGE: {}",
+            if reply_msg.is_user() {
+                "User"
+            } else {
+                "Assistant"
+            },
+            reply_msg.content,
+            message
+        )
+    } else {
+        message.clone()
+    };
+
+    let url = Url::parse(&ai_message_content);
     let ai_response = match url {
         Ok(url) => {
             let url = url.as_str().to_string();
@@ -82,7 +114,7 @@ pub async fn send_message(
             if form.is_content.unwrap_or_default() {
                 // If content of a recipe is being sent, extract items from the content
                 super::generate_task_response(
-                    &message,
+                    &ai_message_content,
                     &config.nest_api(),
                     &config.nest_api_key(),
                     db_client,
@@ -91,7 +123,7 @@ pub async fn send_message(
                 .await
             } else {
                 super::generate_ai_response(
-                    &form.message,
+                    &ai_message_content,
                     &config.nest_api(),
                     &config.nest_api_key(),
                 )
@@ -106,6 +138,16 @@ pub async fn send_message(
         form.message.clone()
     };
 
+    let reply_to_id = if let Some(reply_id_str) = &form.reply_to_id {
+        if !reply_id_str.is_empty() {
+            reply_id_str.parse::<i64>().ok()
+        } else {
+            None
+        }
+    } else {
+        None
+    };
+
     let user_message = database::messages::ChatMessage {
         id: None,
         content: checked_user_response.clone(),
@@ -113,6 +155,7 @@ pub async fn send_message(
         owner_id: user.id().to_string(),
         created_at: Utc::now(),
         is_user: 1,
+        reply_to_id,
     };
     let Ok(user_message) = database::messages::save_message(db_client, user_message.clone()).await
     else {
@@ -121,7 +164,7 @@ pub async fn send_message(
 
     // Return both messages as HTML
     Ok(html! {
-            (message::render(&user_message, Some(user.to_owned())))
+            (message::render_with_reply_context(&user_message, Some(user.to_owned()), reply_context.as_ref()))
             (message::render(&user_message.ai_message(), None))
     })
 }
