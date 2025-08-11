@@ -6,7 +6,6 @@ use chrono::{DateTime, Utc};
 use serde::{Deserialize, Serialize};
 
 use crate::database::DBClient;
-use crate::routes::random_id;
 
 #[derive(Model, Debug, Clone, Serialize, Deserialize)]
 #[table_name("messages")]
@@ -21,18 +20,6 @@ pub struct ChatMessage {
 }
 
 impl ChatMessage {
-    pub fn ai_message(&self) -> Self {
-        ChatMessage {
-            id: Some(self.id.unwrap_or(random_id())),
-            content: self.ai_response.clone(),
-            ai_response: self.ai_response.clone(),
-            owner_id: self.owner_id.clone(),
-            created_at: self.created_at,
-            is_user: 0,
-            reply_to_id: None,
-        }
-    }
-
     pub fn id(&self) -> String {
         let Some(id) = self.id else {
             log::error!("no id: {self:?}");
@@ -63,7 +50,7 @@ pub async fn save_message(client: &DBClient, message: ChatMessage) -> Result<Cha
     }
 }
 
-pub async fn get_message_by_id(client: &DBClient, id: i64) -> Option<ChatMessage> {
+pub async fn get_message_by_id(client: &DBClient, id: i64, user_id: &str) -> Option<ChatMessage> {
     let db = super::unlock_client(client).await;
     let result = ChatMessage::find_by_id(id, &db).await;
     drop(db);
@@ -71,6 +58,10 @@ pub async fn get_message_by_id(client: &DBClient, id: i64) -> Option<ChatMessage
     match result {
         Ok(message) => {
             log::info!("Found message with id: {id}");
+            if message.clone().unwrap().owner_id != user_id {
+                log::info!("Not allowed access to message with id: {id}");
+                return None;
+            }
             message
         }
         Err(err) => {

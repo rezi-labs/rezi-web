@@ -22,7 +22,7 @@ pub fn chat(messages: &[ChatMessage], user: &from_headers::User) -> Markup {
                 div id="chat-messages" class="chat-container h-full bg-base-200 p-4 min-h-[200px] max-h-[600px] rounded-lg mb-4 space-y-3 overflow-y-auto" {
 
                     @for message in messages {
-                        @if let Some(reply_to_id) = message.reply_to_id {
+                        @if let Some(_) = message.reply_to_id {
                             // This is a user message replying to something - find the original message
                             @if message.is_user() {
                                 // For now, just render without reply context in the initial load

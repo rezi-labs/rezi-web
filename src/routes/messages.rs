@@ -47,7 +47,7 @@ pub async fn send_message(
     let reply_context = if let Some(reply_id_str) = &form.reply_to_id {
         if !reply_id_str.is_empty() {
             if let Ok(reply_id) = reply_id_str.parse::<i64>() {
-                database::messages::get_message_by_id(db_client, reply_id).await
+                database::messages::get_message_by_id(db_client, reply_id, user.id()).await
             } else {
                 None
             }
@@ -207,10 +207,10 @@ pub async fn set_reply(
         Err(_) => return Err(actix_web::error::ErrorBadRequest("Invalid message ID")),
     };
 
-    let message = database::messages::get_message_by_id(db_client, message_id).await;
+    let message = database::messages::get_message_by_id(db_client, message_id, user.id()).await;
 
     match message {
-        Some(msg) => {
+        Some(_msg) => {
             let truncated_content = if form.content.len() > 50 {
                 format!("{}...", &form.content[..50])
             } else {
