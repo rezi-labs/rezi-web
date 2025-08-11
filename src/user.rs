@@ -9,7 +9,7 @@ use actix_web::{
 };
 
 use crate::config::Server;
-use crate::unsafe_token_decode;
+use crate::from_headers;
 
 pub async fn user_extractor(
     req: ServiceRequest,
@@ -17,59 +17,32 @@ pub async fn user_extractor(
 ) -> Result<ServiceResponse<impl MessageBody>, Error> {
     let config = req.app_data::<Data<Server>>().unwrap();
 
-    if config.check_access_token() {
-        let Some(at) = req.headers().get("X-Forwarded-Access-Token") else {
-            return Err(actix_web::error::ErrorBadRequest("no token found"));
-        };
-        let Ok(header) = at.to_str() else {
-            log::error!("could not get token from header");
-            return Err(actix_web::error::ErrorBadRequest("invalid token"));
-        };
-
-        let user = match get_user(header) {
+    if config.get_user_from_headers() {
+        // Extract user from headers instead of token
+        let user = match from_headers::get_user_from_headers(&req) {
             Ok(user) => user,
             Err(e) => {
-                log::error!("could not get user from token: {e}");
-                return Err(actix_web::error::ErrorBadRequest("invalid token"));
+                log::error!("could not get user from headers: {e}");
+                return Err(actix_web::error::ErrorBadRequest(
+                    "missing required headers",
+                ));
             }
         };
 
         // insert user into app data
         req.extensions_mut().insert(Data::new(user));
     } else {
-        if let Some(at) = req.headers().get("X-Forwarded-Access-Token") {
-            if let Ok(header) = at.to_str() {
-                match get_user(header) {
-                    Ok(user) => log::info!("got user: {user:?}"),
-                    Err(e) => {
-                        log::error!("could not get user from token: {e}");
-                    }
-                };
-            } else {
-                log::error!("could not get token from header 50");
-            };
+        // Try to get user from headers in dev mode
+        if let Ok(user) = from_headers::get_user_from_headers(&req) {
+            log::info!("got user from headers: {user:?}");
+            req.extensions_mut().insert(Data::new(user));
         } else {
-            log::error!("could not get token from header 60");
-        };
-
-        let user = unsafe_token_decode::User::new("0".to_string(), "guest@gmx.com".to_string());
-        req.extensions_mut().insert(Data::new(user));
+            log::info!("no user headers found, using guest user");
+            let user = from_headers::User::new("0".to_string(), "guest@gmx.com".to_string());
+            req.extensions_mut().insert(Data::new(user));
+        }
     }
 
     next.call(req).await
     // post-processing
-}
-
-pub fn get_user(token: &str) -> Result<unsafe_token_decode::User, String> {
-    let user = unsafe_token_decode::decode_jwt_unsafe(token);
-
-    let user = match user {
-        Ok(user) => user,
-        Err(e) => {
-            log::error!("Invalid token: {e}");
-            return Err("Invalid token".to_string());
-        }
-    };
-
-    Ok(user)
 }

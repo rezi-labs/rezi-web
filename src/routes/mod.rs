@@ -4,7 +4,7 @@ use log::error;
 use rand::Rng;
 
 use crate::database::DBClient;
-use crate::{llm, unsafe_token_decode};
+use crate::{from_headers, llm};
 
 pub mod assets;
 pub mod items;
@@ -12,9 +12,9 @@ pub mod messages;
 pub mod recipes;
 pub mod technical;
 
-pub fn get_user(req: HttpRequest) -> Option<unsafe_token_decode::User> {
+pub fn get_user(req: HttpRequest) -> Option<from_headers::User> {
     req.extensions()
-        .get::<Data<unsafe_token_decode::User>>()
+        .get::<Data<from_headers::User>>()
         .map(|u| u.as_ref().clone())
 }
 

@@ -1,5 +1,5 @@
 use crate::database::messages::ChatMessage;
-use crate::unsafe_token_decode;
+use crate::from_headers;
 use crate::view::icons::{chat_icon, send_icon};
 use crate::view::message;
 use maud::{Markup, html};
@@ -17,7 +17,7 @@ pub fn render() -> Markup {
     }
 }
 
-pub fn chat(messages: &[ChatMessage], user: &unsafe_token_decode::User) -> Markup {
+pub fn chat(messages: &[ChatMessage], user: &from_headers::User) -> Markup {
     html! {
                 div id="chat-messages" class="chat-container h-full bg-base-200 p-4 min-h-[200px] max-h-[600px] rounded-lg mb-4 space-y-3 overflow-y-auto" {
 

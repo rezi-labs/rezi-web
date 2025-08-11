@@ -1,6 +1,6 @@
 use crate::config::Server;
+use crate::from_headers::User;
 use crate::routes::{self};
-use crate::unsafe_token_decode::User;
 use crate::view::icons;
 use actix_web::{HttpRequest, Result as AwResult};
 use actix_web::{get, web};

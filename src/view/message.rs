@@ -1,8 +1,7 @@
 use maud::{Markup, PreEscaped, html};
 
 use crate::{
-    database::messages::ChatMessage, routes::random_id, unsafe_token_decode::User,
-    view::icons::spark_icon,
+    database::messages::ChatMessage, from_headers::User, routes::random_id, view::icons::spark_icon,
 };
 
 pub fn render(message: &ChatMessage, user: Option<User>) -> Markup {

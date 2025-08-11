@@ -8,7 +8,7 @@ pub struct Server {
     token: Option<String>,
     nest_api: String,
     nest_api_key: String,
-    check_access_token: bool,
+    get_user_from_headers: bool,
 }
 
 impl Server {
@@ -39,14 +39,14 @@ impl Server {
         self.db_token().is_none()
     }
 
-    pub fn check_access_token(&self) -> bool {
-        self.check_access_token
+    pub fn get_user_from_headers(&self) -> bool {
+        self.get_user_from_headers
     }
 }
 
 pub fn from_env() -> Server {
-    let access_token = env::var("PASS_ACCESS_TOKEN").unwrap_or("false".to_string());
-    let check_access_token = access_token == "true";
+    let access_token = env::var("USER_HEADERS").unwrap_or("false".to_string());
+    let get_user_from_headers = access_token == "true";
 
     let nest_api: String = env::var("NEST_API").unwrap_or("http://0.0.0.0:9998".to_string());
     let nest_api_key: String = env::var("NEST_API_KEY").expect("need NEST_API_KEY");
@@ -69,6 +69,6 @@ pub fn from_env() -> Server {
         token: db_token,
         nest_api,
         nest_api_key,
-        check_access_token,
+        get_user_from_headers,
     }
 }
