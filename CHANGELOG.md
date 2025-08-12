@@ -1,5 +1,25 @@
 # Changelog
 
+## [0.13.0](https://github.com/rezi-labs/rezi-web/compare/v0.12.3...v0.13.0) (2025-08-12)
+
+
+### Features
+
+* theme switcher ([007061c](https://github.com/rezi-labs/rezi-web/commit/007061ccadc2980b818670dc39753dd8001ea5cc))
+
+
+### Bug Fixes
+
+* all ([d42ab90](https://github.com/rezi-labs/rezi-web/commit/d42ab90a7e44d51f36cf6dffe76725a389aaeae6))
+* logs ([1a2a64f](https://github.com/rezi-labs/rezi-web/commit/1a2a64f0aca7c35ec518a714d42f33921eb4b3e3))
+* make button better ([5bcd6fd](https://github.com/rezi-labs/rezi-web/commit/5bcd6fd537f988dbd6bf4529b96b1e0c8f17fa0b))
+* opendcode ([85b3dd8](https://github.com/rezi-labs/rezi-web/commit/85b3dd8cd943ca2c98001763721af1ff38b203bd))
+* reply ([9d61120](https://github.com/rezi-labs/rezi-web/commit/9d61120368c7782dd844d468242ee31b1954127c))
+* reply ([31d7b55](https://github.com/rezi-labs/rezi-web/commit/31d7b55e360814930d25f7e6e491fddd682c3be8))
+* user ([0f333a3](https://github.com/rezi-labs/rezi-web/commit/0f333a3e1e1a7baf95dbd59da136d1831eba5af3))
+* workflow ([9b05d1d](https://github.com/rezi-labs/rezi-web/commit/9b05d1df5889f10cce8bf4d2b92631e6f0504e7c))
+* x ([92a7251](https://github.com/rezi-labs/rezi-web/commit/92a7251eeb422f65b899709810267cbb2bc93212))
+
 ## [0.12.3](https://github.com/rezi-labs/rezi-web/compare/v0.12.2...v0.12.3) (2025-07-30)
 
 
