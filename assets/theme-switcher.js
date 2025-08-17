@@ -3,9 +3,9 @@
  * Provides functionality to change themes dynamically
  */
 
-// Available Daisy UI themes
+// Available themes - Pure Swiss design only
 const AVAILABLE_THEMES = [
-   'light', 'dark', 
+   'swiss', 'swiss-dark'
 ];
 
 /**
@@ -75,7 +75,7 @@ function changeTheme(theme, persist = true) {
  * @returns {string} - The current theme name
  */
 function getCurrentTheme() {
-    return document.documentElement.getAttribute('data-theme') || 'light';
+    return document.documentElement.getAttribute('data-theme') || 'swiss';
 }
 
 /**
@@ -97,7 +97,7 @@ function getSavedTheme() {
  */
 function initializeTheme() {
     const savedTheme = getSavedTheme();
-    const defaultTheme = 'light';
+    const defaultTheme = 'swiss'; // Swiss design as default
 
     if (savedTheme && AVAILABLE_THEMES.includes(savedTheme)) {
         changeTheme(savedTheme, false); // Don't persist since it's already saved
@@ -110,17 +110,18 @@ function initializeTheme() {
 }
 
 /**
- * Toggles between light and dark themes
+ * Toggles between Swiss light and dark themes only
  */
 function toggleTheme() {
     const currentTheme = getCurrentTheme();
-    const newTheme = currentTheme === 'dark' ? 'light' : 'dark';
+    const newTheme = currentTheme === 'swiss-dark' ? 'swiss' : 'swiss-dark';
+    
     changeTheme(newTheme);
     
     // Update the checkbox state to match the theme
     const themeToggle = document.getElementById('theme-toggle');
     if (themeToggle) {
-        themeToggle.checked = (newTheme === 'light');
+        themeToggle.checked = (newTheme === 'swiss');
     }
 }
 
@@ -131,16 +132,17 @@ function initializeThemeToggle() {
     const currentTheme = getCurrentTheme();
     const themeToggle = document.getElementById('theme-toggle');
     if (themeToggle) {
-        themeToggle.checked = (currentTheme === 'light');
+        themeToggle.checked = (currentTheme === 'swiss');
     }
 }
 
 /**
- * Toggles between light and dark themes
+ * Toggles between Swiss light and dark themes only
  */
 function toggleDarkMode() {
     const currentTheme = getCurrentTheme();
-    const newTheme = currentTheme === 'dark' ? 'light' : 'dark';
+    const newTheme = currentTheme === 'swiss-dark' ? 'swiss' : 'swiss-dark';
+    
     changeTheme(newTheme);
 }
 
