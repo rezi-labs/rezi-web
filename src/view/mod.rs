@@ -4,7 +4,7 @@ use maud::{Markup, html};
 
 pub mod chat;
 mod icons;
-pub mod info;
+
 pub mod items;
 pub mod message;
 mod navbar;
@@ -68,14 +68,11 @@ pub fn index(content: Option<Markup>, reload_polling_active: bool) -> Markup {
             (reload_component(reload_polling_active))
 
 
-            div class="flex h-screen" {
-                div class="w-36 shadow-lg" {
-                    (navbar::render())
-                }
-                div class="flex-1"{
+            div class="min-h-screen bg-base-100" {
+                (navbar::render())
+                main class="container mx-auto px-4 py-6" {
                     (content)
                 }
-
             }
         }
     }

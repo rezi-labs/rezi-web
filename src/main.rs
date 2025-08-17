@@ -77,7 +77,6 @@ async fn main() -> std::io::Result<()> {
             .service(routes::recipes::delete_recipe)
             .service(routes::recipes::edit_recipe)
             .service(routes::recipes::cancel_edit_recipe)
-            .service(view::info::info_endpoint)
             .service(items::index_route)
             .service(routes::messages::send_message)
             .service(routes::messages::set_reply)

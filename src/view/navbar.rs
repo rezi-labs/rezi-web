@@ -1,6 +1,6 @@
 use maud::{Markup, html};
 
-use crate::view::icons::{self, house_icon, info_icon, list_icon, spark_icon, user_icon};
+use crate::view::icons::{self, house_icon, list_icon, spark_icon, user_icon};
 
 pub fn render() -> Markup {
     html! {
@@ -10,66 +10,118 @@ pub fn render() -> Markup {
 
 fn navbar() -> Markup {
     html! {
-        div class="bg-base-100 w-full" {
-            div .mb-4{}
-
-            // Main navigation menu
-            ul class="menu menu-vertical px-1 space-y-2" {
-                li {
-                    a href="/" class="flex items-center gap-3 p-3 rounded-lg hover:bg-base-300" {
-                        (spark_icon())
-                        span { "Rezi" }
-                    }
-                }
-                li {
-                    a href="/items" class="flex items-center gap-3 p-3 rounded-lg hover:bg-base-300" {
-                        (list_icon())
-                        span { "Items" }
-                    }
-                }
-                li {
-                    a href="/recipes" class="flex items-center gap-3 p-3 rounded-lg hover:bg-base-300" {
-                        (house_icon())
-                        span { "Recipes" }
-                    }
-                }
-                li {
-                    a href="/profile" class="flex items-center gap-3 p-3 rounded-lg hover:bg-base-300" {
-                        (user_icon())
-                        span { "Profile" }
-                    }
-                }
-                li {
-                    a href="/info" class="flex items-center gap-3 p-3 rounded-lg hover:bg-base-300" {
-                        (info_icon())
-                        span { "Info" }
-                    }
-                }
-            }
-
-            div class="divider my-4" {}
-
-            // Secondary menu items
-            ul class="menu menu-vertical px-1 space-y-2" {
-                li {
-                    details {
-                        summary class="flex items-center gap-3 p-3 rounded-lg hover:bg-base-300" {
-                            (icons::export_icon())
-                            span { "Export" }
+        nav class="bg-base-100 border-b border-base-200 px-6 py-4" {
+            div class="max-w-7xl mx-auto flex items-center justify-between" {
+                div class="flex items-center" {
+                    a href="/" class="flex items-center gap-3 hover:opacity-80 transition-opacity" {
+                        span class="w-5 h-5 opacity-70" {
+                            (spark_icon())
                         }
-                        ul class="ml-6 mt-2 space-y-1" {
+                        h1 class="text-lg font-light tracking-widest uppercase text-base-content" {
+                            "Rezi"
+                        }
+                    }
+                }
+
+                // Main navigation - Clean links without backgrounds
+                div class="hidden lg:flex items-center gap-8" {
+                    a href="/" class="flex items-center gap-2 text-sm font-medium text-base-content/70 hover:text-base-content transition-colors py-2" {
+                        span class="w-4 h-4 opacity-60" {
+                            (spark_icon())
+                        }
+                        "Chat"
+                    }
+                    a href="/items" class="flex items-center gap-2 text-sm font-medium text-base-content/70 hover:text-base-content transition-colors py-2" {
+                        span class="w-4 h-4 opacity-60" {
+                            (list_icon())
+                        }
+                        "Items"
+                    }
+                    a href="/recipes" class="flex items-center gap-2 text-sm font-medium text-base-content/70 hover:text-base-content transition-colors py-2" {
+                        span class="w-4 h-4 opacity-60" {
+                            (house_icon())
+                        }
+                        "Recipes"
+                    }
+                    a href="/profile" class="flex items-center gap-2 text-sm font-medium text-base-content/70 hover:text-base-content transition-colors py-2" {
+                        span class="w-4 h-4 opacity-60" {
+                            (user_icon())
+                        }
+                        "Profile"
+                    }
+                }
+
+                div class="flex items-center gap-4" {
+                    div class="dropdown dropdown-end" {
+                        div tabindex="0" role="button" class="flex items-center gap-2 text-sm font-medium text-base-content/70 hover:text-base-content transition-colors py-2 cursor-pointer" {
+                            span class="w-4 h-4 opacity-60" {
+                                (icons::export_icon())
+                            }
+                            "Export"
+                            svg class="w-3 h-3 opacity-40" viewBox="0 0 12 12" fill="currentColor" {
+                                path d="M6 9L2 5h8L6 9z" {}
+                            }
+                        }
+                        ul tabindex="0" class="dropdown-content menu bg-base-100 z-[1] w-40 p-2 shadow-lg border border-base-200 rounded-lg mt-2" {
                             li {
-                                a href="/items/csv" hx-swap="none" class="p-2 rounded hover:bg-base-300" {
+                                a href="/items/csv" hx-swap="none" class="text-sm text-base-content/70 hover:text-base-content hover:bg-base-200/50 px-3 py-2 rounded transition-colors" {
+                                    "CSV Export"
+                                }
+                            }
+                        }
+                    }
+
+                    div class="dropdown dropdown-end lg:hidden" {
+                        div tabindex="0" role="button" class="p-2 text-base-content/70 hover:text-base-content transition-colors" {
+                            svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24" {
+                                path stroke-linecap="round" stroke-linejoin="round" stroke-width="1.5" d="M4 6h16M4 12h16M4 18h16" {}
+                            }
+                        }
+                        ul tabindex="0" class="dropdown-content menu bg-base-100 z-[1] w-52 p-3 shadow-lg border border-base-200 rounded-lg mt-2" {
+                            li {
+                                a href="/" class="flex items-center gap-3 text-sm text-base-content/70 hover:text-base-content hover:bg-base-200/50 px-3 py-2 rounded transition-colors" {
+                                    span class="w-4 h-4 opacity-60" {
+                                        (spark_icon())
+                                    }
+                                    "Chat"
+                                }
+                            }
+                            li {
+                                a href="/items" class="flex items-center gap-3 text-sm text-base-content/70 hover:text-base-content hover:bg-base-200/50 px-3 py-2 rounded transition-colors" {
+                                    span class="w-4 h-4 opacity-60" {
+                                        (list_icon())
+                                    }
+                                    "Items"
+                                }
+                            }
+                            li {
+                                a href="/recipes" class="flex items-center gap-3 text-sm text-base-content/70 hover:text-base-content hover:bg-base-200/50 px-3 py-2 rounded transition-colors" {
+                                    span class="w-4 h-4 opacity-60" {
+                                        (house_icon())
+                                    }
+                                    "Recipes"
+                                }
+                            }
+                            li {
+                                a href="/profile" class="flex items-center gap-3 text-sm text-base-content/70 hover:text-base-content hover:bg-base-200/50 px-3 py-2 rounded transition-colors" {
+                                    span class="w-4 h-4 opacity-60" {
+                                        (user_icon())
+                                    }
+                                    "Profile"
+                                }
+                            }
+                            div class="border-t border-base-200 my-2" {}
+                            li {
+                                a href="/items/csv" hx-swap="none" class="flex items-center gap-3 text-xs text-base-content/60 hover:text-base-content hover:bg-base-200/50 px-3 py-2 rounded transition-colors" {
+                                    span class="w-3 h-3 opacity-60" {
+                                        (icons::export_icon())
+                                    }
                                     "CSV Export"
                                 }
                             }
                         }
                     }
                 }
-
-
-
-
             }
         }
     }

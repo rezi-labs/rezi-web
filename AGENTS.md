@@ -21,3 +21,13 @@
 - Async handlers return `Result<Markup>` or `Result<HttpResponse>`
 - Log with `log::info!`, `log::error!` etc.
 - Use Actix-web attributes: `#[get("/path")]`, `#[post("/path")]` etc.
+
+## Libraries
+
+- use htmx where possible
+- use daisy ui first and not tailwind where possible, see daisyui.llm.txt for documentation
+- use tailwind second and not css third.
+- use css fourth and not js fifth.
+
+## Styling
+- always use swiss design principles
