@@ -28,36 +28,6 @@ The desktop application must maintain the core Swiss design principles:
 
 ### Phase 1: Foundation & Architecture (Weeks 1-2)
 
-#### 1.1 Choose Desktop Framework
-**Recommended**: Tauri (Rust + Web Frontend)
-- Maintains current Rust backend logic
-- Allows reuse of existing HTML/CSS/JS
-- Small bundle size
-- Native OS integration
-- Security-focused
-
-**Alternative Options**:
-- Electron (larger bundle, familiar web tech stack)
-- Native frameworks (Qt, GTK, platform-specific)
-
-#### 1.2 Project Structure Setup
-```
-rezi-desktop/
-├── src-tauri/          # Rust backend
-│   ├── src/
-│   │   ├── main.rs
-│   │   ├── database/   # Port existing database logic
-│   │   ├── llm/        # Port LLM integration
-│   │   └── commands/   # Tauri commands
-├── src/                # Frontend
-│   ├── components/
-│   ├── pages/
-│   ├── styles/
-│   └── utils/
-├── assets/
-└── dist/
-```
-
 #### 1.3 Database Layer Migration
 - **SQLite Local Database**: Replace LibSQL with local SQLite
 - **Schema Migration**: Port existing table structures from `migrations/`
