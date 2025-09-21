@@ -1,5 +1,13 @@
 # Changelog
 
+## [0.13.1](https://github.com/rezi-labs/rezi-web/compare/v0.13.0...v0.13.1) (2025-09-21)
+
+
+### Bug Fixes
+
+* force version ([9f592cb](https://github.com/rezi-labs/rezi-web/commit/9f592cb0eafea9d7be3778bc7d4f8c4842cb556b))
+* remove enk ([e95f148](https://github.com/rezi-labs/rezi-web/commit/e95f14856e7de1a5cec94599f26b2f8c763c9cd0))
+
 ## [0.13.0](https://github.com/rezi-labs/rezi-web/compare/v0.12.3...v0.13.0) (2025-08-18)
 
 
