@@ -70,16 +70,6 @@ pub async fn run(client: &DBClient) {
             .expect("recipes indexes migration failed");
     }
 
-    let messages_reply = include_str!("../../migrations/messages_reply.sql");
-    {
-        let client = super::unlock_client(client).await;
-        client
-            .get_connection()
-            .execute_batch(messages_reply)
-            .await
-            .expect("messages_reply migration failed");
-    }
-
     log::info!("Recipes indexes migration completed");
 
     log::info!("All database migrations completed successfully");

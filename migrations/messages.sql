@@ -5,5 +5,6 @@ CREATE TABLE IF NOT EXISTS messages (
     content TEXT NOT NULL,
     ai_response TEXT NOT NULL,
     is_user BOOLEAN NOT NULL DEFAULT FALSE,
-    created_at DATETIME DEFAULT CURRENT_TIMESTAMP
+    created_at DATETIME DEFAULT CURRENT_TIMESTAMP,
+    reply_to_id INTEGER REFERENCES messages(id)
 );
