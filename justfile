@@ -1,7 +1,7 @@
 import 'docker.just'
 import? 'private.just'
 
-image_name := "ghcr.io/lunchtimecode/rezi-web"
+image_name := "ghcr.io/rezi-labs/rezi-web"
 export NEST_API_KEY := "hello_world"
 
 docker: db
