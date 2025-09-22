@@ -1,5 +1,12 @@
 # Changelog
 
+## [0.13.2](https://github.com/rezi-labs/rezi-web/compare/v0.13.1...v0.13.2) (2025-09-22)
+
+
+### Bug Fixes
+
+* deploy ([268e8ad](https://github.com/rezi-labs/rezi-web/commit/268e8ade1fcf74c05e70364e90fce1435527f88e))
+
 ## [0.13.1](https://github.com/rezi-labs/rezi-web/compare/v0.13.0...v0.13.1) (2025-09-21)
 
 
