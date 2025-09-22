@@ -1,5 +1,12 @@
 # Changelog
 
+## [0.13.4](https://github.com/rezi-labs/rezi-web/compare/v0.13.3...v0.13.4) (2025-09-22)
+
+
+### Bug Fixes
+
+* db migration ([930263b](https://github.com/rezi-labs/rezi-web/commit/930263bee0b0cca1741607829cbd73d8877c6c5f))
+
 ## [0.13.3](https://github.com/rezi-labs/rezi-web/compare/v0.13.2...v0.13.3) (2025-09-22)
 
 
