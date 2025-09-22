@@ -1,6 +1,6 @@
 ## Rezi
 
-A ai assisted grocery list.
+A (ai assisted) grocery list.
 
 ### Why
 
