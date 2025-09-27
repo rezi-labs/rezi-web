@@ -2,7 +2,7 @@ name: build
 
 on:
   push:
-    branches: [ main ]
+    branches: [main]
   pull_request:
   workflow_dispatch:
 
@@ -16,19 +16,21 @@ jobs:
       issues: read
       checks: write
       pull-requests: write
-    steps:  
+    steps:
       - uses: actions/checkout@v4
         with:
-         fetch-depth: 0 # Fetch the whole history and tags.
+          fetch-depth: 0 # Fetch the whole history and tags.
       - uses: dtolnay/rust-toolchain@stable
       - uses: Swatinem/rust-cache@v2
+        with:
+          components: clippy, rustfmt
 
       - name: install hurl
         uses: rezi-labs/install-hurl@main
-        
+
       - name: install just
         uses: rezi-labs/install-just@main
-          
+
       - run: just verify
 
   # Prepare a release PR or release
@@ -51,30 +53,29 @@ jobs:
 
   # Publish the artifacts (only if `verify` passed, and `release` created release)
   publish:
-    needs: [ verify, release ]
+    needs: [verify, release]
     if: needs.verify.result == 'success' && needs.release.outputs.released
     runs-on: ubuntu-latest
     timeout-minutes: 30
     permissions:
-        contents: read
-        packages: write
-        attestations: write
-        id-token: write
+      contents: read
+      packages: write
+      attestations: write
+      id-token: write
     steps:
       - uses: actions/checkout@v4
-      
+
       - name: install hurl
         uses: rezi-labs/install-hurl@main
-        
+
       - name: install just
         uses: rezi-labs/install-just@main
-        
+
       - uses: docker/login-action@v3
         with:
           registry: ghcr.io
           username: SilenLoc
           password: ${{ secrets.MY_RELEASE_PLEASE_TOKEN }}
       - run: |
-            just push
-        shell: bash    
-            
+          just push
+        shell: bash
