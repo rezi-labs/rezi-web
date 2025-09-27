@@ -1,5 +1,12 @@
 # Changelog
 
+## [0.13.6](https://github.com/rezi-labs/rezi-web/compare/v0.13.5...v0.13.6) (2025-09-27)
+
+
+### Bug Fixes
+
+* log headers ([4814175](https://github.com/rezi-labs/rezi-web/commit/48141755be0368f1c35716d176f20e7d8d8684a0))
+
 ## [0.13.5](https://github.com/rezi-labs/rezi-web/compare/v0.13.4...v0.13.5) (2025-09-27)
 
 
