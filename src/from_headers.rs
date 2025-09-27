@@ -1,4 +1,5 @@
 use actix_web::dev::ServiceRequest;
+use log::info;
 use serde::Deserialize;
 
 #[derive(Deserialize, Clone, Debug)]
@@ -49,6 +50,8 @@ pub fn get_user_from_headers(req: &ServiceRequest) -> Result<User, String> {
         .and_then(|h| h.to_str().ok())
         .ok_or("Missing X-Forwarded-Email header")?
         .to_string();
+
+    info!("{headers:?}");
 
     Ok(User::new(user_id, email))
 }
