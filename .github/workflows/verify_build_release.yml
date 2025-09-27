@@ -21,9 +21,9 @@ jobs:
         with:
           fetch-depth: 0 # Fetch the whole history and tags.
       - uses: dtolnay/rust-toolchain@stable
-      - uses: Swatinem/rust-cache@v2
         with:
           components: clippy, rustfmt
+      - uses: Swatinem/rust-cache@v2
 
       - name: install hurl
         uses: rezi-labs/install-hurl@main
