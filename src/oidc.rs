@@ -82,7 +82,7 @@ impl OidcClient {
 
     pub async fn discover(&mut self) -> Result<(), Box<dyn std::error::Error>> {
         let discovery_url = format!(
-            "{}/.well-known/openid_configuration",
+            "{}/.well-known/openid-configuration",
             self.config.issuer_url
         );
         let discovery: OidcDiscovery = self.client.get(&discovery_url).send().await?.json().await?;
