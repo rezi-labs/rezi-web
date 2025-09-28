@@ -87,9 +87,9 @@ impl OidcClient {
         );
         let response = self.client.get(&discovery_url).send().await?;
         let json_body = response.text().await?;
-        
-        log::info!("OIDC discovery response body: {}", json_body);
-        
+
+        log::info!("OIDC discovery response body: {json_body}");
+
         let discovery: OidcDiscovery = serde_json::from_str(&json_body)?;
 
         self.discovery = Some(discovery);
