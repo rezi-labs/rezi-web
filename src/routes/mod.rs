@@ -7,6 +7,7 @@ use crate::database::DBClient;
 use crate::{from_headers, llm};
 
 pub mod assets;
+pub mod auth;
 pub mod items;
 pub mod messages;
 pub mod recipes;

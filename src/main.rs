@@ -1,14 +1,22 @@
+use actix_session::{SessionMiddleware, storage::CookieSessionStore};
+use actix_web::cookie::Key;
 use actix_web::{App, HttpServer, middleware::Logger, middleware::from_fn, web};
 use env_logger::Env;
 use std::sync::{Arc, Mutex};
 
-use crate::{database::DBClient, view::items};
+use crate::{
+    database::DBClient,
+    oidc::{OidcClient, OidcConfig},
+    view::items,
+};
 
 mod config;
 mod csv;
 mod database;
 mod from_headers;
 mod llm;
+mod oidc;
+mod oidc_user;
 mod routes;
 mod scrapy;
 mod user;
@@ -53,6 +61,22 @@ async fn main() -> std::io::Result<()> {
 
     let reload: ReloadArc = Arc::new(Mutex::new(Reload::default()));
 
+    let oidc_config = OidcConfig::from_env();
+    let mut oidc_client = OidcClient::new(oidc_config);
+
+    if let Err(e) = oidc_client.discover().await {
+        log::warn!(
+            "Failed to discover OIDC endpoints: {}. OIDC authentication will be disabled.",
+            e
+        );
+    }
+
+    let oidc_client_arc = Arc::new(Mutex::new(oidc_client));
+
+    let secret_key = std::env::var("SESSION_SECRET")
+        .unwrap_or_else(|_| "your-secret-key-change-this-in-production".to_string());
+    let secret_key = Key::from(secret_key.as_bytes());
+
     let url = format!("http://{}:{}", c.host(), c.port());
 
     println!("{}", rezi_asci_art());
@@ -63,10 +87,22 @@ async fn main() -> std::io::Result<()> {
         App::new()
             .wrap(Logger::default().exclude("/reload"))
             .wrap(Logger::new("%a %{User-Agent}i").exclude("/reload"))
+            .wrap(
+                SessionMiddleware::builder(CookieSessionStore::default(), secret_key.clone())
+                    .cookie_name("rezi_session".to_string())
+                    .cookie_secure(false) // Set to true in production with HTTPS
+                    .cookie_http_only(true)
+                    .build(),
+            )
             .app_data(web::Data::new(shared_orm_db.clone()))
             .app_data(web::Data::new(c.clone()))
             .app_data(web::Data::new(reload.clone()))
-            .wrap(from_fn(user::user_extractor))
+            .app_data(web::Data::new(oidc_client_arc.clone()))
+            // .wrap(from_fn(auth_middleware::require_auth_middleware)) // Disabled for now
+            .wrap(from_fn(oidc_user::user_extractor))
+            .service(routes::auth::login)
+            .service(routes::auth::callback)
+            .service(routes::auth::logout)
             .service(view::index_route)
             .service(view::chat_endpoint)
             .service(view::profile::profile_endpoint)

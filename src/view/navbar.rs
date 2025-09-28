@@ -71,6 +71,14 @@ fn navbar() -> Markup {
                         }
                     }
 
+                    // Authentication links can be added here when needed
+                    a href="/auth/login" class="flex items-center gap-2 text-sm font-medium text-base-content/70 hover:text-base-content transition-colors py-2" {
+                        span class="w-4 h-4 flex items-center justify-center opacity-60" {
+                            (user_icon())
+                        }
+                        "Sign In"
+                    }
+
                     div class="dropdown dropdown-end lg:hidden" {
                         div tabindex="0" role="button" class="p-2 text-base-content/70 hover:text-base-content transition-colors" {
                             svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24" {

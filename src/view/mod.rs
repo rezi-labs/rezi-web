@@ -4,8 +4,8 @@ use maud::{Markup, html};
 
 pub mod chat;
 mod icons;
-
 pub mod items;
+pub mod login;
 pub mod message;
 mod navbar;
 pub mod profile;

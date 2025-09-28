@@ -28,6 +28,11 @@ reqwest = { version = "0.12", default-features = false, features = [
 ] }
 serde = { version = "1.0", features = ["derive"] }
 serde_json = "1.0"
+uuid = { version = "1.0", features = ["v4", "serde"] }
+base64 = "0.22"
+sha2 = "0.10"
+actix-session = { version = "0.10", features = ["cookie-session"] }
+urlencoding = "2.1"
 
 tokio = { version = "1.0", features = ["full"] }
 url = "2.5.4"
