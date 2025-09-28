@@ -72,7 +72,7 @@ fn navbar() -> Markup {
                     }
 
                     // Authentication links can be added here when needed
-                    a href="/auth/login" class="flex items-center gap-2 text-sm font-medium text-base-content/70 hover:text-base-content transition-colors py-2" {
+                    a href="/login" class="flex items-center gap-2 text-sm font-medium text-base-content/70 hover:text-base-content transition-colors py-2" {
                         span class="w-4 h-4 flex items-center justify-center opacity-60" {
                             (user_icon())
                         }

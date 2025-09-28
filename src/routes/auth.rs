@@ -1,13 +1,20 @@
 use crate::oidc::{AuthState, OidcClient};
+use crate::view::login;
 use actix_session::Session;
 use actix_web::{HttpRequest, HttpResponse, Result, get, web};
-use std::sync::{Arc, Mutex};
+use maud::Markup;
+use std::sync::Arc;
 use uuid::Uuid;
 
-type OidcClientArc = Arc<Mutex<OidcClient>>;
+type OidcClientArc = Arc<tokio::sync::Mutex<OidcClient>>;
+
+#[get("/login")]
+pub async fn login_page() -> Result<Markup> {
+    Ok(login::login_page())
+}
 
 #[get("/auth/login")]
-pub async fn login(
+pub async fn auth_login(
     req: HttpRequest,
     session: Session,
     oidc_client: web::Data<OidcClientArc>,
@@ -29,11 +36,11 @@ pub async fn login(
 
     session.insert("auth_state", &auth_state)?;
 
-    let client = oidc_client.lock().unwrap();
+    let client = oidc_client.lock().await;
     let auth_url = client
         .build_auth_url(&state, &code_challenge, auth_state.redirect_url.clone())
         .map_err(|e| {
-            actix_web::error::ErrorInternalServerError(format!("Failed to build auth URL: {}", e))
+            actix_web::error::ErrorInternalServerError(format!("Failed to build auth URL: {e}"))
         })?;
 
     Ok(HttpResponse::Found()
@@ -69,21 +76,25 @@ pub async fn callback(
         return Err(actix_web::error::ErrorBadRequest("Invalid state parameter"));
     }
 
-    let client = oidc_client.lock().unwrap();
+    let token_response = {
+        let client = oidc_client.lock().await;
+        client
+            .exchange_code(code, &auth_state.code_verifier)
+            .await
+            .map_err(|e| {
+                actix_web::error::ErrorInternalServerError(format!("Token exchange failed: {e}"))
+            })?
+    };
 
-    let token_response = client
-        .exchange_code(code, &auth_state.code_verifier)
-        .await
-        .map_err(|e| {
-            actix_web::error::ErrorInternalServerError(format!("Token exchange failed: {}", e))
-        })?;
-
-    let user_info_result = client
-        .get_user_info(&token_response.access_token)
-        .await
-        .map_err(|e| {
-            actix_web::error::ErrorInternalServerError(format!("Failed to get user info: {}", e))
-        })?;
+    let user_info_result = {
+        let client = oidc_client.lock().await;
+        client
+            .get_user_info(&token_response.access_token)
+            .await
+            .map_err(|e| {
+                actix_web::error::ErrorInternalServerError(format!("Failed to get user info: {e}"))
+            })?
+    };
 
     session.insert("user", &user_info_result)?;
     session.remove("auth_state");

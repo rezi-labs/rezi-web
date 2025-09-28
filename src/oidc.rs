@@ -193,6 +193,7 @@ impl OidcClient {
     }
 }
 
+#[allow(unused)]
 pub fn is_authenticated(session: &Session) -> bool {
     session.get::<UserInfo>("user").unwrap_or(None).is_some()
 }
@@ -201,6 +202,7 @@ pub fn get_user_from_session(session: &Session) -> Option<UserInfo> {
     session.get::<UserInfo>("user").unwrap_or(None)
 }
 
+#[allow(unused)]
 pub fn require_auth(session: &Session, current_path: &str) -> Result<Option<HttpResponse>> {
     if !is_authenticated(session) {
         let login_url = format!(

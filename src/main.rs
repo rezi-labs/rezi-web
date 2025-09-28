@@ -19,7 +19,6 @@ mod oidc;
 mod oidc_user;
 mod routes;
 mod scrapy;
-mod user;
 mod view;
 mod witch;
 
@@ -65,13 +64,10 @@ async fn main() -> std::io::Result<()> {
     let mut oidc_client = OidcClient::new(oidc_config);
 
     if let Err(e) = oidc_client.discover().await {
-        log::warn!(
-            "Failed to discover OIDC endpoints: {}. OIDC authentication will be disabled.",
-            e
-        );
+        log::warn!("Failed to discover OIDC endpoints: {e}. OIDC authentication will be disabled.",);
     }
 
-    let oidc_client_arc = Arc::new(Mutex::new(oidc_client));
+    let oidc_client_arc = Arc::new(tokio::sync::Mutex::new(oidc_client));
 
     let secret_key = std::env::var("SESSION_SECRET")
         .unwrap_or_else(|_| "your-secret-key-change-this-in-production".to_string());
@@ -100,7 +96,8 @@ async fn main() -> std::io::Result<()> {
             .app_data(web::Data::new(oidc_client_arc.clone()))
             // .wrap(from_fn(auth_middleware::require_auth_middleware)) // Disabled for now
             .wrap(from_fn(oidc_user::user_extractor))
-            .service(routes::auth::login)
+            .service(routes::auth::login_page)
+            .service(routes::auth::auth_login)
             .service(routes::auth::callback)
             .service(routes::auth::logout)
             .service(view::index_route)
