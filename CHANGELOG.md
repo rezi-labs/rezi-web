@@ -1,5 +1,12 @@
 # Changelog
 
+## [0.14.1](https://github.com/rezi-labs/rezi-web/compare/v0.14.0...v0.14.1) (2025-09-28)
+
+
+### Bug Fixes
+
+* open id config url ([6052c77](https://github.com/rezi-labs/rezi-web/commit/6052c7795e822d97aeb0129b890f371bd2e702cf))
+
 ## [0.14.0](https://github.com/rezi-labs/rezi-web/compare/v0.13.6...v0.14.0) (2025-09-28)
 
 
