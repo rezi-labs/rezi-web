@@ -1,5 +1,13 @@
 # Changelog
 
+## [0.14.2](https://github.com/rezi-labs/rezi-web/compare/v0.14.1...v0.14.2) (2025-09-28)
+
+
+### Bug Fixes
+
+* format ([73285da](https://github.com/rezi-labs/rezi-web/commit/73285da6844e359feceafcd525a48ded3cf10bd4))
+* log json biody ([924fcfb](https://github.com/rezi-labs/rezi-web/commit/924fcfb62deeb06d8b3da78cbc9b84f9eb1d77cc))
+
 ## [0.14.1](https://github.com/rezi-labs/rezi-web/compare/v0.14.0...v0.14.1) (2025-09-28)
 
 
