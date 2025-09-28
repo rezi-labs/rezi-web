@@ -85,7 +85,12 @@ impl OidcClient {
             "{}/.well-known/openid-configuration",
             self.config.issuer_url
         );
-        let discovery: OidcDiscovery = self.client.get(&discovery_url).send().await?.json().await?;
+        let response = self.client.get(&discovery_url).send().await?;
+        let json_body = response.text().await?;
+        
+        log::info!("OIDC discovery response body: {}", json_body);
+        
+        let discovery: OidcDiscovery = serde_json::from_str(&json_body)?;
 
         self.discovery = Some(discovery);
         Ok(())
