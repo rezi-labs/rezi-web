@@ -1,5 +1,18 @@
 # Changelog
 
+## [0.14.0](https://github.com/rezi-labs/rezi-web/compare/v0.13.6...v0.14.0) (2025-09-28)
+
+
+### Features
+
+* integrated oidc ([8a81f2e](https://github.com/rezi-labs/rezi-web/commit/8a81f2ee8973109f6fe78aa3667a0c15ea0f0bfe))
+* integrated oidc ([7ef0e4a](https://github.com/rezi-labs/rezi-web/commit/7ef0e4aee5ecfa5260da72a9b52645a9bb335911))
+
+
+### Bug Fixes
+
+* clippy / lock held ([eeec680](https://github.com/rezi-labs/rezi-web/commit/eeec680cc8bbb664133948eb545e97b9fdc1ecdf))
+
 ## [0.13.6](https://github.com/rezi-labs/rezi-web/compare/v0.13.5...v0.13.6) (2025-09-27)
 
 
