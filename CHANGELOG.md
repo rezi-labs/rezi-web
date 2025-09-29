@@ -1,5 +1,21 @@
 # Changelog
 
+## [0.15.0](https://github.com/rezi-labs/rezi-web/compare/v0.14.3...v0.15.0) (2025-09-29)
+
+
+### Features
+
+* about ([40a354e](https://github.com/rezi-labs/rezi-web/commit/40a354e1e51202c1835f00391ca9ec1a0fdf0652))
+* about ([c4e0a52](https://github.com/rezi-labs/rezi-web/commit/c4e0a5283d0810d0053857fb0fbbf8f6064c94d4))
+* changelog ([db90d4b](https://github.com/rezi-labs/rezi-web/commit/db90d4b7faf300bd7f39d49fc9912461c1a22108))
+* log in and log out ([3db3788](https://github.com/rezi-labs/rezi-web/commit/3db3788b4556443c1f7606ff8c6f87a37059f69c))
+
+
+### Bug Fixes
+
+* about tabs ([6c5b279](https://github.com/rezi-labs/rezi-web/commit/6c5b279ca5a7438a8408362efa73b7879d62ad4f))
+* changlog format ([b2b031a](https://github.com/rezi-labs/rezi-web/commit/b2b031aff783d6d60649322be8852b6388c76b73))
+
 ## [0.14.3](https://github.com/rezi-labs/rezi-web/compare/v0.14.2...v0.14.3) (2025-09-29)
 
 
