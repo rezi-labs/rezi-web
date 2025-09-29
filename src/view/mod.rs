@@ -63,8 +63,6 @@ pub fn index(content: Option<Markup>, _reload_polling_active: bool) -> Markup {
             (css("/assets/daisy.css"))
             (css("/assets/themes.css"))
             (css("/assets/app.css"))
-            (js("/assets/tailwind_typography.js"))
-            (js("/assets/tailwind_plugins.js"))
             link rel="icon" href="/assets/grocy.svg" sizes="any" type="image/svg+xml" {}
 
         }

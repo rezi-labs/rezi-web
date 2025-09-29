@@ -1,5 +1,5 @@
-use maud::{Markup, PreEscaped, html};
 use markdown;
+use maud::{Markup, PreEscaped, html};
 
 use crate::{
     database::messages::ChatMessage,

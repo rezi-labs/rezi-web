@@ -25,8 +25,8 @@ impl User {
         let last_name = split.next().unwrap_or("User");
         format!(
             "{}{}",
-            first_name.chars().next().unwrap_or(' '),
-            last_name.chars().next().unwrap_or(' ')
+            first_name.chars().next().unwrap_or(' ').to_uppercase(),
+            last_name.chars().next().unwrap_or(' ').to_uppercase()
         )
     }
 }

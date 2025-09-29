@@ -16,21 +16,16 @@ lazy_static! {
         )
         .unwrap();
 
-        format!(
-            "<div class=\"space-y-6 prose prose-lg max-w-none \">{}</div>",
-            html_output
-        )
+        format!("<div class=\"space-y-6\">{}</div>", html_output)
     };
 }
 
 pub fn about() -> Markup {
     html! {
         div class="max-w-6xl mx-auto h-full" {
-            div class="bg-base-200 rounded-lg h-full max-h-[calc(100vh-200px)] min-h-[400px] overflow-y-auto p-6" {
+            div class="rounded-lg h-full max-h-[calc(100vh-200px)] min-h-[400px] overflow-y-auto p-6" {
                 div class="prose prose-lg max-w-none" {
-                    article class="bg-base-100 p-6 rounded-lg" {
                         (PreEscaped(&*README_HTML))
-                    }
                 }
             }
         }

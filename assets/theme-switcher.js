@@ -61,7 +61,6 @@ function changeTheme(theme, persist = true) {
         });
         document.dispatchEvent(themeChangeEvent);
 
-        console.log(`Theme switched to: ${normalizedTheme}`);
         return true;
 
     } catch (error) {
@@ -215,4 +214,3 @@ window.applyRandomTheme = applyRandomTheme;
 window.getRandomTheme = getRandomTheme;
 window.getAvailableThemes = getAvailableThemes;
 
-console.log('Theme switcher loaded, toggleTheme available:', typeof window.toggleTheme);
