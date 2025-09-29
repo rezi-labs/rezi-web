@@ -238,3 +238,33 @@ pub fn require_auth(session: &Session, current_path: &str) -> Result<Option<Http
     }
     Ok(None)
 }
+
+pub async fn user_extractor(
+    req: actix_web::dev::ServiceRequest,
+    next: actix_web::middleware::Next<impl actix_web::body::MessageBody>,
+) -> Result<actix_web::dev::ServiceResponse<impl actix_web::body::MessageBody>, actix_web::Error> {
+    use actix_session::SessionExt;
+    use actix_web::{HttpMessage, web::Data};
+    use log::{debug, info, warn};
+
+    let config = req.app_data::<Data<crate::config::Server>>().unwrap();
+    let session = req.get_session();
+
+    let user: Option<crate::user::User> = if config.fake_user() {
+        let u = crate::user::User::new("0".to_string(), "guest@gmx.com".to_string());
+        warn!("Using fake user");
+        Some(u)
+    } else if let Some(oidc_user) = get_user_from_session(&session) {
+        let u = crate::user::User::new(oidc_user.sub, oidc_user.email);
+        debug!("Using OIDC user");
+        Some(u)
+    } else {
+        info!("No user found, anonymous");
+        None
+    };
+
+    if let Some(user) = user {
+        req.extensions_mut().insert(Data::new(user));
+    }
+    next.call(req).await
+}

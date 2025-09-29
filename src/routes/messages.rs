@@ -39,14 +39,12 @@ pub async fn send_message(
 
     log::info!("Received chat message: {}", form.message);
     let db_client: &DBClient = client.get_ref();
-    // delay if delay is on
     if config.delay() {
         tokio::time::sleep(std::time::Duration::from_millis(2000)).await;
     }
 
     let message = form.message.clone();
 
-    // Handle reply context
     let reply_context = if let Some(reply_id_str) = &form.reply_to_id {
         if !reply_id_str.is_empty() {
             if let Ok(reply_id) = reply_id_str.parse::<i64>() {
@@ -61,7 +59,6 @@ pub async fn send_message(
         None
     };
 
-    // Build the message content with reply context for the AI
     let ai_message_content = if let Some(ref reply_msg) = reply_context {
         format!(
             "REPLY TO: [{}]: \"{}\"\n\nUSER MESSAGE: {}",

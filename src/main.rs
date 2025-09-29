@@ -16,7 +16,6 @@ mod csv;
 mod database;
 mod llm;
 mod oidc;
-mod oidc_user;
 mod routes;
 mod scrapy;
 mod user;
@@ -82,7 +81,7 @@ async fn main() -> std::io::Result<()> {
         App::new()
             .wrap(Logger::default().exclude("/reload"))
             .wrap(Logger::new("%a %{User-Agent}i").exclude("/reload"))
-            .wrap(from_fn(oidc_user::user_extractor))
+            .wrap(from_fn(oidc::user_extractor))
             .wrap(
                 SessionMiddleware::builder(CookieSessionStore::default(), secret_key.clone())
                     .cookie_name("rezi_session".to_string())
