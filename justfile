@@ -3,6 +3,7 @@ import? 'private.just'
 
 image_name := "ghcr.io/rezi-labs/rezi-web"
 export NEST_API_KEY := "hello_world"
+export LOCAL :="true"
 
 docker: db
     docker compose up
@@ -33,3 +34,6 @@ lint:
 fmt:
     cargo fmt
     cargo fix --allow-dirty --allow-staged
+
+generate-session-secret:
+    openssl rand -base64 64

@@ -8,10 +8,14 @@ use actix_web::{
     dev::{ServiceRequest, ServiceResponse},
     middleware::Next,
 };
+use log::debug;
+use log::info;
+use log::warn;
 
 use crate::config::Server;
-use crate::from_headers;
 use crate::oidc;
+use crate::user;
+use crate::user::User;
 
 pub async fn user_extractor(
     req: ServiceRequest,
@@ -21,22 +25,21 @@ pub async fn user_extractor(
 
     let session = req.get_session();
 
-    let user = if config.get_user_from_headers() {
-        match from_headers::get_user_from_headers(&req) {
-            Ok(user) => user,
-            Err(e) => {
-                log::error!("could not get user from headers: {e}");
-                return Err(actix_web::error::ErrorBadRequest(
-                    "missing required headers",
-                ));
-            }
-        }
+    let user: Option<User> = if config.fake_user() {
+        let u = user::User::new("0".to_string(), "guest@gmx.com".to_string());
+        warn!("Using fake user");
+        Some(u)
     } else if let Some(oidc_user) = oidc::get_user_from_session(&session) {
-        from_headers::User::new(oidc_user.sub, oidc_user.email)
+        let u = user::User::new(oidc_user.sub, oidc_user.email);
+        debug!("Using OIDC user");
+        Some(u)
     } else {
-        from_headers::User::new("0".to_string(), "guest@gmx.com".to_string())
+        info!("No user found, anonymous");
+        None
     };
 
-    req.extensions_mut().insert(Data::new(user));
+    if let Some(user) = user {
+        req.extensions_mut().insert(Data::new(user));
+    }
     next.call(req).await
 }

@@ -95,15 +95,6 @@ pub fn house_icon() -> Markup {
     }
 }
 
-pub fn send_icon() -> Markup {
-    html! {
-        svg xmlns="http://www.w3.org/2000/svg" height="24px" viewBox="0 -960 960 960" width="24px" fill="#000000" {
-            path d="M120-160v-640l760 320-760 320Zm80-120 474-200-474-200v140l240 60-240 60v140Zm0 0v-400 400Z" {
-            }
-        }
-    }
-}
-
 pub fn export_icon() -> Markup {
     html! {
         svg class="w-full h-full" xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke-width="1.5" stroke="currentColor" {

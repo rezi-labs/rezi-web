@@ -1,7 +1,7 @@
 use actix_web::error::ParseError;
-use actix_web::{HttpRequest, Result, post, web};
+use actix_web::{HttpRequest, HttpResponse, Result, post, web};
 use chrono::Utc;
-use maud::{Markup, html};
+use maud::html;
 use serde::Deserialize;
 use url::Url;
 
@@ -31,8 +31,11 @@ pub async fn send_message(
     client: web::Data<DBClient>,
     config: web::Data<Server>,
     req: HttpRequest,
-) -> Result<Markup> {
-    let user = super::get_user(req).unwrap();
+) -> Result<HttpResponse> {
+    let user = match super::get_user_or_redirect(&req) {
+        Ok(user) => user,
+        Err(response) => return Ok(response),
+    };
 
     log::info!("Received chat message: {}", form.message);
     let db_client: &DBClient = client.get_ref();
@@ -183,14 +186,18 @@ pub async fn send_message(
     };
 
     // Return both messages as HTML
-    Ok(html! {
+    let markup = html! {
             (message::render_with_reply_context(&user_message, Some(user.to_owned()), reply_context.as_ref()))
             (message::render(&ai_message, None))
             script {
                 "document.getElementById('reply-context').innerHTML = '<div class=\"hidden\"></div>';"
                 "document.getElementById('reply-to-id').value = '';"
             }
-    })
+    };
+
+    Ok(HttpResponse::Ok()
+        .content_type("text/html; charset=utf-8")
+        .body(markup.into_string()))
 }
 
 #[post("chat/reply")]
@@ -198,8 +205,11 @@ pub async fn set_reply(
     form: web::Form<ReplyRequest>,
     client: web::Data<DBClient>,
     req: HttpRequest,
-) -> Result<Markup> {
-    let user = super::get_user(req).unwrap();
+) -> Result<HttpResponse> {
+    let user = match super::get_user_or_redirect(&req) {
+        Ok(user) => user,
+        Err(response) => return Ok(response),
+    };
     let db_client: &DBClient = client.get_ref();
 
     let message_id = match form.message_id.parse::<i64>() {
@@ -217,7 +227,7 @@ pub async fn set_reply(
                 form.content.clone()
             };
 
-            Ok(html! {
+            let markup = html! {
                 div class="bg-base-300 p-2 rounded mb-2 border-l-4 border-primary text-sm" {
                     div class="flex justify-between items-center" {
                         div {
@@ -234,22 +244,33 @@ pub async fn set_reply(
                     "document.getElementById('reply-to-id').value = '" (message_id) "';"
                     "document.getElementById('reply-input').focus();"
                 }
-            })
+            };
+
+            Ok(HttpResponse::Ok()
+                .content_type("text/html; charset=utf-8")
+                .body(markup.into_string()))
         }
         None => Err(actix_web::error::ErrorNotFound("Message not found")),
     }
 }
 
 #[post("chat/clear-reply")]
-pub async fn clear_reply(req: HttpRequest) -> Result<Markup> {
-    let _user = super::get_user(req).unwrap();
+pub async fn clear_reply(req: HttpRequest) -> Result<HttpResponse> {
+    let _user = match super::get_user_or_redirect(&req) {
+        Ok(user) => user,
+        Err(response) => return Ok(response),
+    };
 
-    Ok(html! {
+    let markup = html! {
         div class="hidden" {
             // Empty reply context
         }
         script {
             "document.getElementById('reply-to-id').value = '';"
         }
-    })
+    };
+
+    Ok(HttpResponse::Ok()
+        .content_type("text/html; charset=utf-8")
+        .body(markup.into_string()))
 }

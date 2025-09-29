@@ -1,3 +1,4 @@
+use actix_session::config::PersistentSession;
 use actix_session::{SessionMiddleware, storage::CookieSessionStore};
 use actix_web::cookie::Key;
 use actix_web::{App, HttpServer, middleware::Logger, middleware::from_fn, web};
@@ -13,12 +14,12 @@ use crate::{
 mod config;
 mod csv;
 mod database;
-mod from_headers;
 mod llm;
 mod oidc;
 mod oidc_user;
 mod routes;
 mod scrapy;
+mod user;
 mod view;
 mod witch;
 
@@ -58,8 +59,6 @@ async fn main() -> std::io::Result<()> {
     let shared_orm_db: DBClient = Arc::new(Mutex::new(orm_db));
     database::migrations::run(&shared_orm_db).await;
 
-    let reload: ReloadArc = Arc::new(Mutex::new(Reload::default()));
-
     let oidc_config = OidcConfig::from_env();
     let mut oidc_client = OidcClient::new(oidc_config);
 
@@ -83,19 +82,23 @@ async fn main() -> std::io::Result<()> {
         App::new()
             .wrap(Logger::default().exclude("/reload"))
             .wrap(Logger::new("%a %{User-Agent}i").exclude("/reload"))
+            .wrap(from_fn(oidc_user::user_extractor))
             .wrap(
                 SessionMiddleware::builder(CookieSessionStore::default(), secret_key.clone())
                     .cookie_name("rezi_session".to_string())
-                    .cookie_secure(false) // Set to true in production with HTTPS
+                    .cookie_secure(!c.local()) // Temporarily disable for debugging
                     .cookie_http_only(true)
+                    .cookie_same_site(actix_web::cookie::SameSite::Lax)
+                    .cookie_path("/".to_string())
+                    .session_lifecycle(
+                        PersistentSession::default()
+                            .session_ttl(actix_web::cookie::time::Duration::weeks(2)),
+                    )
                     .build(),
             )
             .app_data(web::Data::new(shared_orm_db.clone()))
             .app_data(web::Data::new(c.clone()))
-            .app_data(web::Data::new(reload.clone()))
             .app_data(web::Data::new(oidc_client_arc.clone()))
-            // .wrap(from_fn(auth_middleware::require_auth_middleware)) // Disabled for now
-            .wrap(from_fn(oidc_user::user_extractor))
             .service(routes::auth::login_page)
             .service(routes::auth::auth_login)
             .service(routes::auth::callback)
@@ -123,7 +126,6 @@ async fn main() -> std::io::Result<()> {
             .service(routes::items::cancel_edit_item)
             .service(routes::items::items_csv)
             .service(routes::technical::health)
-            .service(routes::technical::should_reload)
             .service(routes::assets::scope())
     });
     server

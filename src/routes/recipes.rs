@@ -1,5 +1,5 @@
 use actix_web::error::ParseError;
-use actix_web::{HttpRequest, Result, delete, get, patch, post, web};
+use actix_web::{HttpRequest, HttpResponse, Result, delete, get, patch, post, web};
 use log::info;
 use maud::{Markup, html};
 use serde::Deserialize;
@@ -50,9 +50,12 @@ pub async fn create_recipe(
     form: web::Form<CreateRecipeRequest>,
     client: web::Data<DBClient>,
     req: HttpRequest,
-) -> Result<Markup> {
+) -> Result<HttpResponse> {
     let client: &DBClient = client.get_ref();
-    let user = get_user(req).unwrap();
+    let user = match crate::routes::get_user_or_redirect(&req) {
+        Ok(user) => user,
+        Err(response) => return Ok(response),
+    };
 
     let recipe = Recipe {
         id: None,
@@ -67,14 +70,20 @@ pub async fn create_recipe(
     let res = database::recipes::create_recipe(client, recipe).await;
 
     let Ok(recipe) = res else {
-        return Ok(html! {
+        let markup = html! {
             div class="alert alert-error" {
                 "Failed to create recipe"
             }
-        });
+        };
+        return Ok(HttpResponse::Ok()
+            .content_type("text/html; charset=utf-8")
+            .body(markup.into_string()));
     };
 
-    Ok(view::recipes::recipe_row(&recipe))
+    let markup = view::recipes::recipe_row(&recipe);
+    Ok(HttpResponse::Ok()
+        .content_type("text/html; charset=utf-8")
+        .body(markup.into_string()))
 }
 
 #[get("/recipes/{id}")]
@@ -82,16 +91,26 @@ pub async fn get_recipe(
     path: web::Path<i64>,
     client: web::Data<DBClient>,
     req: HttpRequest,
-) -> Result<Markup> {
+) -> Result<HttpResponse> {
     let id = path.into_inner();
-    let user = get_user(req).unwrap();
+    let user = match crate::routes::get_user_or_redirect(&req) {
+        Ok(user) => user,
+        Err(response) => return Ok(response),
+    };
     let client: &DBClient = client.get_ref();
 
     let recipe = database::recipes::get_recipe(client, id, user.id().to_string()).await;
 
     match recipe {
-        Ok(recipe) => Ok(view::recipes::recipe_row(&recipe)),
-        Err(_) => Ok(html! { "" }),
+        Ok(recipe) => {
+            let markup = view::recipes::recipe_row(&recipe);
+            Ok(HttpResponse::Ok()
+                .content_type("text/html; charset=utf-8")
+                .body(markup.into_string()))
+        }
+        Err(_) => Ok(HttpResponse::InternalServerError()
+            .content_type("text/html; charset=utf-8")
+            .body("")),
     }
 }
 
@@ -101,9 +120,12 @@ pub async fn update_recipe(
     form: web::Form<UpdateRecipeRequest>,
     client: web::Data<DBClient>,
     req: HttpRequest,
-) -> Result<Markup> {
+) -> Result<HttpResponse> {
     let id = path.into_inner();
-    let user = get_user(req).unwrap();
+    let user = match crate::routes::get_user_or_redirect(&req) {
+        Ok(user) => user,
+        Err(response) => return Ok(response),
+    };
     let client: &DBClient = client.get_ref();
 
     info!("update_recipe: {id}");
@@ -119,7 +141,12 @@ pub async fn update_recipe(
     .await;
 
     match recipe {
-        Ok(recipe) => Ok(view::recipes::recipe_row(&recipe)),
+        Ok(recipe) => {
+            let markup = view::recipes::recipe_row(&recipe);
+            Ok(HttpResponse::Ok()
+                .content_type("text/html; charset=utf-8")
+                .body(markup.into_string()))
+        }
         Err(err) => {
             log::error!("{err}");
             Err(ParseError::Incomplete.into())
@@ -132,13 +159,18 @@ pub async fn delete_recipe(
     path: web::Path<i64>,
     client: web::Data<DBClient>,
     req: HttpRequest,
-) -> Result<Markup> {
+) -> Result<HttpResponse> {
     let id = path.into_inner();
     let client: &DBClient = client.get_ref();
-    let user = get_user(req).unwrap();
+    let user = match crate::routes::get_user_or_redirect(&req) {
+        Ok(user) => user,
+        Err(response) => return Ok(response),
+    };
 
     let _ = database::recipes::delete_recipe(client, id, user.id().to_string()).await;
-    Ok(html! { "" })
+    Ok(HttpResponse::Ok()
+        .content_type("text/html; charset=utf-8")
+        .body(""))
 }
 
 #[get("/recipes/{id}/edit")]
@@ -146,17 +178,25 @@ pub async fn edit_recipe(
     path: web::Path<i64>,
     client: web::Data<DBClient>,
     req: HttpRequest,
-) -> Result<Markup> {
+) -> Result<HttpResponse> {
     let id = path.into_inner();
-    let user = get_user(req).unwrap();
+    let user = match crate::routes::get_user_or_redirect(&req) {
+        Ok(user) => user,
+        Err(response) => return Ok(response),
+    };
     let client: &DBClient = client.get_ref();
 
     let recipe = database::recipes::get_recipe(client, id, user.id().to_string()).await;
 
     if let Ok(recipe) = recipe {
-        Ok(view::recipes::recipe_edit_row(&recipe))
+        let markup = view::recipes::recipe_edit_row(&recipe);
+        Ok(HttpResponse::Ok()
+            .content_type("text/html; charset=utf-8")
+            .body(markup.into_string()))
     } else {
-        Ok(html! { "" })
+        Ok(HttpResponse::InternalServerError()
+            .content_type("text/html; charset=utf-8")
+            .body(""))
     }
 }
 
@@ -165,16 +205,24 @@ pub async fn cancel_edit_recipe(
     path: web::Path<i64>,
     client: web::Data<DBClient>,
     req: HttpRequest,
-) -> Result<Markup> {
+) -> Result<HttpResponse> {
     let id = path.into_inner();
-    let user = get_user(req).unwrap();
+    let user = match crate::routes::get_user_or_redirect(&req) {
+        Ok(user) => user,
+        Err(response) => return Ok(response),
+    };
     let client: &DBClient = client.get_ref();
 
     let recipe = database::recipes::get_recipe(client, id, user.id().to_string()).await;
 
     if let Ok(recipe) = recipe {
-        Ok(view::recipes::recipe_row(&recipe))
+        let markup = view::recipes::recipe_row(&recipe);
+        Ok(HttpResponse::Ok()
+            .content_type("text/html; charset=utf-8")
+            .body(markup.into_string()))
     } else {
-        Ok(html! { "" })
+        Ok(HttpResponse::InternalServerError()
+            .content_type("text/html; charset=utf-8")
+            .body(""))
     }
 }

@@ -1,10 +1,10 @@
 use actix_session::Session;
 use actix_web::{HttpResponse, Result};
 use base64::{Engine as _, engine::general_purpose::URL_SAFE_NO_PAD};
+use log::info;
 use serde::{Deserialize, Serialize};
 use sha2::{Digest, Sha256};
 use std::collections::HashMap;
-use uuid::Uuid;
 
 #[derive(Debug, Clone)]
 pub struct OidcConfig {
@@ -88,7 +88,7 @@ impl OidcClient {
         let response = self.client.get(&discovery_url).send().await?;
         let json_body = response.text().await?;
 
-        log::info!("OIDC discovery response body: {json_body}");
+        log::info!("OIDC discovery response body: {json_body} for {discovery_url}");
 
         let discovery: OidcDiscovery = serde_json::from_str(&json_body)?;
 
@@ -97,7 +97,10 @@ impl OidcClient {
     }
 
     pub fn generate_pkce() -> (String, String) {
-        let code_verifier = URL_SAFE_NO_PAD.encode(Uuid::new_v4().as_bytes());
+        let mut random_bytes = [0u8; 32];
+        use rand::RngCore;
+        rand::rng().fill_bytes(&mut random_bytes);
+        let code_verifier = URL_SAFE_NO_PAD.encode(random_bytes);
         let mut hasher = Sha256::new();
         hasher.update(code_verifier.as_bytes());
         let code_challenge = URL_SAFE_NO_PAD.encode(hasher.finalize());
@@ -204,7 +207,20 @@ pub fn is_authenticated(session: &Session) -> bool {
 }
 
 pub fn get_user_from_session(session: &Session) -> Option<UserInfo> {
-    session.get::<UserInfo>("user").unwrap_or(None)
+    match session.get::<UserInfo>("user") {
+        Ok(Some(user)) => {
+            info!("Got user from session");
+            return Some(user);
+        }
+        Ok(None) => {
+            info!("No user struct found in session, trying JSON fallback");
+        }
+        Err(e) => {
+            info!("Error getting user struct from session: {e}, trying JSON fallback");
+        }
+    }
+
+    None
 }
 
 #[allow(unused)]

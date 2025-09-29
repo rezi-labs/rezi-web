@@ -1,6 +1,6 @@
 use crate::config::Server;
-use crate::from_headers::User;
 use crate::routes::{self};
+use crate::user::User;
 use actix_web::{HttpRequest, Result as AwResult};
 use actix_web::{get, web};
 use maud::{Markup, html};
@@ -48,11 +48,6 @@ fn avatar_card(user: &User) -> Markup {
                     li {
                         span {
                             "Initials: " span{(user.initials())}
-                        }
-                    }
-                    li {
-                        span {
-                            "ID: " span{(user.id())}
                         }
                     }
                     li {

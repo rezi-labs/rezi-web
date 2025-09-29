@@ -1,6 +1,6 @@
 use crate::database::messages::ChatMessage;
-use crate::from_headers;
-use crate::view::icons::{chat_icon, send_icon};
+use crate::user;
+use crate::view::icons::chat_icon;
 use crate::view::message;
 use maud::{Markup, html};
 
@@ -17,7 +17,7 @@ pub fn render() -> Markup {
     }
 }
 
-pub fn chat(messages: &[ChatMessage], user: &from_headers::User) -> Markup {
+pub fn chat(messages: &[ChatMessage], user: &user::User) -> Markup {
     html! {
                 div id="chat-messages" class="chat-container h-full bg-base-200 p-4 min-h-[200px] max-h-[600px] rounded-lg mb-4 space-y-3 overflow-y-auto" {
 
@@ -47,7 +47,7 @@ pub fn chat(messages: &[ChatMessage], user: &from_headers::User) -> Markup {
                     input type="hidden" id="reply-to-id" name="reply_to_id" value="";
                     input class="input input-bordered flex-1" id="reply-input" type="text" name="message" placeholder="Type your message..." required;
                     button class="btn btn-primary" type="submit" hx-indicator="#spinner" {
-                        (send_icon())
+                        (chat_icon())
                     }
 
                     span id="spinner"  class="htmx-indicator loading loading-infinity loading-md" {}

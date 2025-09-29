@@ -12,7 +12,7 @@ pub fn login_page() -> Markup {
                 }
 
                 div class="mt-8" {
-                    a href="/auth/login" class="btn btn-primary w-full" {
+                    a href="/auth/login" class="btn btn-primary w-full" hx-boost="false" {
                         "Sign in with OpenID Connect"
                     }
                 }

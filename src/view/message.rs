@@ -2,8 +2,8 @@ use maud::{Markup, PreEscaped, html};
 
 use crate::{
     database::messages::ChatMessage,
-    from_headers::User,
     routes::random_id,
+    user::User,
     view::icons::{reply_icon, spark_icon},
 };
 

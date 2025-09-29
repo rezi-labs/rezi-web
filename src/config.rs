@@ -8,7 +8,8 @@ pub struct Server {
     token: Option<String>,
     nest_api: String,
     nest_api_key: String,
-    get_user_from_headers: bool,
+    fake_user: bool,
+    local: bool,
 }
 
 impl Server {
@@ -39,14 +40,21 @@ impl Server {
         self.db_token().is_none()
     }
 
-    pub fn get_user_from_headers(&self) -> bool {
-        self.get_user_from_headers
+    pub fn local(&self) -> bool {
+        self.local
+    }
+
+    pub fn fake_user(&self) -> bool {
+        self.fake_user
     }
 }
 
 pub fn from_env() -> Server {
-    let access_token = env::var("USER_HEADERS").unwrap_or("false".to_string());
-    let get_user_from_headers = access_token == "true";
+    let fake_user = env::var("FAKE_USER").unwrap_or("false".to_string());
+    let fake_user = fake_user == "true";
+
+    let local = env::var("LOCAL").unwrap_or("false".to_string());
+    let local = local == "true";
 
     let nest_api: String = env::var("NEST_API").unwrap_or("http://0.0.0.0:9998".to_string());
     let nest_api_key: String = env::var("NEST_API_KEY").expect("need NEST_API_KEY");
@@ -69,6 +77,7 @@ pub fn from_env() -> Server {
         token: db_token,
         nest_api,
         nest_api_key,
-        get_user_from_headers,
+        fake_user,
+        local,
     }
 }

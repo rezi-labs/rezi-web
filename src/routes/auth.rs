@@ -2,6 +2,7 @@ use crate::oidc::{AuthState, OidcClient};
 use crate::view::login;
 use actix_session::Session;
 use actix_web::{HttpRequest, HttpResponse, Result, get, web};
+use log::{error, info};
 use maud::Markup;
 use std::sync::Arc;
 use uuid::Uuid;
@@ -54,6 +55,12 @@ pub async fn callback(
     session: Session,
     oidc_client: web::Data<OidcClientArc>,
 ) -> Result<HttpResponse> {
+    info!(
+        "Callback - Session entries at start: {:?}",
+        session.entries()
+    );
+    info!("Callback - Session status: {:?}", session.status());
+
     let query = req.query_string();
     let params: std::collections::HashMap<String, String> =
         url::form_urlencoded::parse(query.as_bytes())
@@ -96,14 +103,44 @@ pub async fn callback(
             })?
     };
 
-    session.insert("user", &user_info_result)?;
+    // Still try the original struct approach
+    match session.insert("user", &user_info_result) {
+        Ok(_) => info!("Successfully stored user struct in session"),
+        Err(e) => error!("Failed to store user struct in session: {e}"),
+    }
+
+    info!(
+        "Final session entries before removing auth_state: {:?}",
+        session.entries()
+    );
+
     session.remove("auth_state");
 
     let redirect_url = auth_state.redirect_url.unwrap_or_else(|| "/".to_string());
 
-    Ok(HttpResponse::Found()
-        .append_header(("Location", redirect_url))
-        .finish())
+    // Make sure session is committed before redirect
+    info!("About to redirect to: {redirect_url}");
+
+    // Instead of redirect, let's try returning HTML with meta refresh to ensure session is saved
+    let html_response = format!(
+        r#"
+    <!DOCTYPE html>
+    <html>
+    <head>
+        <meta http-equiv="refresh" content="1;url={redirect_url}">
+        <title>Redirecting...</title>
+    </head>
+    <body>
+        <p>Login successful. Redirecting in 1 second...</p>
+        <p>If you are not redirected automatically, <a href="{redirect_url}">click here</a>.</p>
+    </body>
+    </html>
+    "#
+    );
+
+    Ok(HttpResponse::Ok()
+        .content_type("text/html")
+        .body(html_response))
 }
 
 #[get("/auth/logout")]

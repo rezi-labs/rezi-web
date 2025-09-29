@@ -25,7 +25,7 @@ pub async fn index_route(server: web::Data<Server>) -> AwResult<Markup> {
 
 #[get("/chat")]
 pub async fn chat_endpoint(client: web::Data<DBClient>, req: HttpRequest) -> AwResult<Markup> {
-    let user = get_user(req).unwrap();
+    let user = get_user(req).expect("no user");
     let client = client.get_ref();
     let messages = database::messages::get_messages(client, user.id()).await;
     Ok(chat::chat(&messages, &user))
@@ -41,7 +41,7 @@ pub fn js(path: impl Into<String>) -> Markup {
     html! {script src=(path) {}}
 }
 
-pub fn index(content: Option<Markup>, reload_polling_active: bool) -> Markup {
+pub fn index(content: Option<Markup>, _reload_polling_active: bool) -> Markup {
     let content = content.unwrap_or_else(chat::render);
     html! {
         (maud::DOCTYPE)
@@ -65,9 +65,6 @@ pub fn index(content: Option<Markup>, reload_polling_active: bool) -> Markup {
             (js("/assets/htmx-reload.js"))
 
 
-            (reload_component(reload_polling_active))
-
-
             div class="min-h-screen bg-base-100" {
                 (navbar::render())
                 main class="container mx-auto px-4 py-6" {
@@ -75,15 +72,5 @@ pub fn index(content: Option<Markup>, reload_polling_active: bool) -> Markup {
                 }
             }
         }
-    }
-}
-
-pub fn reload_component(reload_polling_active: bool) -> Markup {
-    if reload_polling_active {
-        html! {
-            div hx-get="/reload" hx-trigger="every 1s" hx-swap="none" {}
-        }
-    } else {
-        html! {}
     }
 }
