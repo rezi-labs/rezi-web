@@ -28,6 +28,8 @@ lazy_static! {
 
         let no_links = text_utils::remove_links(markdown_content);
 
+        let no_links = text_utils::remove_unclosed_parens_after_brackets(&no_links);
+
         let html_output = markdown::to_html_with_options(
             &no_links,
             &Options {
