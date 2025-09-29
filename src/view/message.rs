@@ -1,4 +1,5 @@
 use maud::{Markup, PreEscaped, html};
+use markdown;
 
 use crate::{
     database::messages::ChatMessage,
@@ -96,11 +97,7 @@ pub fn render_with_reply_context(
 }
 
 pub fn rendered_message(message: &ChatMessage) -> Markup {
-    let parser = pulldown_cmark::Parser::new(&message.content);
-
-    // Write to a new String buffer.
-    let mut html_output = String::new();
-    pulldown_cmark::html::push_html(&mut html_output, parser);
+    let html_output = markdown::to_html(&message.content);
     html! {
      (PreEscaped(html_output))
     }

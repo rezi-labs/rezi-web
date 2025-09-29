@@ -104,6 +104,7 @@ async fn main() -> std::io::Result<()> {
             .service(routes::auth::logout)
             .service(view::index_route)
             .service(view::chat_endpoint)
+            .service(view::about_endpoint)
             .service(view::profile::profile_endpoint)
             .service(routes::recipes::recipe_endpoint)
             .service(routes::recipes::create_recipe)

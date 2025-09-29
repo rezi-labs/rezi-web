@@ -2,6 +2,7 @@ use actix_web::{HttpRequest, Result as AwResult};
 use actix_web::{get, web};
 use maud::{Markup, html};
 
+pub mod about;
 pub mod chat;
 mod icons;
 pub mod items;
@@ -31,6 +32,11 @@ pub async fn chat_endpoint(client: web::Data<DBClient>, req: HttpRequest) -> AwR
     Ok(chat::chat(&messages, &user))
 }
 
+#[get("/about")]
+pub async fn about_endpoint() -> AwResult<Markup> {
+    Ok(index(Some(about::about()), false))
+}
+
 pub fn css(path: impl Into<String>) -> Markup {
     let path: String = path.into();
     html! {link href=(path) rel="stylesheet" type="text/css";}
@@ -57,6 +63,8 @@ pub fn index(content: Option<Markup>, _reload_polling_active: bool) -> Markup {
             (css("/assets/daisy.css"))
             (css("/assets/themes.css"))
             (css("/assets/app.css"))
+            (js("/assets/tailwind_typography.js"))
+            (js("/assets/tailwind_plugins.js"))
             link rel="icon" href="/assets/grocy.svg" sizes="any" type="image/svg+xml" {}
 
         }

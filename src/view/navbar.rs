@@ -1,6 +1,6 @@
 use maud::{Markup, html};
 
-use crate::view::icons::{self, house_icon, list_icon, spark_icon, user_icon};
+use crate::view::icons::{self, house_icon, info_icon, list_icon, spark_icon, user_icon};
 
 pub fn render() -> Markup {
     html! {
@@ -48,6 +48,12 @@ fn navbar() -> Markup {
                             (user_icon())
                         }
                         "Profile"
+                    }
+                    a href="/about" class="flex items-center gap-2 text-sm font-medium text-base-content/70 hover:text-base-content transition-colors py-2" {
+                        span class="w-4 h-4 flex items-center justify-center opacity-60" {
+                            (info_icon())
+                        }
+                        "About"
                     }
                 }
 
@@ -116,6 +122,14 @@ fn navbar() -> Markup {
                                         (user_icon())
                                     }
                                     "Profile"
+                                }
+                            }
+                            li {
+                                a href="/about" class="flex items-center gap-3 text-sm text-base-content/70 hover:text-base-content hover:bg-base-200/50 px-3 py-2 rounded transition-colors" {
+                                    span class="w-4 h-4 flex items-center justify-center opacity-60" {
+                                        (info_icon())
+                                    }
+                                    "About"
                                 }
                             }
                             div class="border-t border-base-200 my-2" {}
