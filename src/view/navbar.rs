@@ -1,14 +1,15 @@
 use maud::{Markup, html};
 
+use crate::user::User;
 use crate::view::icons::{self, house_icon, info_icon, list_icon, spark_icon, user_icon};
 
-pub fn render() -> Markup {
+pub fn render(user: Option<&User>) -> Markup {
     html! {
-       (navbar())
+       (navbar(user))
     }
 }
 
-fn navbar() -> Markup {
+fn navbar(user: Option<&User>) -> Markup {
     html! {
         nav class="bg-base-100 border-b border-base-200 px-6 py-4" {
             div class="max-m-[80rem] mx-auto flex items-center justify-between" {
@@ -23,122 +24,141 @@ fn navbar() -> Markup {
                     }
                 }
 
-                // Main navigation - Clean links without backgrounds
-                div class="hidden lg:flex items-center gap-8" {
-                    a href="/" class="flex items-center gap-2 text-sm font-medium text-base-content/70 hover:text-base-content transition-colors py-2" {
-                        span class="w-4 h-4 flex items-center justify-center opacity-60" {
-                            (spark_icon())
+                @if user.is_some() {
+                    div class="hidden lg:flex items-center gap-8" {
+                        a href="/" class="flex items-center gap-2 text-sm font-medium text-base-content/70 hover:text-base-content transition-colors py-2" {
+                            span class="w-4 h-4 flex items-center justify-center opacity-60" {
+                                (spark_icon())
+                            }
+                            "Chat"
                         }
-                        "Chat"
-                    }
-                    a href="/items" class="flex items-center gap-2 text-sm font-medium text-base-content/70 hover:text-base-content transition-colors py-2" {
-                        span class="w-4 h-4 flex items-center justify-center opacity-60" {
-                            (list_icon())
+                        a href="/items" class="flex items-center gap-2 text-sm font-medium text-base-content/70 hover:text-base-content transition-colors py-2" {
+                            span class="w-4 h-4 flex items-center justify-center opacity-60" {
+                                (list_icon())
+                            }
+                            "Items"
                         }
-                        "Items"
-                    }
-                    a href="/recipes" class="flex items-center gap-2 text-sm font-medium text-base-content/70 hover:text-base-content transition-colors py-2" {
-                        span class="w-4 h-4 flex items-center justify-center opacity-60" {
-                            (house_icon())
+                        a href="/recipes" class="flex items-center gap-2 text-sm font-medium text-base-content/70 hover:text-base-content transition-colors py-2" {
+                            span class="w-4 h-4 flex items-center justify-center opacity-60" {
+                                (house_icon())
+                            }
+                            "Recipes"
                         }
-                        "Recipes"
-                    }
-                    a href="/profile" class="flex items-center gap-2 text-sm font-medium text-base-content/70 hover:text-base-content transition-colors py-2" {
-                        span class="w-4 h-4 flex items-center justify-center opacity-60" {
-                            (user_icon())
+                        a href="/profile" class="flex items-center gap-2 text-sm font-medium text-base-content/70 hover:text-base-content transition-colors py-2" {
+                            span class="w-4 h-4 flex items-center justify-center opacity-60" {
+                                (user_icon())
+                            }
+                            "Profile"
                         }
-                        "Profile"
-                    }
-                    a href="/about" class="flex items-center gap-2 text-sm font-medium text-base-content/70 hover:text-base-content transition-colors py-2" {
-                        span class="w-4 h-4 flex items-center justify-center opacity-60" {
-                            (info_icon())
+                        a href="/about" class="flex items-center gap-2 text-sm font-medium text-base-content/70 hover:text-base-content transition-colors py-2" {
+                            span class="w-4 h-4 flex items-center justify-center opacity-60" {
+                                (info_icon())
+                            }
+                            "About"
                         }
-                        "About"
                     }
                 }
 
                 div class="flex items-center gap-4" {
-                    div class="dropdown dropdown-end" {
-                        div tabindex="0" role="button" class="flex items-center gap-2 text-sm font-medium text-base-content/70 hover:text-base-content transition-colors py-2 cursor-pointer" {
+                    @if user.is_some() {
+                        div class="dropdown dropdown-end" {
+                            div tabindex="0" role="button" class="flex items-center gap-2 text-sm font-medium text-base-content/70 hover:text-base-content transition-colors py-2 cursor-pointer" {
+                                span class="w-4 h-4 flex items-center justify-center opacity-60" {
+                                    (icons::export_icon())
+                                }
+                                "Export"
+                                svg class="w-3 h-3 opacity-40" viewBox="0 0 12 12" fill="currentColor" {
+                                    path d="M6 9L2 5h8L6 9z" {}
+                                }
+                            }
+                            ul tabindex="0" class="dropdown-content menu bg-base-100 z-[1] w-40 p-2 shadow-lg border border-base-200 rounded-lg mt-2" {
+                                li {
+                                    a href="/items/csv" hx-swap="none" class="text-sm text-base-content/70 hover:text-base-content hover:bg-base-200/50 px-3 py-2 rounded transition-colors" {
+                                        "CSV Export"
+                                    }
+                                }
+                            }
+                        }
+
+                        a href="/auth/logout" class="flex items-center gap-2 text-sm font-medium text-base-content/70 hover:text-base-content transition-colors py-2" {
                             span class="w-4 h-4 flex items-center justify-center opacity-60" {
-                                (icons::export_icon())
+                                (user_icon())
                             }
-                            "Export"
-                            svg class="w-3 h-3 opacity-40" viewBox="0 0 12 12" fill="currentColor" {
-                                path d="M6 9L2 5h8L6 9z" {}
-                            }
+                            "Logout"
                         }
-                        ul tabindex="0" class="dropdown-content menu bg-base-100 z-[1] w-40 p-2 shadow-lg border border-base-200 rounded-lg mt-2" {
-                            li {
-                                a href="/items/csv" hx-swap="none" class="text-sm text-base-content/70 hover:text-base-content hover:bg-base-200/50 px-3 py-2 rounded transition-colors" {
-                                    "CSV Export"
-                                }
+                    } @else {
+                        a href="/login" class="flex items-center gap-2 text-sm font-medium text-base-content/70 hover:text-base-content transition-colors py-2" {
+                            span class="w-4 h-4 flex items-center justify-center opacity-60" {
+                                (user_icon())
                             }
+                            "Sign In"
                         }
                     }
 
-                    // Authentication links can be added here when needed
-                    a href="/login" class="flex items-center gap-2 text-sm font-medium text-base-content/70 hover:text-base-content transition-colors py-2" {
-                        span class="w-4 h-4 flex items-center justify-center opacity-60" {
-                            (user_icon())
-                        }
-                        "Sign In"
-                    }
-
-                    div class="dropdown dropdown-end lg:hidden" {
-                        div tabindex="0" role="button" class="p-2 text-base-content/70 hover:text-base-content transition-colors" {
-                            svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24" {
-                                path stroke-linecap="round" stroke-linejoin="round" stroke-width="1.5" d="M4 6h16M4 12h16M4 18h16" {}
-                            }
-                        }
-                        ul tabindex="0" class="dropdown-content menu bg-base-100 z-[1] w-52 p-3 shadow-lg border border-base-200 rounded-lg mt-2" {
-                            li {
-                                a href="/" class="flex items-center gap-3 text-sm text-base-content/70 hover:text-base-content hover:bg-base-200/50 px-3 py-2 rounded transition-colors" {
-                                    span class="w-4 h-4 flex items-center justify-center opacity-60" {
-                                        (spark_icon())
-                                    }
-                                    "Chat"
+                    @if user.is_some() {
+                        div class="dropdown dropdown-end lg:hidden" {
+                            div tabindex="0" role="button" class="p-2 text-base-content/70 hover:text-base-content transition-colors" {
+                                svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24" {
+                                    path stroke-linecap="round" stroke-linejoin="round" stroke-width="1.5" d="M4 6h16M4 12h16M4 18h16" {}
                                 }
                             }
-                            li {
-                                a href="/items" class="flex items-center gap-3 text-sm text-base-content/70 hover:text-base-content hover:bg-base-200/50 px-3 py-2 rounded transition-colors" {
-                                    span class="w-4 h-4 flex items-center justify-center opacity-60" {
-                                        (list_icon())
+                            ul tabindex="0" class="dropdown-content menu bg-base-100 z-[1] w-52 p-3 shadow-lg border border-base-200 rounded-lg mt-2" {
+                                li {
+                                    a href="/" class="flex items-center gap-3 text-sm text-base-content/70 hover:text-base-content hover:bg-base-200/50 px-3 py-2 rounded transition-colors" {
+                                        span class="w-4 h-4 flex items-center justify-center opacity-60" {
+                                            (spark_icon())
+                                        }
+                                        "Chat"
                                     }
-                                    "Items"
                                 }
-                            }
-                            li {
-                                a href="/recipes" class="flex items-center gap-3 text-sm text-base-content/70 hover:text-base-content hover:bg-base-200/50 px-3 py-2 rounded transition-colors" {
-                                    span class="w-4 h-4 flex items-center justify-center opacity-60" {
-                                        (house_icon())
+                                li {
+                                    a href="/items" class="flex items-center gap-3 text-sm text-base-content/70 hover:text-base-content hover:bg-base-200/50 px-3 py-2 rounded transition-colors" {
+                                        span class="w-4 h-4 flex items-center justify-center opacity-60" {
+                                            (list_icon())
+                                        }
+                                        "Items"
                                     }
-                                    "Recipes"
                                 }
-                            }
-                            li {
-                                a href="/profile" class="flex items-center gap-3 text-sm text-base-content/70 hover:text-base-content hover:bg-base-200/50 px-3 py-2 rounded transition-colors" {
-                                    span class="w-4 h-4 flex items-center justify-center opacity-60" {
-                                        (user_icon())
+                                li {
+                                    a href="/recipes" class="flex items-center gap-3 text-sm text-base-content/70 hover:text-base-content hover:bg-base-200/50 px-3 py-2 rounded transition-colors" {
+                                        span class="w-4 h-4 flex items-center justify-center opacity-60" {
+                                            (house_icon())
+                                        }
+                                        "Recipes"
                                     }
-                                    "Profile"
                                 }
-                            }
-                            li {
-                                a href="/about" class="flex items-center gap-3 text-sm text-base-content/70 hover:text-base-content hover:bg-base-200/50 px-3 py-2 rounded transition-colors" {
-                                    span class="w-4 h-4 flex items-center justify-center opacity-60" {
-                                        (info_icon())
+                                li {
+                                    a href="/profile" class="flex items-center gap-3 text-sm text-base-content/70 hover:text-base-content hover:bg-base-200/50 px-3 py-2 rounded transition-colors" {
+                                        span class="w-4 h-4 flex items-center justify-center opacity-60" {
+                                            (user_icon())
+                                        }
+                                        "Profile"
                                     }
-                                    "About"
                                 }
-                            }
-                            div class="border-t border-base-200 my-2" {}
-                            li {
-                                a href="/items/csv" hx-swap="none" class="flex items-center gap-3 text-xs text-base-content/60 hover:text-base-content hover:bg-base-200/50 px-3 py-2 rounded transition-colors" {
-                                    span class="w-3 h-3 flex items-center justify-center opacity-60" {
-                                        (icons::export_icon())
+                                li {
+                                    a href="/about" class="flex items-center gap-3 text-sm text-base-content/70 hover:text-base-content hover:bg-base-200/50 px-3 py-2 rounded transition-colors" {
+                                        span class="w-4 h-4 flex items-center justify-center opacity-60" {
+                                            (info_icon())
+                                        }
+                                        "About"
                                     }
-                                    "CSV Export"
+                                }
+                                div class="border-t border-base-200 my-2" {}
+                                li {
+                                    a href="/items/csv" hx-swap="none" class="flex items-center gap-3 text-xs text-base-content/60 hover:text-base-content hover:bg-base-200/50 px-3 py-2 rounded transition-colors" {
+                                        span class="w-3 h-3 flex items-center justify-center opacity-60" {
+                                            (icons::export_icon())
+                                        }
+                                        "CSV Export"
+                                    }
+                                }
+                                li {
+                                    a href="/auth/logout" class="flex items-center gap-3 text-xs text-base-content/60 hover:text-base-content hover:bg-base-200/50 px-3 py-2 rounded transition-colors" {
+                                        span class="w-3 h-3 flex items-center justify-center opacity-60" {
+                                            (user_icon())
+                                        }
+                                        "Logout"
+                                    }
                                 }
                             }
                         }

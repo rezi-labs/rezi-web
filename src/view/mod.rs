@@ -19,9 +19,13 @@ use crate::database::{self, DBClient};
 use crate::routes::get_user;
 
 #[get("/")]
-pub async fn index_route(server: web::Data<Server>) -> AwResult<Markup> {
+pub async fn index_route(server: web::Data<Server>, req: HttpRequest) -> AwResult<Markup> {
     let should_poll_reload = server.db_token().is_none();
-    Ok(index(None, should_poll_reload))
+    let user = get_user(req);
+    match user {
+        Some(ref user) => Ok(index(None, should_poll_reload, Some(user))),
+        None => Ok(index(Some(about::about()), should_poll_reload, None)),
+    }
 }
 
 #[get("/chat")]
@@ -43,8 +47,9 @@ pub async fn about_changelog_endpoint() -> AwResult<Markup> {
 }
 
 #[get("/about")]
-pub async fn about_endpoint() -> AwResult<Markup> {
-    Ok(index(Some(about::about()), false))
+pub async fn about_endpoint(req: HttpRequest) -> AwResult<Markup> {
+    let user = get_user(req);
+    Ok(index(Some(about::about()), false, user.as_ref()))
 }
 
 pub fn css(path: impl Into<String>) -> Markup {
@@ -57,7 +62,11 @@ pub fn js(path: impl Into<String>) -> Markup {
     html! {script src=(path) {}}
 }
 
-pub fn index(content: Option<Markup>, _reload_polling_active: bool) -> Markup {
+pub fn index(
+    content: Option<Markup>,
+    _reload_polling_active: bool,
+    user: Option<&crate::user::User>,
+) -> Markup {
     let content = content.unwrap_or_else(chat::render);
     html! {
         (maud::DOCTYPE)
@@ -82,7 +91,7 @@ pub fn index(content: Option<Markup>, _reload_polling_active: bool) -> Markup {
 
 
             div class="min-h-screen bg-base-100" {
-                (navbar::render())
+                (navbar::render(user))
                 main class="container mx-auto px-4 py-6" {
                     (content)
                 }

@@ -18,7 +18,7 @@ lazy_static! {
         )
         .unwrap();
 
-        format!("<div class=\"space-y-6\">{}</div>", html_output)
+        format!("<div class=\"space-y-6\">{html_output}</div>")
     };
 }
 
@@ -39,7 +39,7 @@ lazy_static! {
         )
         .unwrap();
 
-        format!("<div class=\"space-y-6\">{}</div>", html_output)
+        format!("<div class=\"space-y-6\">{html_output}</div>")
     };
 }
 

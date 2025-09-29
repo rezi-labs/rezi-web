@@ -42,6 +42,7 @@ pub async fn recipe_endpoint(
     Ok(index(
         Some(view::recipes::recipes(recipes)),
         should_poll_reload,
+        Some(&user),
     ))
 }
 

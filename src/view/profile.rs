@@ -9,7 +9,11 @@ use maud::{Markup, html};
 pub async fn profile_endpoint(server: web::Data<Server>, req: HttpRequest) -> AwResult<Markup> {
     let user = routes::get_user(req).unwrap();
     let should_poll_reload = server.db_token().is_none();
-    Ok(super::index(Some(render(&user)), should_poll_reload))
+    Ok(super::index(
+        Some(render(&user)),
+        should_poll_reload,
+        Some(&user),
+    ))
 }
 
 pub fn render(user: &User) -> Markup {
