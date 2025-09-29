@@ -1,6 +1,6 @@
 ## Rezi
 
-A (ai assisted) grocery list.
+A not so dumb cart helping with grocery lists, managing recipes and meal planning.
 
 ### Why
 
@@ -73,4 +73,3 @@ I intend to remove or replace those vendors in the near future.
 - Database: selfhosted - the same place where this server is hosted
 - Authentication: selfhosted - the same place where this server is hosted
 - LLM: https://www.infomaniak.com - swiss company - all hostend in switzerland
-

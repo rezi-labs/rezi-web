@@ -57,11 +57,12 @@ pub fn changelog() -> Markup {
 
 pub fn about() -> Markup {
     html! {
-        div class="space-x-4 mt-2" {
-            button btn hx-get="/about/readme" hx-trigger="click, load" hx-target="#about-content" {
+        div class="mt-2 flex" {
+            button class="btn hover:cursor-pointer " hx-get="/about/readme" hx-trigger="click, load" hx-target="#about-content" {
                 "readme"
             }
-            button btn hx-get="/about/changelog" hx-trigger="click" hx-target="#about-content"{
+            div class="divider divider-horizontal" {}
+            button class="btn hover:cursor-pointer" hx-get="/about/changelog" hx-trigger="click" hx-target="#about-content"{
                 "changelog"
             }
         }
