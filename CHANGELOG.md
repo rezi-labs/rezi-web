@@ -1,5 +1,12 @@
 # Changelog
 
+## [0.14.3](https://github.com/rezi-labs/rezi-web/compare/v0.14.2...v0.14.3) (2025-09-29)
+
+
+### Bug Fixes
+
+* from yesterday, working oidc ([09ee759](https://github.com/rezi-labs/rezi-web/commit/09ee75911ecad8d9ae13c906a5994fbc84f78eff))
+
 ## [0.14.2](https://github.com/rezi-labs/rezi-web/compare/v0.14.1...v0.14.2) (2025-09-28)
 
 
