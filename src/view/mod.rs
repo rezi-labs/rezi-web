@@ -32,6 +32,16 @@ pub async fn chat_endpoint(client: web::Data<DBClient>, req: HttpRequest) -> AwR
     Ok(chat::chat(&messages, &user))
 }
 
+#[get("/about/readme")]
+pub async fn about_readme_endpoint() -> AwResult<Markup> {
+    Ok(about::readme())
+}
+
+#[get("/about/changelog")]
+pub async fn about_changelog_endpoint() -> AwResult<Markup> {
+    Ok(about::changelog())
+}
+
 #[get("/about")]
 pub async fn about_endpoint() -> AwResult<Markup> {
     Ok(index(Some(about::about()), false))

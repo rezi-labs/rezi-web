@@ -18,6 +18,7 @@ mod llm;
 mod oidc;
 mod routes;
 mod scrapy;
+mod text_utils;
 mod user;
 mod view;
 mod witch;
@@ -105,6 +106,8 @@ async fn main() -> std::io::Result<()> {
             .service(view::index_route)
             .service(view::chat_endpoint)
             .service(view::about_endpoint)
+            .service(view::about_changelog_endpoint)
+            .service(view::about_readme_endpoint)
             .service(view::profile::profile_endpoint)
             .service(routes::recipes::recipe_endpoint)
             .service(routes::recipes::create_recipe)
