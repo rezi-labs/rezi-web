@@ -4,6 +4,7 @@ use maud::{Markup, html};
 
 pub mod about;
 pub mod chat;
+pub mod export;
 mod icons;
 pub mod items;
 pub mod login;

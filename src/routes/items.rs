@@ -1,5 +1,5 @@
 use actix_web::error::ParseError;
-use actix_web::http::header::CONTENT_DISPOSITION;
+
 use actix_web::{HttpRequest, HttpResponse, Result, delete, get, patch, post, web};
 use chrono::Utc;
 use log::info;
@@ -7,7 +7,7 @@ use maud::html;
 use serde::Deserialize;
 
 use crate::config::Server;
-use crate::csv;
+
 use crate::database::{self, DBClient};
 use crate::view::{self, message, render_item};
 
@@ -251,25 +251,4 @@ pub async fn create_item_with_ai(
     Ok(HttpResponse::Ok()
         .content_type("text/html; charset=utf-8")
         .body(markup.into_string()))
-}
-
-#[get("/items/csv")]
-pub async fn items_csv(client: web::Data<DBClient>, req: HttpRequest) -> Result<HttpResponse> {
-    let user = match super::get_user_or_redirect(&req) {
-        Ok(user) => user,
-        Err(response) => return Ok(response),
-    };
-    let owner_id = user.id().to_string();
-    let db_client: &DBClient = client.get_ref();
-    let items = database::items::get_items(db_client, owner_id)
-        .await
-        .unwrap_or_default();
-    let csv_file = csv::items_to_events(items.as_slice());
-
-    let response = HttpResponse::Ok()
-        .append_header((CONTENT_DISPOSITION, "attachment; filename=\"calendar.csv\""))
-        .content_type("application/octet-stream")
-        .body(csv_file);
-
-    Ok(response)
 }

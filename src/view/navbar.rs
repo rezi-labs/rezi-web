@@ -61,23 +61,11 @@ fn navbar(user: Option<&User>) -> Markup {
 
                 div class="flex items-center gap-4" {
                     @if user.is_some() {
-                        div class="dropdown dropdown-end" {
-                            div tabindex="0" role="button" class="flex items-center gap-2 text-sm font-medium text-base-content/70 hover:text-base-content transition-colors py-2 cursor-pointer" {
-                                span class="w-4 h-4 flex items-center justify-center opacity-60" {
-                                    (icons::export_icon())
-                                }
-                                "Export"
-                                svg class="w-3 h-3 opacity-40" viewBox="0 0 12 12" fill="currentColor" {
-                                    path d="M6 9L2 5h8L6 9z" {}
-                                }
+                        a href="/export" class="flex items-center gap-2 text-sm font-medium text-base-content/70 hover:text-base-content transition-colors py-2" {
+                            span class="w-4 h-4 flex items-center justify-center opacity-60" {
+                                (icons::export_icon())
                             }
-                            ul tabindex="0" class="dropdown-content menu bg-base-100 z-[1] w-40 p-2 shadow-lg border border-base-200 rounded-lg mt-2" {
-                                li {
-                                    a href="/items/csv" hx-swap="none" class="text-sm text-base-content/70 hover:text-base-content hover:bg-base-200/50 px-3 py-2 rounded transition-colors" {
-                                        "CSV Export"
-                                    }
-                                }
-                            }
+                            "Export"
                         }
 
                         a href="/auth/logout" class="flex items-center gap-2 text-sm font-medium text-base-content/70 hover:text-base-content transition-colors py-2" {
@@ -145,11 +133,11 @@ fn navbar(user: Option<&User>) -> Markup {
                                 }
                                 div class="border-t border-base-200 my-2" {}
                                 li {
-                                    a href="/items/csv" hx-swap="none" class="flex items-center gap-3 text-xs text-base-content/60 hover:text-base-content hover:bg-base-200/50 px-3 py-2 rounded transition-colors" {
+                                    a href="/export" class="flex items-center gap-3 text-xs text-base-content/60 hover:text-base-content hover:bg-base-200/50 px-3 py-2 rounded transition-colors" {
                                         span class="w-3 h-3 flex items-center justify-center opacity-60" {
                                             (icons::export_icon())
                                         }
-                                        "CSV Export"
+                                        "Export Data"
                                     }
                                 }
                                 li {

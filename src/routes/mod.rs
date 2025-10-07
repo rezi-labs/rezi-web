@@ -8,6 +8,7 @@ use crate::{llm, user};
 
 pub mod assets;
 pub mod auth;
+pub mod export;
 pub mod items;
 pub mod messages;
 pub mod recipes;
