@@ -16,6 +16,7 @@ mod csv;
 mod database;
 mod llm;
 mod oidc;
+mod pdf;
 mod routes;
 mod scrapy;
 mod text_utils;
@@ -127,7 +128,9 @@ async fn main() -> std::io::Result<()> {
             .service(routes::items::update_item)
             .service(routes::items::edit_item)
             .service(routes::items::cancel_edit_item)
-            .service(routes::items::items_csv)
+            .service(routes::export::export_page)
+            .service(routes::export::export_items_csv)
+            .service(routes::export::export_items_pdf)
             .service(routes::technical::health)
             .service(routes::assets::scope())
     });
