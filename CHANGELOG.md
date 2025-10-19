@@ -1,5 +1,13 @@
 # Changelog
 
+## [0.16.0](https://github.com/rezi-labs/rezi-web/compare/v0.15.0...v0.16.0) (2025-10-19)
+
+
+### Features
+
+* exports over lunch ([41c5fc4](https://github.com/rezi-labs/rezi-web/commit/41c5fc4aaf9a229d3586d421a7798ab12e3569f0))
+* exports over lunch ([#65](https://github.com/rezi-labs/rezi-web/issues/65)) ([2f41cd2](https://github.com/rezi-labs/rezi-web/commit/2f41cd22a063c230ab70cebd56c4cf74139d37e2))
+
 ## [0.15.0](https://github.com/rezi-labs/rezi-web/compare/v0.14.3...v0.15.0) (2025-09-29)
 
 
