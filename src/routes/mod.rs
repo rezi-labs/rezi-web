@@ -5,6 +5,7 @@ use rand::Rng;
 
 use crate::database::DBClient;
 use crate::{llm, user};
+use rumors::ProviderType;
 
 pub mod assets;
 pub mod auth;
@@ -48,14 +49,12 @@ pub fn random_id() -> i64 {
     rng.random::<i64>()
 }
 
-async fn generate_ai_response(user_message: &str, nest_api: &str, nest_api_key: &str) -> String {
-    match llm::simple_chat_response(nest_api, nest_api_key, user_message).await {
+async fn generate_ai_response(user_message: &str, provider_type: ProviderType) -> String {
+    match llm::simple_chat_response(provider_type, user_message).await {
         Ok(a) => a,
         Err(e) => {
             match e {
-                llm::LlmError::Request(error) => error!("{error}"),
-                llm::LlmError::Auth(error) => error!("{error}"),
-                llm::LlmError::Parse(error) => error!("{error}"),
+                llm::LlmError::Provider(error) => error!("{error}"),
             };
 
             r"# Error
@@ -70,19 +69,15 @@ Something went wrong contacting the agent
 
 async fn generate_task_response(
     user_message: &str,
-    nest_api: &str,
-    nest_api_key: &str,
+    provider_type: ProviderType,
     db_client: &DBClient,
     user_id: String,
 ) -> String {
-    match llm::simple_item_response(nest_api, nest_api_key, user_message, user_id, db_client).await
-    {
+    match llm::simple_item_response(provider_type, user_message, user_id, db_client).await {
         Ok(a) => a,
         Err(e) => {
             match e {
-                llm::LlmError::Request(error) => error!("{error}"),
-                llm::LlmError::Auth(error) => error!("{error}"),
-                llm::LlmError::Parse(error) => error!("{error}"),
+                llm::LlmError::Provider(error) => error!("{error}"),
             };
 
             "Something went wrong contacting the agent".to_string()

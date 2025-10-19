@@ -5,6 +5,7 @@ edition = "2024"
 
 [dependencies]
 libsql-orm = { path = "libsql-orm" }
+rumors = { path = "rumors" }
 actix-files = "0.6.6"
 actix-web = { version = "4.11.0", default-features = false, features = [
     "rustls",

@@ -1,77 +1,39 @@
 use log::info;
-use reqwest::Client;
-use serde::{Deserialize, Serialize};
+use rumors::{ProviderType, RumorsClient};
 
 use crate::database::{self, DBClient, items::Item};
 
 #[derive(Debug)]
 pub enum LlmError {
-    Request(String),
-    Auth(String),
-    Parse(String),
-}
-
-#[derive(Debug, Serialize)]
-pub struct Prompt {
-    prompt: String,
-}
-
-#[derive(Debug, Deserialize)]
-pub struct TaskList {
-    list: Vec<String>,
+    Provider(String),
 }
 
 pub async fn simple_item_response(
-    nest_api: &str,
-    nest_api_key: &str,
+    provider_type: ProviderType,
     user_message: &str,
     user_id: String,
     db_client: &DBClient,
 ) -> Result<String, LlmError> {
-    let client = Client::new();
+    let client = RumorsClient::new(provider_type);
 
-    let with_sys = format!(
-        "{}{}",
-        "Create only grocery items out of this, ignore everything else: ", user_message
+    let recipe_text = format!(
+        "Create only grocery items out of this, ignore everything else: {}",
+        user_message
     );
 
-    let prompt = Prompt {
-        prompt: with_sys.to_string(),
-    };
+    info!("Extracting grocery items from: {}", user_message);
 
-    let full_url = format!("{}{}", nest_api, "/api/task");
-
-    let masked = nest_api_key.to_string().split_off(10);
-    info!("calling: {full_url} with key: {masked} ");
-
-    let response = client
-        .post(full_url)
-        .header("api-key", nest_api_key)
-        .json(&prompt)
-        .send()
+    let ingredients = client
+        .extract_ingredients(&recipe_text)
         .await
-        .map_err(|e| LlmError::Request(format!("Failed to send request: {e}")))?;
+        .map_err(|e| LlmError::Provider(format!("Failed to extract ingredients: {e}")))?;
 
-    if !response.status().is_success() {
-        let status = response.status();
-        let error_text = response.text().await.unwrap_or_default();
-        return Err(LlmError::Auth(format!(
-            "API returned status {status}: {error_text}"
-        )));
-    }
-
-    let task_list: TaskList = response
-        .json()
-        .await
-        .map_err(|e| LlmError::Parse(format!("Failed to parse response: {e}")))?;
-
-    let items: Vec<Item> = task_list
-        .list
+    let items: Vec<Item> = ingredients
         .iter()
-        .map(|t| Item {
+        .map(|ingredient| Item {
             owner_id: user_id.clone(),
             id: None,
-            task: t.clone(),
+            task: ingredient.clone(),
             completed: 0,
             created_at: chrono::Utc::now(),
             updated_at: chrono::Utc::now(),
@@ -80,65 +42,29 @@ pub async fn simple_item_response(
 
     database::items::create_items(db_client, items).await;
 
-    let tasks_string = task_list.list.join("\n");
-
-    let answer = format!("Created {tasks_string}");
+    let items_string = ingredients.join("\n");
+    let answer = format!("Created {}", items_string);
 
     Ok(answer)
 }
 
-#[derive(Debug, Clone, Deserialize)]
-pub struct ChatResponse {
-    pub content: String,
-}
-
 pub async fn simple_chat_response(
-    nest_api: &str,
-    nest_api_key: &str,
+    provider_type: ProviderType,
     user_message: &str,
 ) -> Result<String, LlmError> {
-    let client = Client::new();
+    let client = RumorsClient::new(provider_type);
 
-    let with_insctructions = format!(
-        "
-        Only answer in commonmark markdown format.
-        You are Rezi a helpful assistant for recipes, cooking, ingredients and groceries.
-
-
-        this is the message from the user: {user_message}
-
-        "
+    let formatted_message = format!(
+        "Only answer in commonmark markdown format. You are Rezi a helpful assistant for recipes, cooking, ingredients and groceries. Here is the message from the user: {}",
+        user_message
     );
 
-    let prompt = Prompt {
-        prompt: with_insctructions,
-    };
-
-    let full_url = format!("{}{}", nest_api, "/api/chat");
-
-    let masked = nest_api_key.to_string().split_off(10);
-    info!("calling: {full_url} with key: {masked} ");
+    info!("Processing chat message: {}", user_message);
 
     let response = client
-        .post(full_url)
-        .header("api-key", nest_api_key)
-        .json(&prompt)
-        .send()
+        .ask_cooking_question(formatted_message)
         .await
-        .map_err(|e| LlmError::Request(format!("Failed to send request: {e}")))?;
+        .map_err(|e| LlmError::Provider(format!("Failed to get chat response: {e}")))?;
 
-    if !response.status().is_success() {
-        let status = response.status();
-        let error_text = response.text().await.unwrap_or_default();
-        return Err(LlmError::Auth(format!(
-            "API returned status {status}: {error_text}"
-        )));
-    }
-
-    let chat_response: ChatResponse = response
-        .json()
-        .await
-        .map_err(|e| LlmError::Parse(format!("Failed to parse response: {e}")))?;
-
-    Ok(chat_response.content)
+    Ok(response)
 }

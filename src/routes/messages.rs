@@ -89,8 +89,7 @@ pub async fn send_message(
 
             let tasks = super::generate_task_response(
                 &hex,
-                &config.nest_api(),
-                &config.nest_api_key(),
+                config.provider_type(),
                 db_client,
                 user.id().to_string(),
             )
@@ -121,19 +120,13 @@ pub async fn send_message(
                 // If content of a recipe is being sent, extract items from the content
                 super::generate_task_response(
                     &ai_message_content,
-                    &config.nest_api(),
-                    &config.nest_api_key(),
+                    config.provider_type(),
                     db_client,
                     user.id().to_string(),
                 )
                 .await
             } else {
-                super::generate_ai_response(
-                    &ai_message_content,
-                    &config.nest_api(),
-                    &config.nest_api_key(),
-                )
-                .await
+                super::generate_ai_response(&ai_message_content, config.provider_type()).await
             }
         }
     };

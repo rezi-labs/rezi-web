@@ -211,8 +211,7 @@ pub async fn create_item_with_ai(
     // Generate AI response
     let ai_response = super::generate_task_response(
         &form.message,
-        &config.nest_api(),
-        &config.nest_api_key(),
+        config.provider_type(),
         db_client,
         user.id().to_string(),
     )

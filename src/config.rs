@@ -1,3 +1,4 @@
+use rumors::ProviderType;
 use std::env;
 
 #[derive(Clone)]
@@ -6,8 +7,7 @@ pub struct Server {
     host: String,
     db_url: String,
     token: Option<String>,
-    nest_api: String,
-    nest_api_key: String,
+    provider_type: ProviderType,
     fake_user: bool,
     local: bool,
 }
@@ -28,12 +28,8 @@ impl Server {
         self.token.clone()
     }
 
-    pub fn nest_api(&self) -> String {
-        self.nest_api.clone()
-    }
-
-    pub fn nest_api_key(&self) -> String {
-        self.nest_api_key.clone()
+    pub fn provider_type(&self) -> ProviderType {
+        self.provider_type.clone()
     }
 
     pub fn delay(&self) -> bool {
@@ -56,9 +52,6 @@ pub fn from_env() -> Server {
     let local = env::var("LOCAL").unwrap_or("false".to_string());
     let local = local == "true";
 
-    let nest_api: String = env::var("NEST_API").unwrap_or("http://0.0.0.0:9998".to_string());
-    let nest_api_key: String = env::var("NEST_API_KEY").expect("need NEST_API_KEY");
-
     let port: u16 = env::var("g_port")
         .map(|e| e.parse().expect("could not parse port"))
         .unwrap_or(9999);
@@ -70,13 +63,23 @@ pub fn from_env() -> Server {
         .map(|e| e.parse().expect("could not parse db url"))
         .unwrap_or("http://127.0.0.1:8080".to_string());
     let db_token: Option<String> = env::var("g_db_token").ok();
+
+    // Determine provider type from environment
+    let provider_type = if let Ok(api_key) = env::var("GOOGLE_API_KEY") {
+        ProviderType::GoogleGemini { api_key }
+    } else if let Ok(base_url) = env::var("OLLAMA_BASE_URL") {
+        let model = env::var("OLLAMA_MODEL").unwrap_or_else(|_| "llama3.2".to_string());
+        ProviderType::Ollama { base_url, model }
+    } else {
+        panic!("No AI provider configured. Set GOOGLE_API_KEY or OLLAMA_BASE_URL+OLLAMA_MODEL");
+    };
+
     Server {
         port,
         host,
         db_url,
         token: db_token,
-        nest_api,
-        nest_api_key,
+        provider_type,
         fake_user,
         local,
     }
