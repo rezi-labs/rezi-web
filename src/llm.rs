@@ -1,13 +1,6 @@
-use async_openai::{
-    Client as OpenAIClient,
-    config::OpenAIConfig,
-    types::{
-        ChatCompletionRequestMessage, ChatCompletionRequestSystemMessage,
-        ChatCompletionRequestSystemMessageContent, ChatCompletionRequestUserMessage,
-        ChatCompletionRequestUserMessageContent, CreateChatCompletionRequestArgs,
-    },
-};
-use reqwest::Client;
+use rig::completion::Prompt;
+use rig::providers::{openai, anthropic, gemini};
+use rig::client::CompletionClient;
 use serde::{Deserialize, Serialize};
 
 use crate::database::{self, DBClient, items::Item};
@@ -37,21 +30,18 @@ pub struct GroceryList {
 }
 
 pub enum LlmProvider {
-    OpenAI { api_key: String },
-    Gemini { api_key: String },
+    OpenAI { api_key: String, model: String },
+    Anthropic { api_key: String, model: String },
+    Gemini { api_key: String, model: String },
 }
 
 pub struct LlmClient {
     provider: LlmProvider,
-    client: Client,
 }
 
 impl LlmClient {
     pub fn new(provider: LlmProvider) -> Self {
-        Self {
-            provider,
-            client: Client::new(),
-        }
+        Self { provider }
     }
 
     pub async fn extract_recipe(&self, content: &str) -> Result<ExtractedRecipe, LlmError> {
@@ -72,12 +62,7 @@ Content to extract from:
 Return only the JSON object, no additional text."#
         );
 
-        let response_text = match &self.provider {
-            LlmProvider::OpenAI { api_key } => {
-                self.call_openai_compatible_api(api_key, &prompt).await?
-            }
-            LlmProvider::Gemini { api_key } => self.call_gemini_api(api_key, &prompt).await?,
-        };
+        let response_text = self.call_llm_api(&prompt).await?;
 
         // Try to parse the JSON response
         let recipe: ExtractedRecipe = serde_json::from_str(&response_text).map_err(|e| {
@@ -99,12 +84,7 @@ Content to generate title for:
 Return only the title text, no quotes or additional formatting."#
         );
 
-        let response_text = match &self.provider {
-            LlmProvider::OpenAI { api_key } => {
-                self.call_openai_compatible_api(api_key, &prompt).await?
-            }
-            LlmProvider::Gemini { api_key } => self.call_gemini_api(api_key, &prompt).await?,
-        };
+        let response_text = self.call_llm_api(&prompt).await?;
 
         // Clean up the response - remove quotes and trim whitespace
         let title = response_text
@@ -134,12 +114,7 @@ Content to extract from:
 Return only the JSON object, no additional text."#
         );
 
-        let response_text = match &self.provider {
-            LlmProvider::OpenAI { api_key } => {
-                self.call_openai_compatible_api(api_key, &prompt).await?
-            }
-            LlmProvider::Gemini { api_key } => self.call_gemini_api(api_key, &prompt).await?,
-        };
+        let response_text = self.call_llm_api(&prompt).await?;
 
         // Try to parse the JSON response
         let grocery_list: GroceryList = serde_json::from_str(&response_text).map_err(|e| {
@@ -151,131 +126,48 @@ Return only the JSON object, no additional text."#
         Ok(grocery_list.items)
     }
 
-    async fn call_openai_compatible_api(
-        &self,
-        api_key: &str,
-        prompt: &str,
-    ) -> Result<String, LlmError> {
-        let config = OpenAIConfig::new().with_api_key(api_key);
-
-        let client = OpenAIClient::with_config(config);
-
-        let request = CreateChatCompletionRequestArgs::default()
-            .model("gpt-3.5-turbo")
-            .messages([
-                ChatCompletionRequestMessage::System(
-                    ChatCompletionRequestSystemMessage {
-                        content: ChatCompletionRequestSystemMessageContent::Text(
-                            "You are a helpful assistant that extracts recipe information and grocery lists. Always respond with valid JSON.".to_string()
-                        ),
-                        name: None,
-                    }
-                ),
-                ChatCompletionRequestMessage::User(
-                    ChatCompletionRequestUserMessage {
-                        content: ChatCompletionRequestUserMessageContent::Text(prompt.to_string()),
-                        name: None,
-                    }
-                ),
-            ])
-            .build()
-            .map_err(|e| LlmError::Request(format!("Failed to build request: {e}")))?;
-
-        let response = client
-            .chat()
-            .create(request)
-            .await
-            .map_err(|e| LlmError::Request(format!("OpenAI API call failed: {e}")))?;
-
-        response
-            .choices
-            .first()
-            .and_then(|choice| choice.message.content.as_ref())
-            .ok_or_else(|| LlmError::Parse("No content in OpenAI response".to_string()))
-            .cloned()
-    }
-
-    async fn call_gemini_api(&self, api_key: &str, prompt: &str) -> Result<String, LlmError> {
-        #[derive(Serialize)]
-        struct GeminiRequest {
-            contents: Vec<GeminiContent>,
+    async fn call_llm_api(&self, prompt: &str) -> Result<String, LlmError> {
+        let system_message = "You are a helpful assistant that extracts recipe information and grocery lists. Always respond with valid JSON.";
+        
+        match &self.provider {
+            LlmProvider::OpenAI { api_key, model } => {
+                let client = openai::Client::new(api_key);
+                let agent = client.agent(model).preamble(system_message).build();
+                
+                let response = agent
+                    .prompt(prompt)
+                    .await
+                    .map_err(|e| LlmError::Request(format!("OpenAI API call failed: {e}")))?;
+                
+                Ok(response)
+            }
+            LlmProvider::Anthropic { api_key, model } => {
+                let client = anthropic::Client::new(api_key);
+                let agent = client.agent(model).preamble(system_message).build();
+                
+                let response = agent
+                    .prompt(prompt)
+                    .await
+                    .map_err(|e| LlmError::Request(format!("Anthropic API call failed: {e}")))?;
+                
+                Ok(response)
+            }
+            LlmProvider::Gemini { api_key, model } => {
+                let client = gemini::Client::new(api_key);
+                let agent = client.agent(model).preamble(system_message).build();
+                
+                let response = agent
+                    .prompt(prompt)
+                    .await
+                    .map_err(|e| LlmError::Request(format!("Gemini API call failed: {e}")))?;
+                
+                Ok(response)
+            }
         }
-
-        #[derive(Serialize)]
-        struct GeminiContent {
-            parts: Vec<GeminiPart>,
-        }
-
-        #[derive(Serialize)]
-        struct GeminiPart {
-            text: String,
-        }
-
-        #[derive(Deserialize)]
-        struct GeminiResponse {
-            candidates: Vec<GeminiCandidate>,
-        }
-
-        #[derive(Deserialize)]
-        struct GeminiCandidate {
-            content: GeminiResponseContent,
-        }
-
-        #[derive(Deserialize)]
-        struct GeminiResponseContent {
-            parts: Vec<GeminiResponsePart>,
-        }
-
-        #[derive(Deserialize)]
-        struct GeminiResponsePart {
-            text: String,
-        }
-
-        let request = GeminiRequest {
-            contents: vec![GeminiContent {
-                parts: vec![GeminiPart {
-                    text: prompt.to_string(),
-                }],
-            }],
-        };
-
-        let url = format!(
-            "https://generativelanguage.googleapis.com/v1beta/models/gemini-1.5-flash-latest:generateContent?key={}",
-            api_key
-        );
-
-        let response = self
-            .client
-            .post(&url)
-            .header("Content-Type", "application/json")
-            .json(&request)
-            .send()
-            .await
-            .map_err(|e| LlmError::Request(format!("Failed to send Gemini request: {e}")))?;
-
-        if !response.status().is_success() {
-            let status = response.status();
-            let error_text = response.text().await.unwrap_or_default();
-            return Err(LlmError::Auth(format!(
-                "Gemini API returned status {status}: {error_text}"
-            )));
-        }
-
-        let gemini_response: GeminiResponse = response
-            .json()
-            .await
-            .map_err(|e| LlmError::Parse(format!("Failed to parse Gemini response: {e}")))?;
-
-        gemini_response
-            .candidates
-            .first()
-            .and_then(|candidate| candidate.content.parts.first())
-            .map(|part| part.text.clone())
-            .ok_or_else(|| LlmError::Parse("No content in Gemini response".to_string()))
     }
 }
 
-// New functions using the Rust-based LLM client
+// New functions using the Rust-based LLM client with expanded provider support
 pub async fn extract_recipe_with_llm(
     content: &str,
     api_key: &str,
@@ -284,13 +176,24 @@ pub async fn extract_recipe_with_llm(
     let provider = if use_gemini {
         LlmProvider::Gemini {
             api_key: api_key.to_string(),
+            model: "gemini-1.5-flash".to_string(),
         }
     } else {
         LlmProvider::OpenAI {
             api_key: api_key.to_string(),
+            model: "gpt-3.5-turbo".to_string(),
         }
     };
 
+    let client = LlmClient::new(provider);
+    client.extract_recipe(content).await
+}
+
+// New function to support multiple LLM providers
+pub async fn extract_recipe_with_provider(
+    content: &str,
+    provider: LlmProvider,
+) -> Result<ExtractedRecipe, LlmError> {
     let client = LlmClient::new(provider);
     client.extract_recipe(content).await
 }
@@ -303,13 +206,24 @@ pub async fn generate_title_with_llm(
     let provider = if use_gemini {
         LlmProvider::Gemini {
             api_key: api_key.to_string(),
+            model: "gemini-1.5-flash".to_string(),
         }
     } else {
         LlmProvider::OpenAI {
             api_key: api_key.to_string(),
+            model: "gpt-3.5-turbo".to_string(),
         }
     };
 
+    let client = LlmClient::new(provider);
+    client.generate_title(content).await
+}
+
+// New function to support multiple LLM providers
+pub async fn generate_title_with_provider(
+    content: &str,
+    provider: LlmProvider,
+) -> Result<String, LlmError> {
     let client = LlmClient::new(provider);
     client.generate_title(content).await
 }
@@ -324,10 +238,12 @@ pub async fn extract_grocery_list_with_llm(
     let provider = if use_gemini {
         LlmProvider::Gemini {
             api_key: api_key.to_string(),
+            model: "gemini-1.5-flash".to_string(),
         }
     } else {
         LlmProvider::OpenAI {
             api_key: api_key.to_string(),
+            model: "gpt-3.5-turbo".to_string(),
         }
     };
 
@@ -351,4 +267,52 @@ pub async fn extract_grocery_list_with_llm(
 
     let items_string = grocery_items.join("\n");
     Ok(format!("Created grocery items:\n{items_string}"))
+}
+
+// New function to support multiple LLM providers
+pub async fn extract_grocery_list_with_provider(
+    content: &str,
+    provider: LlmProvider,
+    user_id: String,
+    db_client: &DBClient,
+) -> Result<String, LlmError> {
+    let client = LlmClient::new(provider);
+    let grocery_items = client.extract_grocery_list(content).await?;
+
+    // Create database items from the grocery list
+    let items: Vec<Item> = grocery_items
+        .iter()
+        .map(|item| Item {
+            owner_id: user_id.clone(),
+            id: None,
+            task: item.clone(),
+            completed: 0,
+            created_at: chrono::Utc::now(),
+            updated_at: chrono::Utc::now(),
+        })
+        .collect();
+
+    database::items::create_items(db_client, items).await;
+
+    let items_string = grocery_items.join("\n");
+    Ok(format!("Created grocery items:\n{items_string}"))
+}
+
+// Helper function to create providers from config strings
+pub fn create_llm_provider(provider_name: &str, api_key: &str, model: Option<&str>) -> Result<LlmProvider, LlmError> {
+    match provider_name.to_lowercase().as_str() {
+        "openai" => Ok(LlmProvider::OpenAI {
+            api_key: api_key.to_string(),
+            model: model.unwrap_or("gpt-3.5-turbo").to_string(),
+        }),
+        "anthropic" | "claude" => Ok(LlmProvider::Anthropic {
+            api_key: api_key.to_string(),
+            model: model.unwrap_or("claude-3-haiku-20240307").to_string(),
+        }),
+        "gemini" | "google" => Ok(LlmProvider::Gemini {
+            api_key: api_key.to_string(),
+            model: model.unwrap_or("gemini-1.5-flash").to_string(),
+        }),
+        _ => Err(LlmError::Request(format!("Unsupported LLM provider: {}", provider_name))),
+    }
 }
