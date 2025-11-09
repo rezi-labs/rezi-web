@@ -8,6 +8,7 @@ lazy_static::lazy_static! {
     static ref WHITESPACE_REGEX: Regex = Regex::new(r"\s+").unwrap();
     static ref INGREDIENT_REGEX: Regex = Regex::new(r#""recipeIngredient"\s*:\s*\[(.*?)\]"#).unwrap();
     static ref ITEM_REGEX: Regex = Regex::new(r#""([^"]+)""#).unwrap();
+    static ref RECIPE_NAME_REGEX: Regex = Regex::new(r#""name"\s*:\s*"([^"]+)""#).unwrap();
     static ref MEASUREMENT_REGEX: Regex = Regex::new(
         r"(?i)(?:^|\n)\s*(?:\d+(?:\.\d+)?|\d+/\d+|\d+\s+\d+/\d+)?\s*(?:cups?|tbsp|tsp|teaspoons?|tablespoons?|oz|ounces?|lbs?|pounds?|g|grams?|kg|ml|l|liters?|cloves?|pieces?|slices?|strips?|dashes?|pinches?)\s+(?:of\s+)?([^\n\r]+)"
     ).unwrap();
@@ -62,13 +63,13 @@ pub fn extract_ingredients(html: &str) -> Vec<String> {
 
 pub fn extract_title(html: &str) -> Option<String> {
     let document = Html::parse_document(html);
-    
+
     // Common CSS selectors for recipe titles
     let title_selectors = vec![
         "h1[itemprop='name']",
         "[itemprop='name']",
         "h1.recipe-title",
-        "h1.entry-title", 
+        "h1.entry-title",
         ".recipe-header h1",
         ".recipe-title",
         ".entry-title",
@@ -101,33 +102,33 @@ pub fn extract_title(html: &str) -> Option<String> {
 
 fn clean_title_text(element: &ElementRef) -> String {
     let text = element.text().collect::<String>();
-    
+
     // Clean up the title text
     let text = text.trim().replace(['\n', '\t'], " ");
-    
+
     // Normalize whitespace
     WHITESPACE_REGEX.replace_all(&text, " ").trim().to_string()
 }
 
 fn is_likely_title(text: &str) -> bool {
     let len = text.len();
-    
+
     // Reasonable title length
     if !(5..=150).contains(&len) {
         return false;
     }
-    
+
     // Should not be just numbers or symbols
     if !text.chars().any(|c| c.is_alphabetic()) {
         return false;
     }
-    
+
     // Ignore common non-title patterns
     let lowercase = text.to_lowercase();
     let ignore_patterns = vec![
         "recipe",
         "ingredients",
-        "directions", 
+        "directions",
         "instructions",
         "method",
         "home",
@@ -139,34 +140,34 @@ fn is_likely_title(text: &str) -> bool {
         "login",
         "register",
     ];
-    
+
     // If it's only one of these words, it's probably not a recipe title
     for pattern in ignore_patterns {
         if lowercase.trim() == pattern {
             return false;
         }
     }
-    
+
     true
 }
 
 fn extract_title_from_json_ld(document: &Html) -> Option<String> {
     let script_selector = Selector::parse("script[type='application/ld+json']").unwrap();
-    
+
     for script in document.select(&script_selector) {
         let json_text = script.text().collect::<String>();
-        
+
         // Simple regex-based extraction for recipe name
-        if let Some(captures) = Regex::new(r#""name"\s*:\s*"([^"]+)""#).unwrap().captures(&json_text) {
-            if let Some(title) = captures.get(1) {
-                let title = title.as_str().trim().to_string();
-                if is_likely_title(&title) {
-                    return Some(title);
-                }
+        if let Some(captures) = RECIPE_NAME_REGEX.captures(&json_text)
+            && let Some(title) = captures.get(1)
+        {
+            let title = title.as_str().trim().to_string();
+            if is_likely_title(&title) {
+                return Some(title);
             }
         }
     }
-    
+
     None
 }
 

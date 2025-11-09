@@ -9,8 +9,6 @@ pub fn list_icon() -> Markup {
     }
 }
 
-
-
 #[allow(unused)]
 pub fn share_icon() -> Markup {
     html! {
@@ -131,8 +129,6 @@ pub fn link_icon() -> Markup {
         }
     }
 }
-
-
 
 pub fn info_icon() -> Markup {
     html! {

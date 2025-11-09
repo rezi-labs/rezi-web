@@ -6,10 +6,7 @@ pub struct Server {
     host: String,
     db_url: String,
     token: Option<String>,
-    #[allow(dead_code)]
-    nest_api: String,
-    #[allow(dead_code)]
-    nest_api_key: String,
+
     llm_provider: String,
     llm_api_key: String,
     fake_user: bool,
@@ -30,16 +27,6 @@ impl Server {
     }
     pub fn db_token(&self) -> Option<String> {
         self.token.clone()
-    }
-
-    #[allow(dead_code)]
-    pub fn nest_api(&self) -> String {
-        self.nest_api.clone()
-    }
-
-    #[allow(dead_code)]
-    pub fn nest_api_key(&self) -> String {
-        self.nest_api_key.clone()
     }
 
     #[allow(dead_code)]
@@ -71,9 +58,6 @@ pub fn from_env() -> Server {
     let local = env::var("LOCAL").unwrap_or("false".to_string());
     let local = local == "true";
 
-    let nest_api: String = env::var("NEST_API").unwrap_or("http://0.0.0.0:9998".to_string());
-    let nest_api_key: String = env::var("NEST_API_KEY").expect("need NEST_API_KEY");
-
     // LLM Configuration - defaults to using Gemini
     let llm_provider: String = env::var("LLM_PROVIDER").unwrap_or("gemini".to_string());
     let llm_api_key: String = env::var("LLM_API_KEY")
@@ -97,8 +81,7 @@ pub fn from_env() -> Server {
         host,
         db_url,
         token: db_token,
-        nest_api,
-        nest_api_key,
+
         llm_provider,
         llm_api_key,
         fake_user,

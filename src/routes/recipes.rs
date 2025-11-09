@@ -253,7 +253,7 @@ pub async fn process_recipe_input(
 
     // Extract recipe title and generate grocery list
     let use_gemini = config.llm_provider().to_lowercase() == "gemini";
-    
+
     // Try to extract structured recipe data to get the title
     let recipe_title = match crate::llm::extract_recipe_with_llm(
         &recipe_content,
@@ -323,7 +323,7 @@ pub async fn process_recipe_input(
             div class="alert alert-success" {
                 "Recipe processed successfully! Grocery list generated and recipe saved."
             }
-            
+
             div class="card bg-base-100 shadow-lg" {
                 div class="card-body" {
                     h3 class="card-title" { "Generated Grocery List" }
@@ -351,7 +351,7 @@ pub async fn process_recipe_input(
                     }
                 }
             }
-            
+
             div class="flex gap-2" {
                 a href="/recipes" class="btn btn-primary" {
                     "View All Recipes"
@@ -359,9 +359,9 @@ pub async fn process_recipe_input(
                 a href="/items" class="btn btn-secondary" {
                     "View Grocery Items"
                 }
-                button class="btn btn-ghost" 
-                       hx-get="/" 
-                       hx-target="body" 
+                button class="btn btn-ghost"
+                       hx-get="/"
+                       hx-target="body"
                        hx-swap="outerHTML" {
                     "Add Another Recipe"
                 }
@@ -464,12 +464,9 @@ pub async fn extract_recipe_structure(
 
     // Extract structured recipe information
     let use_gemini = config.llm_provider().to_lowercase() == "gemini";
-    let extracted_recipe = crate::llm::extract_recipe_with_llm(
-        &recipe_content,
-        &config.llm_api_key(),
-        use_gemini,
-    )
-    .await;
+    let extracted_recipe =
+        crate::llm::extract_recipe_with_llm(&recipe_content, &config.llm_api_key(), use_gemini)
+            .await;
 
     // Also generate grocery list
     let grocery_list = crate::routes::generate_task_response_rust_llm(
@@ -485,13 +482,36 @@ pub async fn extract_recipe_structure(
         Ok(recipe_data) => {
             // Create and save the structured recipe
             let formatted_content = format!(
-                "# {}\n\n## Ingredients\n{}\n\n## Instructions\n{}\n\n{}{}{}", 
+                "# {}\n\n## Ingredients\n{}\n\n## Instructions\n{}\n\n{}{}{}",
                 recipe_data.title,
-                recipe_data.ingredients.iter().map(|i| format!("- {}", i)).collect::<Vec<_>>().join("\n"),
-                recipe_data.instructions.iter().enumerate().map(|(i, inst)| format!("{}. {}", i + 1, inst)).collect::<Vec<_>>().join("\n"),
-                recipe_data.prep_time.as_ref().map(|pt| format!("**Prep Time:** {}\n", pt)).unwrap_or_default(),
-                recipe_data.cook_time.as_ref().map(|ct| format!("**Cook Time:** {}\n", ct)).unwrap_or_default(),
-                recipe_data.servings.as_ref().map(|s| format!("**Servings:** {}\n", s)).unwrap_or_default()
+                recipe_data
+                    .ingredients
+                    .iter()
+                    .map(|i| format!("- {}", i))
+                    .collect::<Vec<_>>()
+                    .join("\n"),
+                recipe_data
+                    .instructions
+                    .iter()
+                    .enumerate()
+                    .map(|(i, inst)| format!("{}. {}", i + 1, inst))
+                    .collect::<Vec<_>>()
+                    .join("\n"),
+                recipe_data
+                    .prep_time
+                    .as_ref()
+                    .map(|pt| format!("**Prep Time:** {}\n", pt))
+                    .unwrap_or_default(),
+                recipe_data
+                    .cook_time
+                    .as_ref()
+                    .map(|ct| format!("**Cook Time:** {}\n", ct))
+                    .unwrap_or_default(),
+                recipe_data
+                    .servings
+                    .as_ref()
+                    .map(|s| format!("**Servings:** {}\n", s))
+                    .unwrap_or_default()
             );
 
             let recipe = Recipe::new(
@@ -509,26 +529,26 @@ pub async fn extract_recipe_structure(
                     div class="alert alert-success" {
                         "Recipe extracted and structured successfully! Grocery list generated and recipe saved."
                     }
-                    
+
                     div class="grid grid-cols-1 lg:grid-cols-2 gap-4" {
                         div class="card bg-base-100 shadow-lg" {
                             div class="card-body" {
                                 h3 class="card-title" { "Extracted Recipe: " (recipe_data.title) }
-                                
+
                                 h4 class="font-semibold mt-4" { "Ingredients" }
                                 ul class="list-disc list-inside" {
                                     @for ingredient in &recipe_data.ingredients {
                                         li { (ingredient) }
                                     }
                                 }
-                                
+
                                 h4 class="font-semibold mt-4" { "Instructions" }
                                 ol class="list-decimal list-inside" {
                                     @for instruction in &recipe_data.instructions {
                                         li class="mb-2" { (instruction) }
                                     }
                                 }
-                                
+
                                 @if let Some(prep_time) = &recipe_data.prep_time {
                                     div class="mt-4" {
                                         span class="font-semibold" { "Prep Time: " }
@@ -572,7 +592,7 @@ pub async fn extract_recipe_structure(
                             }
                         }
                     }
-                    
+
                     div class="flex gap-2" {
                         a href="/recipes" class="btn btn-primary" {
                             "View All Recipes"
@@ -580,9 +600,9 @@ pub async fn extract_recipe_structure(
                         a href="/items" class="btn btn-secondary" {
                             "View Grocery Items"
                         }
-                        button class="btn btn-ghost" 
-                               hx-get="/" 
-                               hx-target="body" 
+                        button class="btn btn-ghost"
+                               hx-get="/"
+                               hx-target="body"
                                hx-swap="outerHTML" {
                             "Add Another Recipe"
                         }
@@ -601,7 +621,7 @@ pub async fn extract_recipe_structure(
                     div class="alert alert-warning" {
                         "Recipe extraction failed, but we still generated a grocery list and saved the raw content."
                     }
-                    
+
                     div class="card bg-base-100 shadow-lg" {
                         div class="card-body" {
                             h3 class="card-title" { "Generated Grocery List" }
@@ -614,14 +634,14 @@ pub async fn extract_recipe_structure(
                     }
 
                     div class="alert alert-error" {
-                        "Error extracting structured recipe data: " 
+                        "Error extracting structured recipe data: "
                         @match e {
                             crate::llm::LlmError::Request(msg) => (msg),
                             crate::llm::LlmError::Auth(msg) => (msg),
                             crate::llm::LlmError::Parse(msg) => (msg),
                         }
                     }
-                    
+
                     div class="flex gap-2" {
                         a href="/recipes" class="btn btn-primary" {
                             "View All Recipes"
@@ -629,9 +649,9 @@ pub async fn extract_recipe_structure(
                         a href="/items" class="btn btn-secondary" {
                             "View Grocery Items"
                         }
-                        button class="btn btn-ghost" 
-                               hx-get="/" 
-                               hx-target="body" 
+                        button class="btn btn-ghost"
+                               hx-get="/"
+                               hx-target="body"
                                hx-swap="outerHTML" {
                             "Try Again"
                         }

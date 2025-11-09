@@ -1,7 +1,14 @@
-
+use async_openai::{
+    Client as OpenAIClient,
+    config::OpenAIConfig,
+    types::{
+        ChatCompletionRequestMessage, ChatCompletionRequestSystemMessage,
+        ChatCompletionRequestSystemMessageContent, ChatCompletionRequestUserMessage,
+        ChatCompletionRequestUserMessageContent, CreateChatCompletionRequestArgs,
+    },
+};
 use reqwest::Client;
 use serde::{Deserialize, Serialize};
-use async_openai::{Client as OpenAIClient, config::OpenAIConfig, types::{CreateChatCompletionRequestArgs, ChatCompletionRequestMessage, ChatCompletionRequestSystemMessage, ChatCompletionRequestUserMessage, ChatCompletionRequestSystemMessageContent, ChatCompletionRequestUserMessageContent}};
 
 use crate::database::{self, DBClient, items::Item};
 
@@ -69,14 +76,15 @@ Return only the JSON object, no additional text."#
             LlmProvider::OpenAI { api_key } => {
                 self.call_openai_compatible_api(api_key, &prompt).await?
             }
-            LlmProvider::Gemini { api_key } => {
-                self.call_gemini_api(api_key, &prompt).await?
-            }
+            LlmProvider::Gemini { api_key } => self.call_gemini_api(api_key, &prompt).await?,
         };
 
         // Try to parse the JSON response
-        let recipe: ExtractedRecipe = serde_json::from_str(&response_text)
-            .map_err(|e| LlmError::Parse(format!("Failed to parse recipe JSON: {e}\nResponse: {response_text}")))?;
+        let recipe: ExtractedRecipe = serde_json::from_str(&response_text).map_err(|e| {
+            LlmError::Parse(format!(
+                "Failed to parse recipe JSON: {e}\nResponse: {response_text}"
+            ))
+        })?;
 
         Ok(recipe)
     }
@@ -95,13 +103,12 @@ Return only the title text, no quotes or additional formatting."#
             LlmProvider::OpenAI { api_key } => {
                 self.call_openai_compatible_api(api_key, &prompt).await?
             }
-            LlmProvider::Gemini { api_key } => {
-                self.call_gemini_api(api_key, &prompt).await?
-            }
+            LlmProvider::Gemini { api_key } => self.call_gemini_api(api_key, &prompt).await?,
         };
 
         // Clean up the response - remove quotes and trim whitespace
-        let title = response_text.trim()
+        let title = response_text
+            .trim()
             .trim_matches('"')
             .trim_matches('\'')
             .trim()
@@ -131,21 +138,25 @@ Return only the JSON object, no additional text."#
             LlmProvider::OpenAI { api_key } => {
                 self.call_openai_compatible_api(api_key, &prompt).await?
             }
-            LlmProvider::Gemini { api_key } => {
-                self.call_gemini_api(api_key, &prompt).await?
-            }
+            LlmProvider::Gemini { api_key } => self.call_gemini_api(api_key, &prompt).await?,
         };
 
         // Try to parse the JSON response
-        let grocery_list: GroceryList = serde_json::from_str(&response_text)
-            .map_err(|e| LlmError::Parse(format!("Failed to parse grocery list JSON: {e}\nResponse: {response_text}")))?;
+        let grocery_list: GroceryList = serde_json::from_str(&response_text).map_err(|e| {
+            LlmError::Parse(format!(
+                "Failed to parse grocery list JSON: {e}\nResponse: {response_text}"
+            ))
+        })?;
 
         Ok(grocery_list.items)
     }
 
-    async fn call_openai_compatible_api(&self, api_key: &str, prompt: &str) -> Result<String, LlmError> {
-        let config = OpenAIConfig::new()
-            .with_api_key(api_key);
+    async fn call_openai_compatible_api(
+        &self,
+        api_key: &str,
+        prompt: &str,
+    ) -> Result<String, LlmError> {
+        let config = OpenAIConfig::new().with_api_key(api_key);
 
         let client = OpenAIClient::with_config(config);
 
@@ -181,7 +192,7 @@ Return only the JSON object, no additional text."#
             .first()
             .and_then(|choice| choice.message.content.as_ref())
             .ok_or_else(|| LlmError::Parse("No content in OpenAI response".to_string()))
-            .map(|content| content.clone())
+            .cloned()
     }
 
     async fn call_gemini_api(&self, api_key: &str, prompt: &str) -> Result<String, LlmError> {
@@ -271,9 +282,13 @@ pub async fn extract_recipe_with_llm(
     use_gemini: bool,
 ) -> Result<ExtractedRecipe, LlmError> {
     let provider = if use_gemini {
-        LlmProvider::Gemini { api_key: api_key.to_string() }
+        LlmProvider::Gemini {
+            api_key: api_key.to_string(),
+        }
     } else {
-        LlmProvider::OpenAI { api_key: api_key.to_string() }
+        LlmProvider::OpenAI {
+            api_key: api_key.to_string(),
+        }
     };
 
     let client = LlmClient::new(provider);
@@ -286,9 +301,13 @@ pub async fn generate_title_with_llm(
     use_gemini: bool,
 ) -> Result<String, LlmError> {
     let provider = if use_gemini {
-        LlmProvider::Gemini { api_key: api_key.to_string() }
+        LlmProvider::Gemini {
+            api_key: api_key.to_string(),
+        }
     } else {
-        LlmProvider::OpenAI { api_key: api_key.to_string() }
+        LlmProvider::OpenAI {
+            api_key: api_key.to_string(),
+        }
     };
 
     let client = LlmClient::new(provider);
@@ -303,9 +322,13 @@ pub async fn extract_grocery_list_with_llm(
     db_client: &DBClient,
 ) -> Result<String, LlmError> {
     let provider = if use_gemini {
-        LlmProvider::Gemini { api_key: api_key.to_string() }
+        LlmProvider::Gemini {
+            api_key: api_key.to_string(),
+        }
     } else {
-        LlmProvider::OpenAI { api_key: api_key.to_string() }
+        LlmProvider::OpenAI {
+            api_key: api_key.to_string(),
+        }
     };
 
     let client = LlmClient::new(provider);

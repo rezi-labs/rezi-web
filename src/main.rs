@@ -119,7 +119,6 @@ async fn main() -> std::io::Result<()> {
             .service(routes::recipes::edit_recipe)
             .service(routes::recipes::cancel_edit_recipe)
             .service(items::index_route)
-
             .service(routes::items::create_item)
             .service(routes::items::toggle_item)
             .service(routes::items::delete_item)

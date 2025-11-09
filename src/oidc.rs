@@ -127,7 +127,7 @@ impl OidcClient {
             None => self.config.redirect_uri.clone(),
         };
 
-        let params = vec![
+        let params = [
             ("response_type", "code"),
             ("client_id", &self.config.client_id),
             ("redirect_uri", &final_redirect_uri),

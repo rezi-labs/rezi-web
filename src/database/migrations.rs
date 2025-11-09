@@ -15,8 +15,6 @@ pub async fn run(client: &DBClient) {
     }
     log::info!("Items table migration completed");
 
-
-
     let recipes_sql = include_str!("../../migrations/recipes.sql");
     {
         let client = super::unlock_client(client).await;
@@ -39,8 +37,6 @@ pub async fn run(client: &DBClient) {
             .expect("items indexes migration failed");
     }
     log::info!("Items indexes migration completed");
-
-
 
     let recipes_indexes_sql = include_str!("../../migrations/recipes_indexes.sql");
     {

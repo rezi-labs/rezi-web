@@ -42,8 +42,6 @@ pub fn random_html_safe_id() -> u64 {
     rng.random::<u64>()
 }
 
-
-
 // New Rust-based LLM task generation
 pub async fn generate_task_response_rust_llm(
     user_message: &str,
@@ -53,8 +51,15 @@ pub async fn generate_task_response_rust_llm(
     user_id: String,
 ) -> String {
     let use_gemini = llm_provider.to_lowercase() == "gemini";
-    
-    match llm::extract_grocery_list_with_llm(user_message, llm_api_key, use_gemini, user_id, db_client).await
+
+    match llm::extract_grocery_list_with_llm(
+        user_message,
+        llm_api_key,
+        use_gemini,
+        user_id,
+        db_client,
+    )
+    .await
     {
         Ok(a) => a,
         Err(e) => {

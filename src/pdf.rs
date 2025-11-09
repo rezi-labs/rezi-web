@@ -15,7 +15,7 @@ pub fn items_to_pdf(items: &[Item]) -> Result<Vec<u8>, Box<dyn std::error::Error
     // Title
     current_layer.use_text("Items", 24.0, Mm(20.0), Mm(270.0), &font_bold);
     current_layer.use_text(
-        &format!(
+        format!(
             "Generated on: {}",
             chrono::Utc::now().format("%Y-%m-%d %H:%M:%S UTC")
         ),

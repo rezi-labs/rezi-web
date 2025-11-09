@@ -57,7 +57,7 @@ pub fn index(
     _reload_polling_active: bool,
     user: Option<&crate::user::User>,
 ) -> Markup {
-    let content = content.unwrap_or_else(|| recipe_input_form());
+    let content = content.unwrap_or_else(recipe_input_form);
     html! {
         (maud::DOCTYPE)
         head {
@@ -104,25 +104,25 @@ fn recipe_input_form() -> Markup {
                                 span class="label-text font-medium" { "Recipe URL" }
                             }
                             div class="flex flex-col gap-2" {
-                                input 
-                                    class="input input-bordered w-full" 
-                                    type="url" 
+                                input
+                                    class="input input-bordered w-full"
+                                    type="url"
                                     id="recipe-url-input"
-                                    name="url" 
+                                    name="url"
                                     placeholder="https://example.com/recipe";
                                 div class="flex gap-2" {
-                                    button 
-                                        class="btn btn-primary flex-1" 
-                                        hx-post="/recipes/process" 
-                                        hx-target="#result" 
+                                    button
+                                        class="btn btn-primary flex-1"
+                                        hx-post="/recipes/process"
+                                        hx-target="#result"
                                         hx-swap="innerHTML"
                                         hx-include="#recipe-url-input" {
                                         "Quick Process"
                                     }
-                                    button 
-                                        class="btn btn-secondary flex-1" 
-                                        hx-post="/recipes/extract" 
-                                        hx-target="#result" 
+                                    button
+                                        class="btn btn-secondary flex-1"
+                                        hx-post="/recipes/extract"
+                                        hx-target="#result"
                                         hx-swap="innerHTML"
                                         hx-include="#recipe-url-input" {
                                         "Extract Structure"
@@ -130,23 +130,23 @@ fn recipe_input_form() -> Markup {
                                 }
                             }
                             label class="label" {
-                                span class="label-text-alt text-base-content/60" { 
+                                span class="label-text-alt text-base-content/60" {
                                     "Quick Process: Extract grocery list only • Extract Structure: Get organized recipe with ingredients and instructions"
                                 }
                             }
                         }
-                        
+
                         div class="divider" { "OR" }
-                        
+
                         div class="form-control" {
                             label class="label" {
                                 span class="label-text font-medium" { "Recipe Text" }
                             }
                             div class="flex flex-col gap-2" {
-                                textarea 
-                                    class="textarea textarea-bordered min-h-32" 
+                                textarea
+                                    class="textarea textarea-bordered min-h-32"
                                     id="recipe-content-input"
-                                    name="content" 
+                                    name="content"
                                     placeholder="Paste your recipe text here...
                                     
 For example:
@@ -155,18 +155,18 @@ For example:
 - 3 eggs
 - 1/2 cup butter";
                                 div class="flex gap-2 mt-4" {
-                                    button 
-                                        class="btn btn-primary flex-1" 
-                                        hx-post="/recipes/process" 
-                                        hx-target="#result" 
+                                    button
+                                        class="btn btn-primary flex-1"
+                                        hx-post="/recipes/process"
+                                        hx-target="#result"
                                         hx-swap="innerHTML"
                                         hx-include="#recipe-content-input" {
                                         "Quick Process"
                                     }
-                                    button 
-                                        class="btn btn-secondary flex-1" 
-                                        hx-post="/recipes/extract" 
-                                        hx-target="#result" 
+                                    button
+                                        class="btn btn-secondary flex-1"
+                                        hx-post="/recipes/extract"
+                                        hx-target="#result"
                                         hx-swap="innerHTML"
                                         hx-include="#recipe-content-input" {
                                         "Extract Structure"
@@ -174,13 +174,13 @@ For example:
                                 }
                             }
                             label class="label" {
-                                span class="label-text-alt text-base-content/60" { 
+                                span class="label-text-alt text-base-content/60" {
                                     "Quick Process: Extract grocery list only • Extract Structure: Get organized recipe with ingredients and instructions"
                                 }
                             }
                         }
                     }
-                    
+
                     div id="result" class="mt-6" {
                         // Results will be displayed here
                     }
