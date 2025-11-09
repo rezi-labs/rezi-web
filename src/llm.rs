@@ -81,6 +81,39 @@ Return only the JSON object, no additional text."#
         Ok(recipe)
     }
 
+    pub async fn generate_title(&self, content: &str) -> Result<String, LlmError> {
+        let prompt = format!(
+            r#"Generate a concise, descriptive title for this recipe or cooking content. The title should be 2-8 words and clearly describe what dish is being made.
+
+Content to generate title for:
+{content}
+
+Return only the title text, no quotes or additional formatting."#
+        );
+
+        let response_text = match &self.provider {
+            LlmProvider::OpenAI { api_key } => {
+                self.call_openai_compatible_api(api_key, &prompt).await?
+            }
+            LlmProvider::Gemini { api_key } => {
+                self.call_gemini_api(api_key, &prompt).await?
+            }
+        };
+
+        // Clean up the response - remove quotes and trim whitespace
+        let title = response_text.trim()
+            .trim_matches('"')
+            .trim_matches('\'')
+            .trim()
+            .to_string();
+
+        if title.is_empty() {
+            return Err(LlmError::Parse("Generated title is empty".to_string()));
+        }
+
+        Ok(title)
+    }
+
     pub async fn extract_grocery_list(&self, content: &str) -> Result<Vec<String>, LlmError> {
         let prompt = format!(
             r#"Extract a grocery list from the following recipe or content. Focus only on ingredients that need to be purchased.
@@ -245,6 +278,21 @@ pub async fn extract_recipe_with_llm(
 
     let client = LlmClient::new(provider);
     client.extract_recipe(content).await
+}
+
+pub async fn generate_title_with_llm(
+    content: &str,
+    api_key: &str,
+    use_gemini: bool,
+) -> Result<String, LlmError> {
+    let provider = if use_gemini {
+        LlmProvider::Gemini { api_key: api_key.to_string() }
+    } else {
+        LlmProvider::OpenAI { api_key: api_key.to_string() }
+    };
+
+    let client = LlmClient::new(provider);
+    client.generate_title(content).await
 }
 
 pub async fn extract_grocery_list_with_llm(

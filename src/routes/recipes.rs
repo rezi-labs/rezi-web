@@ -251,6 +251,52 @@ pub async fn process_recipe_input(
             .body(markup.into_string()));
     };
 
+    // Extract recipe title and generate grocery list
+    let use_gemini = config.llm_provider().to_lowercase() == "gemini";
+    
+    // Try to extract structured recipe data to get the title
+    let recipe_title = match crate::llm::extract_recipe_with_llm(
+        &recipe_content,
+        &config.llm_api_key(),
+        use_gemini,
+    )
+    .await
+    {
+        Ok(extracted_recipe) => Some(extracted_recipe.title),
+        Err(_) => {
+            // First fallback: try to extract title from HTML if it's a URL
+            if recipe_url.is_some() {
+                if let Some(html_title) = crate::scrapy::extract_title(&recipe_content) {
+                    Some(html_title)
+                } else {
+                    // Second fallback: generate title using LLM
+                    match crate::llm::generate_title_with_llm(
+                        &recipe_content,
+                        &config.llm_api_key(),
+                        use_gemini,
+                    )
+                    .await
+                    {
+                        Ok(generated_title) => Some(generated_title),
+                        Err(_) => Some("Untitled Recipe".to_string()),
+                    }
+                }
+            } else {
+                // For text content, try to generate a title using LLM
+                match crate::llm::generate_title_with_llm(
+                    &recipe_content,
+                    &config.llm_api_key(),
+                    use_gemini,
+                )
+                .await
+                {
+                    Ok(generated_title) => Some(generated_title),
+                    Err(_) => Some("Untitled Recipe".to_string()),
+                }
+            }
+        }
+    };
+
     // Generate grocery list from recipe content using Rust-based LLM
     let grocery_list = crate::routes::generate_task_response_rust_llm(
         &recipe_content,
@@ -265,7 +311,7 @@ pub async fn process_recipe_input(
     let recipe = Recipe::new(
         None,
         user.id().to_string(),
-        Some("Generated Recipe".to_string()),
+        recipe_title,
         recipe_url,
         recipe_content.clone(),
     );

@@ -60,6 +60,116 @@ pub fn extract_ingredients(html: &str) -> Vec<String> {
     ingredients
 }
 
+pub fn extract_title(html: &str) -> Option<String> {
+    let document = Html::parse_document(html);
+    
+    // Common CSS selectors for recipe titles
+    let title_selectors = vec![
+        "h1[itemprop='name']",
+        "[itemprop='name']",
+        "h1.recipe-title",
+        "h1.entry-title", 
+        ".recipe-header h1",
+        ".recipe-title",
+        ".entry-title",
+        "h1.post-title",
+        "h1",
+        "title",
+        "[class*='recipe'][class*='title']",
+        "[class*='title'][class*='recipe']",
+    ];
+
+    // Try structured data selectors first
+    for selector_str in &title_selectors {
+        if let Ok(selector) = Selector::parse(selector_str) {
+            for element in document.select(&selector) {
+                let text = clean_title_text(&element);
+                if !text.is_empty() && is_likely_title(&text) {
+                    return Some(text);
+                }
+            }
+        }
+    }
+
+    // If no title found, try JSON-LD structured data
+    if let Some(title) = extract_title_from_json_ld(&document) {
+        return Some(title);
+    }
+
+    None
+}
+
+fn clean_title_text(element: &ElementRef) -> String {
+    let text = element.text().collect::<String>();
+    
+    // Clean up the title text
+    let text = text.trim().replace(['\n', '\t'], " ");
+    
+    // Normalize whitespace
+    WHITESPACE_REGEX.replace_all(&text, " ").trim().to_string()
+}
+
+fn is_likely_title(text: &str) -> bool {
+    let len = text.len();
+    
+    // Reasonable title length
+    if !(5..=150).contains(&len) {
+        return false;
+    }
+    
+    // Should not be just numbers or symbols
+    if !text.chars().any(|c| c.is_alphabetic()) {
+        return false;
+    }
+    
+    // Ignore common non-title patterns
+    let lowercase = text.to_lowercase();
+    let ignore_patterns = vec![
+        "recipe",
+        "ingredients",
+        "directions", 
+        "instructions",
+        "method",
+        "home",
+        "page",
+        "website",
+        "blog",
+        "menu",
+        "search",
+        "login",
+        "register",
+    ];
+    
+    // If it's only one of these words, it's probably not a recipe title
+    for pattern in ignore_patterns {
+        if lowercase.trim() == pattern {
+            return false;
+        }
+    }
+    
+    true
+}
+
+fn extract_title_from_json_ld(document: &Html) -> Option<String> {
+    let script_selector = Selector::parse("script[type='application/ld+json']").unwrap();
+    
+    for script in document.select(&script_selector) {
+        let json_text = script.text().collect::<String>();
+        
+        // Simple regex-based extraction for recipe name
+        if let Some(captures) = Regex::new(r#""name"\s*:\s*"([^"]+)""#).unwrap().captures(&json_text) {
+            if let Some(title) = captures.get(1) {
+                let title = title.as_str().trim().to_string();
+                if is_likely_title(&title) {
+                    return Some(title);
+                }
+            }
+        }
+    }
+    
+    None
+}
+
 fn clean_ingredient_text(element: &ElementRef) -> String {
     // Get text content and clean it
     let text = element.text().collect::<String>();
@@ -194,5 +304,50 @@ mod tests {
         let ingredients = extract_ingredients(html);
         assert_eq!(ingredients.len(), 3);
         assert!(ingredients.contains(&"2 cups flour".to_string()));
+    }
+
+    #[test]
+    fn test_extract_title_structured() {
+        let html = r#"
+            <div class="recipe">
+                <h1 itemprop="name">Chocolate Chip Cookies</h1>
+                <li itemprop="recipeIngredient">2 cups flour</li>
+            </div>
+        "#;
+
+        let title = extract_title(html);
+        assert_eq!(title, Some("Chocolate Chip Cookies".to_string()));
+    }
+
+    #[test]
+    fn test_extract_title_json_ld() {
+        let html = r#"
+            <script type="application/ld+json">
+            {
+                "@type": "Recipe",
+                "name": "Best Banana Bread",
+                "recipeIngredient": ["3 bananas", "2 cups flour"]
+            }
+            </script>
+        "#;
+
+        let title = extract_title(html);
+        assert_eq!(title, Some("Best Banana Bread".to_string()));
+    }
+
+    #[test]
+    fn test_extract_title_h1_fallback() {
+        let html = r#"
+            <html>
+                <head><title>Amazing Pancakes Recipe - Food Blog</title></head>
+                <body>
+                    <h1>Amazing Pancakes</h1>
+                    <p>These are great pancakes</p>
+                </body>
+            </html>
+        "#;
+
+        let title = extract_title(html);
+        assert_eq!(title, Some("Amazing Pancakes".to_string()));
     }
 }
