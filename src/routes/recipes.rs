@@ -3,18 +3,26 @@ use actix_web::{HttpRequest, HttpResponse, Result, delete, get, patch, post, web
 use log::info;
 use maud::{Markup, html};
 use serde::Deserialize;
+use url::Url;
 
 use crate::config::Server;
 use crate::database::recipes::Recipe;
 use crate::database::{self, DBClient};
 use crate::routes::get_user;
 use crate::view::{self, index};
+use crate::witch;
 
 #[derive(Deserialize)]
 pub struct CreateRecipeRequest {
     pub title: Option<String>,
     pub url: Option<String>,
     pub content: String,
+}
+
+#[derive(Deserialize)]
+pub struct ProcessRecipeRequest {
+    pub url: Option<String>,
+    pub content: Option<String>,
 }
 
 #[derive(Deserialize)]
@@ -153,6 +161,171 @@ pub async fn update_recipe(
             Err(ParseError::Incomplete.into())
         }
     }
+}
+
+#[post("/recipes/process")]
+pub async fn process_recipe_input(
+    form: web::Form<ProcessRecipeRequest>,
+    client: web::Data<DBClient>,
+    config: web::Data<Server>,
+    req: HttpRequest,
+) -> Result<HttpResponse> {
+    let user = match crate::routes::get_user_or_redirect(&req) {
+        Ok(user) => user,
+        Err(response) => return Ok(response),
+    };
+
+    let db_client: &DBClient = client.get_ref();
+
+    // Determine if we're processing a URL or text content
+    let (recipe_content, recipe_url) = if let Some(url) = &form.url {
+        if !url.trim().is_empty() {
+            // Process URL
+            let parsed_url = match Url::parse(url) {
+                Ok(u) => u,
+                Err(_) => {
+                    let markup = html! {
+                        div class="alert alert-error" {
+                            "Invalid URL format. Please enter a valid recipe URL."
+                        }
+                    };
+                    return Ok(HttpResponse::Ok()
+                        .content_type("text/html; charset=utf-8")
+                        .body(markup.into_string()));
+                }
+            };
+
+            let content = match witch::hex(parsed_url.to_string()).await {
+                Ok(content) => content,
+                Err(err) => {
+                    log::error!("Failed to fetch URL content: {err}");
+                    let markup = html! {
+                        div class="alert alert-error" {
+                            "Failed to fetch content from URL. Please check the URL and try again."
+                        }
+                    };
+                    return Ok(HttpResponse::Ok()
+                        .content_type("text/html; charset=utf-8")
+                        .body(markup.into_string()));
+                }
+            };
+
+            (content, Some(url.clone()))
+        } else {
+            // Process text content
+            match &form.content {
+                Some(content) if !content.trim().is_empty() => (content.clone(), None),
+                _ => {
+                    let markup = html! {
+                        div class="alert alert-error" {
+                            "Please provide either a recipe URL or recipe text content."
+                        }
+                    };
+                    return Ok(HttpResponse::Ok()
+                        .content_type("text/html; charset=utf-8")
+                        .body(markup.into_string()));
+                }
+            }
+        }
+    } else if let Some(content) = &form.content {
+        if !content.trim().is_empty() {
+            (content.clone(), None)
+        } else {
+            let markup = html! {
+                div class="alert alert-error" {
+                    "Please provide either a recipe URL or recipe text content."
+                }
+            };
+            return Ok(HttpResponse::Ok()
+                .content_type("text/html; charset=utf-8")
+                .body(markup.into_string()));
+        }
+    } else {
+        let markup = html! {
+            div class="alert alert-error" {
+                "Please provide either a recipe URL or recipe text content."
+            }
+        };
+        return Ok(HttpResponse::Ok()
+            .content_type("text/html; charset=utf-8")
+            .body(markup.into_string()));
+    };
+
+    // Generate grocery list from recipe content
+    let grocery_list = crate::routes::generate_task_response(
+        &recipe_content,
+        &config.nest_api(),
+        &config.nest_api_key(),
+        db_client,
+        user.id().to_string(),
+    )
+    .await;
+
+    // Create and save the recipe
+    let recipe = Recipe::new(
+        None,
+        user.id().to_string(),
+        Some("Generated Recipe".to_string()),
+        recipe_url,
+        recipe_content.clone(),
+    );
+
+    let recipe_result = database::recipes::create_recipe(db_client, recipe).await;
+
+    let markup = html! {
+        div class="space-y-4" {
+            div class="alert alert-success" {
+                "Recipe processed successfully! Grocery list generated and recipe saved."
+            }
+            
+            div class="card bg-base-100 shadow-lg" {
+                div class="card-body" {
+                    h3 class="card-title" { "Generated Grocery List" }
+                    div class="prose max-w-none" {
+                        pre class="whitespace-pre-wrap bg-base-200 p-4 rounded" {
+                            (grocery_list)
+                        }
+                    }
+                }
+            }
+
+            @if let Ok(saved_recipe) = recipe_result {
+                div class="card bg-base-100 shadow-lg" {
+                    div class="card-body" {
+                        h3 class="card-title" { "Saved Recipe" }
+                        p class="text-sm opacity-70" {
+                            "Recipe ID: " (saved_recipe.id())
+                        }
+                        @if let Some(url) = &saved_recipe.url {
+                            p class="text-sm" {
+                                "Source URL: "
+                                a href=(url) target="_blank" class="link" { (url) }
+                            }
+                        }
+                    }
+                }
+            }
+            
+            div class="flex gap-2" {
+                a href="/recipes" class="btn btn-primary" {
+                    "View All Recipes"
+                }
+                a href="/items" class="btn btn-secondary" {
+                    "View Grocery Items"
+                }
+                button class="btn btn-ghost" 
+                       hx-get="/" 
+                       hx-target="body" 
+                       hx-swap="outerHTML" {
+                    "Add Another Recipe"
+                }
+            }
+        }
+    };
+
+    Ok(HttpResponse::Ok()
+        .content_type("text/html; charset=utf-8")
+        .body(markup.into_string()))
 }
 
 #[delete("/recipes/{id}")]

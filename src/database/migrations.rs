@@ -15,16 +15,7 @@ pub async fn run(client: &DBClient) {
     }
     log::info!("Items table migration completed");
 
-    let messages_sql = include_str!("../../migrations/messages.sql");
-    {
-        let client = super::unlock_client(client).await;
-        client
-            .get_connection()
-            .execute_batch(messages_sql)
-            .await
-            .expect("messages migration failed");
-    }
-    log::info!("Messages table migration completed");
+
 
     let recipes_sql = include_str!("../../migrations/recipes.sql");
     {
@@ -49,16 +40,7 @@ pub async fn run(client: &DBClient) {
     }
     log::info!("Items indexes migration completed");
 
-    let messages_indexes_sql = include_str!("../../migrations/messages_indexes.sql");
-    {
-        let client = super::unlock_client(client).await;
-        client
-            .get_connection()
-            .execute_batch(messages_indexes_sql)
-            .await
-            .expect("messages indexes migration failed");
-    }
-    log::info!("Messages indexes migration completed");
+
 
     let recipes_indexes_sql = include_str!("../../migrations/recipes_indexes.sql");
     {

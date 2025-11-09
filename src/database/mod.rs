@@ -30,8 +30,6 @@ pub async fn create_orm_client(url: String, token: Option<String>) -> DB {
 
 pub mod migrations;
 
-pub mod messages;
-
 pub mod recipes;
 
 pub mod items;

@@ -3,12 +3,10 @@ use actix_web::{get, web};
 use maud::{Markup, html};
 
 pub mod about;
-pub mod chat;
 pub mod export;
 mod icons;
 pub mod items;
 pub mod login;
-pub mod message;
 mod navbar;
 pub mod profile;
 pub mod recipes;
@@ -16,7 +14,6 @@ pub mod recipes;
 pub use items::render_item;
 
 use crate::config::Server;
-use crate::database::{self, DBClient};
 use crate::routes::get_user;
 
 #[get("/")]
@@ -27,14 +24,6 @@ pub async fn index_route(server: web::Data<Server>, req: HttpRequest) -> AwResul
         Some(ref user) => Ok(index(None, should_poll_reload, Some(user))),
         None => Ok(index(Some(about::about()), should_poll_reload, None)),
     }
-}
-
-#[get("/chat")]
-pub async fn chat_endpoint(client: web::Data<DBClient>, req: HttpRequest) -> AwResult<Markup> {
-    let user = get_user(req).expect("no user");
-    let client = client.get_ref();
-    let messages = database::messages::get_messages(client, user.id()).await;
-    Ok(chat::chat(&messages, &user))
 }
 
 #[get("/about/readme")]
@@ -68,7 +57,7 @@ pub fn index(
     _reload_polling_active: bool,
     user: Option<&crate::user::User>,
 ) -> Markup {
-    let content = content.unwrap_or_else(chat::render);
+    let content = content.unwrap_or_else(|| recipe_input_form());
     html! {
         (maud::DOCTYPE)
         head {
@@ -95,6 +84,78 @@ pub fn index(
                 (navbar::render(user))
                 main class="container mx-auto px-4 py-6" {
                     (content)
+                }
+            }
+        }
+    }
+}
+
+fn recipe_input_form() -> Markup {
+    html! {
+        div class="max-w-2xl mx-auto" {
+            div class="card bg-base-200 shadow-xl" {
+                div class="card-body" {
+                    h2 class="card-title justify-center mb-6" {
+                        "Add Recipe"
+                    }
+                    div class="space-y-6" {
+                        div class="form-control" {
+                            label class="label" {
+                                span class="label-text font-medium" { "Recipe URL" }
+                            }
+                            form hx-post="/recipes/process" hx-target="#result" hx-swap="innerHTML" {
+                                div class="join w-full" {
+                                    input 
+                                        class="input input-bordered join-item flex-1" 
+                                        type="url" 
+                                        name="url" 
+                                        placeholder="https://example.com/recipe";
+                                    button class="btn btn-primary join-item" type="submit" {
+                                        "Process URL"
+                                    }
+                                }
+                            }
+                            label class="label" {
+                                span class="label-text-alt text-base-content/60" { 
+                                    "Enter a URL to a recipe page to automatically extract ingredients"
+                                }
+                            }
+                        }
+                        
+                        div class="divider" { "OR" }
+                        
+                        div class="form-control" {
+                            label class="label" {
+                                span class="label-text font-medium" { "Recipe Text" }
+                            }
+                            form hx-post="/recipes/process" hx-target="#result" hx-swap="innerHTML" {
+                                textarea 
+                                    class="textarea textarea-bordered min-h-32" 
+                                    name="content" 
+                                    placeholder="Paste your recipe text here...
+                                    
+For example:
+- 2 cups flour
+- 1 cup sugar
+- 3 eggs
+- 1/2 cup butter";
+                                div class="form-control mt-4" {
+                                    button class="btn btn-primary w-full" type="submit" {
+                                        "Process Recipe Text"
+                                    }
+                                }
+                            }
+                            label class="label" {
+                                span class="label-text-alt text-base-content/60" { 
+                                    "Copy and paste recipe text to extract ingredients and create grocery list"
+                                }
+                            }
+                        }
+                    }
+                    
+                    div id="result" class="mt-6" {
+                        // Results will be displayed here
+                    }
                 }
             }
         }

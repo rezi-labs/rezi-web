@@ -10,7 +10,6 @@ pub mod assets;
 pub mod auth;
 pub mod export;
 pub mod items;
-pub mod messages;
 pub mod recipes;
 pub mod technical;
 
@@ -48,27 +47,7 @@ pub fn random_id() -> i64 {
     rng.random::<i64>()
 }
 
-async fn generate_ai_response(user_message: &str, nest_api: &str, nest_api_key: &str) -> String {
-    match llm::simple_chat_response(nest_api, nest_api_key, user_message).await {
-        Ok(a) => a,
-        Err(e) => {
-            match e {
-                llm::LlmError::Request(error) => error!("{error}"),
-                llm::LlmError::Auth(error) => error!("{error}"),
-                llm::LlmError::Parse(error) => error!("{error}"),
-            };
-
-            r"# Error
-
-Something went wrong contacting the agent
-
-                "
-            .to_string()
-        }
-    }
-}
-
-async fn generate_task_response(
+pub async fn generate_task_response(
     user_message: &str,
     nest_api: &str,
     nest_api_key: &str,
