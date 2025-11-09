@@ -103,21 +103,35 @@ fn recipe_input_form() -> Markup {
                             label class="label" {
                                 span class="label-text font-medium" { "Recipe URL" }
                             }
-                            form hx-post="/recipes/process" hx-target="#result" hx-swap="innerHTML" {
-                                div class="join w-full" {
-                                    input 
-                                        class="input input-bordered join-item flex-1" 
-                                        type="url" 
-                                        name="url" 
-                                        placeholder="https://example.com/recipe";
-                                    button class="btn btn-primary join-item" type="submit" {
-                                        "Process URL"
+                            div class="flex flex-col gap-2" {
+                                input 
+                                    class="input input-bordered w-full" 
+                                    type="url" 
+                                    id="recipe-url-input"
+                                    name="url" 
+                                    placeholder="https://example.com/recipe";
+                                div class="flex gap-2" {
+                                    button 
+                                        class="btn btn-primary flex-1" 
+                                        hx-post="/recipes/process" 
+                                        hx-target="#result" 
+                                        hx-swap="innerHTML"
+                                        hx-include="#recipe-url-input" {
+                                        "Quick Process"
+                                    }
+                                    button 
+                                        class="btn btn-secondary flex-1" 
+                                        hx-post="/recipes/extract" 
+                                        hx-target="#result" 
+                                        hx-swap="innerHTML"
+                                        hx-include="#recipe-url-input" {
+                                        "Extract Structure"
                                     }
                                 }
                             }
                             label class="label" {
                                 span class="label-text-alt text-base-content/60" { 
-                                    "Enter a URL to a recipe page to automatically extract ingredients"
+                                    "Quick Process: Extract grocery list only • Extract Structure: Get organized recipe with ingredients and instructions"
                                 }
                             }
                         }
@@ -128,9 +142,10 @@ fn recipe_input_form() -> Markup {
                             label class="label" {
                                 span class="label-text font-medium" { "Recipe Text" }
                             }
-                            form hx-post="/recipes/process" hx-target="#result" hx-swap="innerHTML" {
+                            div class="flex flex-col gap-2" {
                                 textarea 
                                     class="textarea textarea-bordered min-h-32" 
+                                    id="recipe-content-input"
                                     name="content" 
                                     placeholder="Paste your recipe text here...
                                     
@@ -139,15 +154,28 @@ For example:
 - 1 cup sugar
 - 3 eggs
 - 1/2 cup butter";
-                                div class="form-control mt-4" {
-                                    button class="btn btn-primary w-full" type="submit" {
-                                        "Process Recipe Text"
+                                div class="flex gap-2 mt-4" {
+                                    button 
+                                        class="btn btn-primary flex-1" 
+                                        hx-post="/recipes/process" 
+                                        hx-target="#result" 
+                                        hx-swap="innerHTML"
+                                        hx-include="#recipe-content-input" {
+                                        "Quick Process"
+                                    }
+                                    button 
+                                        class="btn btn-secondary flex-1" 
+                                        hx-post="/recipes/extract" 
+                                        hx-target="#result" 
+                                        hx-swap="innerHTML"
+                                        hx-include="#recipe-content-input" {
+                                        "Extract Structure"
                                     }
                                 }
                             }
                             label class="label" {
                                 span class="label-text-alt text-base-content/60" { 
-                                    "Copy and paste recipe text to extract ingredients and create grocery list"
+                                    "Quick Process: Extract grocery list only • Extract Structure: Get organized recipe with ingredients and instructions"
                                 }
                             }
                         }

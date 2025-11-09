@@ -10,13 +10,16 @@ A not so dumb cart helping with grocery lists, managing recipes and meal plannin
 
 ### What can you do?
 
-Ask for a recipe, copy paste in a recipe, ask for a certain kind of thing you want to buy and the magic of LLMs will create the items for you.
+Ask for a recipe, copy paste in a recipe, or provide a recipe URL - the integrated LLM will intelligently extract structured recipe information and generate grocery lists for you. Choose between quick processing for grocery lists or full structured recipe extraction.
 
-### Other
+### Features
 
-- save recipes
-- talk to Rezi to find new recipes
-- download recipes in different format
+- **Structured Recipe Extraction**: Automatically parse recipes into organized ingredients, instructions, and metadata
+- **Smart Grocery Lists**: Generate and manage shopping lists from recipes or free text
+- **Multiple LLM Providers**: Support for both OpenAI and Google Gemini APIs
+- **Recipe Management**: Save, organize and search your recipes
+- **Export Functionality**: Download recipes in different formats
+- **Dual Processing Options**: Quick grocery list generation or full recipe structure extraction
 
 ### Important for You
 
@@ -62,14 +65,38 @@ I did write it in programming languages and concepts that can run without need a
 - This company is also highly trusted
 - The data lies in Europe
 
-#### LLM: Google
+#### LLM Providers: OpenAI & Google Gemini
 
-- This Company is not trustworthy with any personal data
-- There is no data persistent for this provider
-- All the data being sent is non personal this means: the data can not be used to correlate your inputs with your person. The exception is if you write and send in the chat your contact details for every message.
+- Supports both OpenAI and Google Gemini APIs for recipe processing
+- No persistent data stored by LLM providers
+- All data sent is recipe-focused and non-personal
+- Choose your preferred provider via configuration
 
-I intend to remove or replace those vendors in the near future.
+## Configuration
 
-- Database: selfhosted - the same place where this server is hosted
-- Authentication: selfhosted - the same place where this server is hosted
-- LLM: https://www.infomaniak.com - swiss company - all hostend in switzerland
+### LLM Setup
+Set up your preferred LLM provider by configuring these environment variables:
+
+```bash
+# Choose provider: "gemini" or "openai"
+LLM_PROVIDER=gemini
+
+# For Gemini:
+GEMINI_API_KEY=your-gemini-api-key
+
+# For OpenAI:
+OPENAI_API_KEY=your-openai-api-key
+
+# Or use generic key:
+LLM_API_KEY=your-api-key
+```
+
+### Database & Authentication
+- **Database**: Turso.io (Europe-based, trusted provider)
+- **Authentication**: Auth0.com (Europe-based, trusted provider)
+
+### Future Plans
+I intend to replace third-party vendors with self-hosted alternatives:
+- Database: Self-hosted in the same location as the server
+- Authentication: Self-hosted solution
+- LLM: https://www.infomaniak.com (Swiss company, hosted in Switzerland)

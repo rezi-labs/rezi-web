@@ -251,11 +251,11 @@ pub async fn process_recipe_input(
             .body(markup.into_string()));
     };
 
-    // Generate grocery list from recipe content
-    let grocery_list = crate::routes::generate_task_response(
+    // Generate grocery list from recipe content using Rust-based LLM
+    let grocery_list = crate::routes::generate_task_response_rust_llm(
         &recipe_content,
-        &config.nest_api(),
-        &config.nest_api_key(),
+        &config.llm_provider(),
+        &config.llm_api_key(),
         db_client,
         user.id().to_string(),
     )
@@ -326,6 +326,278 @@ pub async fn process_recipe_input(
     Ok(HttpResponse::Ok()
         .content_type("text/html; charset=utf-8")
         .body(markup.into_string()))
+}
+
+#[post("/recipes/extract")]
+pub async fn extract_recipe_structure(
+    form: web::Form<ProcessRecipeRequest>,
+    client: web::Data<DBClient>,
+    config: web::Data<Server>,
+    req: HttpRequest,
+) -> Result<HttpResponse> {
+    let user = match crate::routes::get_user_or_redirect(&req) {
+        Ok(user) => user,
+        Err(response) => return Ok(response),
+    };
+
+    let db_client: &DBClient = client.get_ref();
+
+    // Determine if we're processing a URL or text content
+    let (recipe_content, recipe_url) = if let Some(url) = &form.url {
+        if !url.trim().is_empty() {
+            // Process URL
+            let parsed_url = match Url::parse(url) {
+                Ok(u) => u,
+                Err(_) => {
+                    let markup = html! {
+                        div class="alert alert-error" {
+                            "Invalid URL format. Please enter a valid recipe URL."
+                        }
+                    };
+                    return Ok(HttpResponse::Ok()
+                        .content_type("text/html; charset=utf-8")
+                        .body(markup.into_string()));
+                }
+            };
+
+            let content = match witch::hex(parsed_url.to_string()).await {
+                Ok(content) => content,
+                Err(err) => {
+                    log::error!("Failed to fetch URL content: {err}");
+                    let markup = html! {
+                        div class="alert alert-error" {
+                            "Failed to fetch content from URL. Please check the URL and try again."
+                        }
+                    };
+                    return Ok(HttpResponse::Ok()
+                        .content_type("text/html; charset=utf-8")
+                        .body(markup.into_string()));
+                }
+            };
+
+            (content, Some(url.clone()))
+        } else {
+            // Process text content
+            match &form.content {
+                Some(content) if !content.trim().is_empty() => (content.clone(), None),
+                _ => {
+                    let markup = html! {
+                        div class="alert alert-error" {
+                            "Please provide either a recipe URL or recipe text content."
+                        }
+                    };
+                    return Ok(HttpResponse::Ok()
+                        .content_type("text/html; charset=utf-8")
+                        .body(markup.into_string()));
+                }
+            }
+        }
+    } else if let Some(content) = &form.content {
+        if !content.trim().is_empty() {
+            (content.clone(), None)
+        } else {
+            let markup = html! {
+                div class="alert alert-error" {
+                    "Please provide either a recipe URL or recipe text content."
+                }
+            };
+            return Ok(HttpResponse::Ok()
+                .content_type("text/html; charset=utf-8")
+                .body(markup.into_string()));
+        }
+    } else {
+        let markup = html! {
+            div class="alert alert-error" {
+                "Please provide either a recipe URL or recipe text content."
+            }
+        };
+        return Ok(HttpResponse::Ok()
+            .content_type("text/html; charset=utf-8")
+            .body(markup.into_string()));
+    };
+
+    // Extract structured recipe information
+    let use_gemini = config.llm_provider().to_lowercase() == "gemini";
+    let extracted_recipe = crate::llm::extract_recipe_with_llm(
+        &recipe_content,
+        &config.llm_api_key(),
+        use_gemini,
+    )
+    .await;
+
+    // Also generate grocery list
+    let grocery_list = crate::routes::generate_task_response_rust_llm(
+        &recipe_content,
+        &config.llm_provider(),
+        &config.llm_api_key(),
+        db_client,
+        user.id().to_string(),
+    )
+    .await;
+
+    match extracted_recipe {
+        Ok(recipe_data) => {
+            // Create and save the structured recipe
+            let formatted_content = format!(
+                "# {}\n\n## Ingredients\n{}\n\n## Instructions\n{}\n\n{}{}{}", 
+                recipe_data.title,
+                recipe_data.ingredients.iter().map(|i| format!("- {}", i)).collect::<Vec<_>>().join("\n"),
+                recipe_data.instructions.iter().enumerate().map(|(i, inst)| format!("{}. {}", i + 1, inst)).collect::<Vec<_>>().join("\n"),
+                recipe_data.prep_time.as_ref().map(|pt| format!("**Prep Time:** {}\n", pt)).unwrap_or_default(),
+                recipe_data.cook_time.as_ref().map(|ct| format!("**Cook Time:** {}\n", ct)).unwrap_or_default(),
+                recipe_data.servings.as_ref().map(|s| format!("**Servings:** {}\n", s)).unwrap_or_default()
+            );
+
+            let recipe = Recipe::new(
+                None,
+                user.id().to_string(),
+                Some(recipe_data.title.clone()),
+                recipe_url,
+                formatted_content,
+            );
+
+            let recipe_result = database::recipes::create_recipe(db_client, recipe).await;
+
+            let markup = html! {
+                div class="space-y-4" {
+                    div class="alert alert-success" {
+                        "Recipe extracted and structured successfully! Grocery list generated and recipe saved."
+                    }
+                    
+                    div class="grid grid-cols-1 lg:grid-cols-2 gap-4" {
+                        div class="card bg-base-100 shadow-lg" {
+                            div class="card-body" {
+                                h3 class="card-title" { "Extracted Recipe: " (recipe_data.title) }
+                                
+                                h4 class="font-semibold mt-4" { "Ingredients" }
+                                ul class="list-disc list-inside" {
+                                    @for ingredient in &recipe_data.ingredients {
+                                        li { (ingredient) }
+                                    }
+                                }
+                                
+                                h4 class="font-semibold mt-4" { "Instructions" }
+                                ol class="list-decimal list-inside" {
+                                    @for instruction in &recipe_data.instructions {
+                                        li class="mb-2" { (instruction) }
+                                    }
+                                }
+                                
+                                @if let Some(prep_time) = &recipe_data.prep_time {
+                                    div class="mt-4" {
+                                        span class="font-semibold" { "Prep Time: " }
+                                        (prep_time)
+                                    }
+                                }
+                                @if let Some(cook_time) = &recipe_data.cook_time {
+                                    div {
+                                        span class="font-semibold" { "Cook Time: " }
+                                        (cook_time)
+                                    }
+                                }
+                                @if let Some(servings) = &recipe_data.servings {
+                                    div {
+                                        span class="font-semibold" { "Servings: " }
+                                        (servings)
+                                    }
+                                }
+                            }
+                        }
+
+                        div class="card bg-base-100 shadow-lg" {
+                            div class="card-body" {
+                                h3 class="card-title" { "Generated Grocery List" }
+                                div class="prose max-w-none" {
+                                    pre class="whitespace-pre-wrap bg-base-200 p-4 rounded" {
+                                        (grocery_list)
+                                    }
+                                }
+                            }
+                        }
+                    }
+
+                    @if let Ok(saved_recipe) = recipe_result {
+                        div class="alert alert-info" {
+                            "Recipe saved with ID: " (saved_recipe.id())
+                            @if let Some(url) = &saved_recipe.url {
+                                br;
+                                "Source URL: "
+                                a href=(url) target="_blank" class="link" { (url) }
+                            }
+                        }
+                    }
+                    
+                    div class="flex gap-2" {
+                        a href="/recipes" class="btn btn-primary" {
+                            "View All Recipes"
+                        }
+                        a href="/items" class="btn btn-secondary" {
+                            "View Grocery Items"
+                        }
+                        button class="btn btn-ghost" 
+                               hx-get="/" 
+                               hx-target="body" 
+                               hx-swap="outerHTML" {
+                            "Add Another Recipe"
+                        }
+                    }
+                }
+            };
+
+            Ok(HttpResponse::Ok()
+                .content_type("text/html; charset=utf-8")
+                .body(markup.into_string()))
+        }
+        Err(e) => {
+            log::error!("Failed to extract recipe: {:?}", e);
+            let markup = html! {
+                div class="space-y-4" {
+                    div class="alert alert-warning" {
+                        "Recipe extraction failed, but we still generated a grocery list and saved the raw content."
+                    }
+                    
+                    div class="card bg-base-100 shadow-lg" {
+                        div class="card-body" {
+                            h3 class="card-title" { "Generated Grocery List" }
+                            div class="prose max-w-none" {
+                                pre class="whitespace-pre-wrap bg-base-200 p-4 rounded" {
+                                    (grocery_list)
+                                }
+                            }
+                        }
+                    }
+
+                    div class="alert alert-error" {
+                        "Error extracting structured recipe data: " 
+                        @match e {
+                            crate::llm::LlmError::Request(msg) => (msg),
+                            crate::llm::LlmError::Auth(msg) => (msg),
+                            crate::llm::LlmError::Parse(msg) => (msg),
+                        }
+                    }
+                    
+                    div class="flex gap-2" {
+                        a href="/recipes" class="btn btn-primary" {
+                            "View All Recipes"
+                        }
+                        a href="/items" class="btn btn-secondary" {
+                            "View Grocery Items"
+                        }
+                        button class="btn btn-ghost" 
+                               hx-get="/" 
+                               hx-target="body" 
+                               hx-swap="outerHTML" {
+                            "Try Again"
+                        }
+                    }
+                }
+            };
+
+            Ok(HttpResponse::Ok()
+                .content_type("text/html; charset=utf-8")
+                .body(markup.into_string()))
+        }
+    }
 }
 
 #[delete("/recipes/{id}")]

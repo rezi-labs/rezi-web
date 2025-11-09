@@ -42,19 +42,19 @@ pub fn random_html_safe_id() -> u64 {
     rng.random::<u64>()
 }
 
-pub fn random_id() -> i64 {
-    let mut rng = rand::rng();
-    rng.random::<i64>()
-}
 
-pub async fn generate_task_response(
+
+// New Rust-based LLM task generation
+pub async fn generate_task_response_rust_llm(
     user_message: &str,
-    nest_api: &str,
-    nest_api_key: &str,
+    llm_provider: &str,
+    llm_api_key: &str,
     db_client: &DBClient,
     user_id: String,
 ) -> String {
-    match llm::simple_item_response(nest_api, nest_api_key, user_message, user_id, db_client).await
+    let use_gemini = llm_provider.to_lowercase() == "gemini";
+    
+    match llm::extract_grocery_list_with_llm(user_message, llm_api_key, use_gemini, user_id, db_client).await
     {
         Ok(a) => a,
         Err(e) => {
@@ -64,7 +64,7 @@ pub async fn generate_task_response(
                 llm::LlmError::Parse(error) => error!("{error}"),
             };
 
-            "Something went wrong contacting the agent".to_string()
+            "Something went wrong contacting the LLM agent".to_string()
         }
     }
 }

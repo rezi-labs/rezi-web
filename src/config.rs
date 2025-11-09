@@ -6,8 +6,12 @@ pub struct Server {
     host: String,
     db_url: String,
     token: Option<String>,
+    #[allow(dead_code)]
     nest_api: String,
+    #[allow(dead_code)]
     nest_api_key: String,
+    llm_provider: String,
+    llm_api_key: String,
     fake_user: bool,
     local: bool,
 }
@@ -28,14 +32,17 @@ impl Server {
         self.token.clone()
     }
 
+    #[allow(dead_code)]
     pub fn nest_api(&self) -> String {
         self.nest_api.clone()
     }
 
+    #[allow(dead_code)]
     pub fn nest_api_key(&self) -> String {
         self.nest_api_key.clone()
     }
 
+    #[allow(dead_code)]
     pub fn delay(&self) -> bool {
         self.db_token().is_none()
     }
@@ -46,6 +53,14 @@ impl Server {
 
     pub fn fake_user(&self) -> bool {
         self.fake_user
+    }
+
+    pub fn llm_provider(&self) -> String {
+        self.llm_provider.clone()
+    }
+
+    pub fn llm_api_key(&self) -> String {
+        self.llm_api_key.clone()
     }
 }
 
@@ -58,6 +73,13 @@ pub fn from_env() -> Server {
 
     let nest_api: String = env::var("NEST_API").unwrap_or("http://0.0.0.0:9998".to_string());
     let nest_api_key: String = env::var("NEST_API_KEY").expect("need NEST_API_KEY");
+
+    // LLM Configuration - defaults to using Gemini
+    let llm_provider: String = env::var("LLM_PROVIDER").unwrap_or("gemini".to_string());
+    let llm_api_key: String = env::var("LLM_API_KEY")
+        .or_else(|_| env::var("GEMINI_API_KEY"))
+        .or_else(|_| env::var("OPENAI_API_KEY"))
+        .expect("Need LLM_API_KEY, GEMINI_API_KEY, or OPENAI_API_KEY");
 
     let port: u16 = env::var("g_port")
         .map(|e| e.parse().expect("could not parse port"))
@@ -77,6 +99,8 @@ pub fn from_env() -> Server {
         token: db_token,
         nest_api,
         nest_api_key,
+        llm_provider,
+        llm_api_key,
         fake_user,
         local,
     }

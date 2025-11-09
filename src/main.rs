@@ -112,6 +112,7 @@ async fn main() -> std::io::Result<()> {
             .service(routes::recipes::recipe_endpoint)
             .service(routes::recipes::create_recipe)
             .service(routes::recipes::process_recipe_input)
+            .service(routes::recipes::extract_recipe_structure)
             .service(routes::recipes::get_recipe)
             .service(routes::recipes::update_recipe)
             .service(routes::recipes::delete_recipe)
