@@ -1,5 +1,23 @@
 # Changelog
 
+## [0.16.0](https://github.com/rezi-labs/rezi-web/compare/v0.15.0...v0.16.0) (2025-11-11)
+
+
+### Features
+
+* exports over lunch ([41c5fc4](https://github.com/rezi-labs/rezi-web/commit/41c5fc4aaf9a229d3586d421a7798ab12e3569f0))
+* exports over lunch ([#65](https://github.com/rezi-labs/rezi-web/issues/65)) ([2f41cd2](https://github.com/rezi-labs/rezi-web/commit/2f41cd22a063c230ab70cebd56c4cf74139d37e2))
+* extract title ([b598314](https://github.com/rezi-labs/rezi-web/commit/b5983142eddb6890d7648c6797c98d2008696415))
+* recipe focus ([334ae31](https://github.com/rezi-labs/rezi-web/commit/334ae31efe86c77e4fced00dfaac62c233720028))
+
+
+### Bug Fixes
+
+* do not use open ai ([58c32eb](https://github.com/rezi-labs/rezi-web/commit/58c32eb8a33e798e83aa323a9e0a85a70636ff0e))
+* formats ([e6c289c](https://github.com/rezi-labs/rezi-web/commit/e6c289c8a5c9f06f77b28e68bf7f7f2c14d9d1f6))
+* llm ([1ccc3d9](https://github.com/rezi-labs/rezi-web/commit/1ccc3d9af0168a26e896fccfe75850f73de05f86))
+* main ([ec8ec15](https://github.com/rezi-labs/rezi-web/commit/ec8ec1562923a5c98be11d3606c6438d6060469b))
+
 ## [0.15.0](https://github.com/rezi-labs/rezi-web/compare/v0.14.3...v0.15.0) (2025-09-29)
 
 
