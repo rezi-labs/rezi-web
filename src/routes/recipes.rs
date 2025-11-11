@@ -487,7 +487,7 @@ pub async fn extract_recipe_structure(
                 recipe_data
                     .ingredients
                     .iter()
-                    .map(|i| format!("- {}", i))
+                    .map(|i| format!("- {i}"))
                     .collect::<Vec<_>>()
                     .join("\n"),
                 recipe_data
@@ -500,17 +500,17 @@ pub async fn extract_recipe_structure(
                 recipe_data
                     .prep_time
                     .as_ref()
-                    .map(|pt| format!("**Prep Time:** {}\n", pt))
+                    .map(|pt| format!("**Prep Time:** {pt}\n"))
                     .unwrap_or_default(),
                 recipe_data
                     .cook_time
                     .as_ref()
-                    .map(|ct| format!("**Cook Time:** {}\n", ct))
+                    .map(|ct| format!("**Cook Time:** {ct}\n"))
                     .unwrap_or_default(),
                 recipe_data
                     .servings
                     .as_ref()
-                    .map(|s| format!("**Servings:** {}\n", s))
+                    .map(|s| format!("**Servings:** {s}\n"))
                     .unwrap_or_default()
             );
 
@@ -615,7 +615,7 @@ pub async fn extract_recipe_structure(
                 .body(markup.into_string()))
         }
         Err(e) => {
-            log::error!("Failed to extract recipe: {:?}", e);
+            log::error!("Failed to extract recipe: {e:?}");
             let markup = html! {
                 div class="space-y-4" {
                     div class="alert alert-warning" {

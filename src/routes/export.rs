@@ -68,7 +68,7 @@ pub async fn export_items_pdf(
             Ok(response)
         }
         Err(e) => {
-            log::error!("Failed to generate PDF: {}", e);
+            log::error!("Failed to generate PDF: {e}");
             Ok(HttpResponse::InternalServerError()
                 .content_type("text/plain")
                 .body("Failed to generate PDF"))

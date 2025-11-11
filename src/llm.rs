@@ -1,6 +1,6 @@
-use rig::completion::Prompt;
-use rig::providers::{openai, anthropic, gemini};
 use rig::client::CompletionClient;
+use rig::completion::Prompt;
+use rig::providers::{anthropic, gemini, openai};
 use serde::{Deserialize, Serialize};
 
 use crate::database::{self, DBClient, items::Item};
@@ -8,6 +8,7 @@ use crate::database::{self, DBClient, items::Item};
 #[derive(Debug)]
 pub enum LlmError {
     Request(String),
+    #[allow(dead_code)]
     Auth(String),
     Parse(String),
 }
@@ -128,39 +129,39 @@ Return only the JSON object, no additional text."#
 
     async fn call_llm_api(&self, prompt: &str) -> Result<String, LlmError> {
         let system_message = "You are a helpful assistant that extracts recipe information and grocery lists. Always respond with valid JSON.";
-        
+
         match &self.provider {
             LlmProvider::OpenAI { api_key, model } => {
                 let client = openai::Client::new(api_key);
                 let agent = client.agent(model).preamble(system_message).build();
-                
+
                 let response = agent
                     .prompt(prompt)
                     .await
                     .map_err(|e| LlmError::Request(format!("OpenAI API call failed: {e}")))?;
-                
+
                 Ok(response)
             }
             LlmProvider::Anthropic { api_key, model } => {
                 let client = anthropic::Client::new(api_key);
                 let agent = client.agent(model).preamble(system_message).build();
-                
+
                 let response = agent
                     .prompt(prompt)
                     .await
                     .map_err(|e| LlmError::Request(format!("Anthropic API call failed: {e}")))?;
-                
+
                 Ok(response)
             }
             LlmProvider::Gemini { api_key, model } => {
                 let client = gemini::Client::new(api_key);
                 let agent = client.agent(model).preamble(system_message).build();
-                
+
                 let response = agent
                     .prompt(prompt)
                     .await
                     .map_err(|e| LlmError::Request(format!("Gemini API call failed: {e}")))?;
-                
+
                 Ok(response)
             }
         }
@@ -190,6 +191,7 @@ pub async fn extract_recipe_with_llm(
 }
 
 // New function to support multiple LLM providers
+#[allow(dead_code)]
 pub async fn extract_recipe_with_provider(
     content: &str,
     provider: LlmProvider,
@@ -220,6 +222,7 @@ pub async fn generate_title_with_llm(
 }
 
 // New function to support multiple LLM providers
+#[allow(dead_code)]
 pub async fn generate_title_with_provider(
     content: &str,
     provider: LlmProvider,
@@ -270,6 +273,7 @@ pub async fn extract_grocery_list_with_llm(
 }
 
 // New function to support multiple LLM providers
+#[allow(dead_code)]
 pub async fn extract_grocery_list_with_provider(
     content: &str,
     provider: LlmProvider,
@@ -299,7 +303,12 @@ pub async fn extract_grocery_list_with_provider(
 }
 
 // Helper function to create providers from config strings
-pub fn create_llm_provider(provider_name: &str, api_key: &str, model: Option<&str>) -> Result<LlmProvider, LlmError> {
+#[allow(dead_code)]
+pub fn create_llm_provider(
+    provider_name: &str,
+    api_key: &str,
+    model: Option<&str>,
+) -> Result<LlmProvider, LlmError> {
     match provider_name.to_lowercase().as_str() {
         "openai" => Ok(LlmProvider::OpenAI {
             api_key: api_key.to_string(),
@@ -313,6 +322,8 @@ pub fn create_llm_provider(provider_name: &str, api_key: &str, model: Option<&st
             api_key: api_key.to_string(),
             model: model.unwrap_or("gemini-1.5-flash").to_string(),
         }),
-        _ => Err(LlmError::Request(format!("Unsupported LLM provider: {}", provider_name))),
+        _ => Err(LlmError::Request(format!(
+            "Unsupported LLM provider: {provider_name}"
+        ))),
     }
 }
